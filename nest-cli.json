@@ -54,6 +54,15 @@
       "compilerOptions": {
         "tsConfigPath": "apps/sync_service/tsconfig.app.json"
       }
+    },
+    "simulation_service": {
+      "type": "application",
+      "root": "apps/simulation_service",
+      "entryFile": "main",
+      "sourceRoot": "apps/simulation_service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/simulation_service/tsconfig.app.json"
+      }
     }
   }
 }
