@@ -1,32 +1,35 @@
 namespace pcf.db;
 
-using {managed} from '@sap/cds/common';
+using {
+  managed,
+  Country
+} from '@sap/cds/common';
 
 entity Books {
-  key ID     : Integer @cds.autoincrement;
-      title  : localized String;
-      author : String;
-      stock  : Integer;
+  key ID         : Integer @cds.autoincrement;
+      title      : localized String;
+      author     : String;
+      stock      : Integer;
+      INC_ID     : Integer @cds.autoincrement;
+      INC_ID_STR : UUID    @cds.UUID;
+
 }
 
 entity Authors {
-  key ID   : Integer @cds.autoincrement;
+  key ID   : Integer;
       name : String;
+
 }
 
 entity Orders : managed {
-  key ID : UUID @cds.UUID;
+  key ID      : UUID;
+      book    : Association to Books;
+      country : Country;
+      amount  : Integer;
 }
 
 
-// entity Employee_master : managed {
-//   key ID          : Integer @cds.autoincrement;
-//       SYNC_ID     : String; //SYNC ID OF SYNC HEADER
-//       EMP_ID      : UUID    @cds.UUID;
-//       EMP_NAME    : String;
-//       EMP_ADDRESS : String;
-//       CUSTOMER_ID : Association to Customer_master ;//CUSTOMER MASTER ID
-// }
+
 
 entity Customer_master : managed {
   key ID               : Integer @cds.autoincrement;
@@ -70,7 +73,7 @@ entity Control_family_master : managed {
 }
 
 // entity Sales_order_master:managed{
-//   key ID          : Integer @cds.autoincrement;
+//   key ID    : Integer @cds.autoincrement;
 //       SALES_ORDER_ID : UUID    @cds.UUID;
 //       SALES_ORDER_DATE : DateTime;
 //       SALES_ORDER_DESC : String;
@@ -79,3 +82,77 @@ entity Control_family_master : managed {
 //       SALES_ORDER_COST:Integer;
 //       CUSTOMER_ID : Association to Customer_master;
 // }
+
+entity student_master : managed {
+  key ID      : Integer @cds.autoincrement;
+      name    : String;
+      age     : Integer;
+      address : String;
+      email   : String;
+}
+
+entity PA0002_Employee_Master : managed {
+  key ID               : Integer @cds.autoincrement;
+      SYNC_ID          : String; //SYNC ID OF SYNC HEADER
+      EMP_ID           : UUID    @cds.UUID;
+      EMP_NAME         : String;
+      EMP_ADDRESS      : String;
+      CUSTOMER_ID      : Association to Customer_master; //CUSTOMER MASTER ID
+      CLIENT           : String;
+      PERSONNEL_NUMBER : String;
+      END_DATE         : DateTime;
+      START_DATE       : DateTime;
+      IS_ACTIVE        : String;
+      FIRST_NAME       : String;
+      LAST_NAME        : String;
+      MIDDLE_NAME      : String;
+      DATE_OF_BIRTH    : DateTime;
+      ID_NUMBER        : String;
+      CREATED_BY       : String;
+      CREATED_ON       : DateTime;
+}
+
+entity VA05_Sales_Order : managed {
+  key ID                   : Integer @cds.autoincrement;
+      SALES_ORDER_ID       : UUID    @cds.UUID;
+      SALES_ORDER_DATE     : DateTime;
+      SALES_ORDER_DESC     : String;
+      SALES_ORDER_ITEM     : String;
+      SALES_ORDER_UNIT     : String;
+      SALES_ORDER_COST     : String;
+      CUSTOMER_ID          : Association to Customer_master;
+      SALES_DOCUMENT       : String;
+      DOCUMENT_DATE        : DateTime;
+      CREATED_BY           : String;
+      CREATED_ON           : DateTime;
+      TIME                 : Time;
+      SOLD_TO_PARTY        : String;
+      NET_VALUE            : String;
+      SOLD_TO_PARTY_NAME   : String;
+      SALES_DOCUMENT_ITEM  : String;
+      MATERIAL_DESCRIPTION : String;
+      PERSONNEL_NUMBER     : String;
+
+}
+
+entity ZSD0070_Billing_Report : managed {
+  key ID                    : Integer @cds.autoincrement;
+      BILLING_REPORT_ID     : UUID    @cds.UUID;
+      BILLING_DOCUMENT      : String;
+      SALES_DOCUMENT        : String;
+      CUSTOMER_ID           : Association to Customer_master;
+      PAYER_DESCRIPTION     : String;
+      ITEM_DESCRIPTION      : String;
+      BILLING_DATE          : DateTime;
+      NET_VALUE             : String;
+      TAX_AMOUNT            : String;
+      COST                  : String;
+      GRORSS_VALUE          : String;
+      SUMOF_NET_GROSS_VALUE : String;
+      DELIVERY_NUMBER       : String;
+      SHIP_TO_PARTY1        : String;
+      CREATED_BY            : String;
+      CREATED_ON            : DateTime;
+      START_DATE            : DateTime;
+      END_DATE              : DateTime;
+}
