@@ -1,0 +1,33 @@
+{
+  "build": {
+    "target": ".",
+    "tasks": [
+      {
+        "for": "node-cf",
+        "src": "srv",
+        "options": {
+          "model": ["srv"]
+        }
+      }
+    ]
+  },
+  "odata": {
+    "version": "v4"
+  },
+  "requires": {
+    "db": {
+      "kind": "postgres",
+      "impl": "@cap-js/postgres",
+      "model": ["srv", "./db/data-model.cds"],
+      "credentials": {
+        "host": "0.0.0.0",
+        "port": 5432,
+        "user": "postgres",
+        "password": "1234",
+        "database": "postgres",
+        "schema": "public",
+        "uri": "postgres://postgres:1234@0.0.0.0:5432/postgres"
+      }
+    }
+  }
+}
