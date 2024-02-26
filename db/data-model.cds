@@ -29,8 +29,6 @@ entity Orders : managed {
 }
 
 
-
-
 entity Customer_master : managed {
   key ID               : Integer @cds.autoincrement;
       CUSTOMER_ID      : UUID    @cds.UUID;
@@ -38,19 +36,10 @@ entity Customer_master : managed {
       CUSTOMER_ADDRESS : String;
       START_DATE       : DateTime;
       END_DATE         : DateTime;
+      IS_ACTIVE        : String;
 
 }
 
-// entity Report_master : managed {
-//   key ID          : Integer @cds.autoincrement;
-//       REPORT_ID   : UUID    @cds.UUID;
-//       REPORT_NAME : String;
-//       REPORT_PATH : String;
-//       REPORT_TYPE : String;
-//       REPORT_STATUS : String;
-//       REPORT_DESC : String;
-//       CUSTOMER_ID : Association to Customer_master;
-// }
 
 entity Control_master : managed {
   key ID             : Integer @cds.autoincrement;
@@ -59,6 +48,7 @@ entity Control_master : managed {
       CONTROL_NAME   : String;
       CONTROL_DESC   : String;
       CUSTOMER_ID    : Association to Customer_master;
+      IS_ACTIVE      : String;
 }
 
 entity Control_family_master : managed {
@@ -69,19 +59,9 @@ entity Control_family_master : managed {
       CUSTOMER_ID         : Association to Customer_master;
       C_MASTER            : Association to many Control_master
                               on C_MASTER.CONTROL_FAMILY = $self;
-
+      IS_ACTIVE           : String;
 }
 
-// entity Sales_order_master:managed{
-//   key ID    : Integer @cds.autoincrement;
-//       SALES_ORDER_ID : UUID    @cds.UUID;
-//       SALES_ORDER_DATE : DateTime;
-//       SALES_ORDER_DESC : String;
-//       SALES_ORDER_ITEM:String;
-//       SALES_ORDER_UNIT:String;
-//       SALES_ORDER_COST:Integer;
-//       CUSTOMER_ID : Association to Customer_master;
-// }
 
 entity student_master : managed {
   key ID      : Integer @cds.autoincrement;
@@ -110,6 +90,7 @@ entity PA0002_Employee_Master : managed {
       ID_NUMBER        : String;
       CREATED_BY       : String;
       CREATED_ON       : DateTime;
+
 }
 
 entity VA05_Sales_Order : managed {
@@ -132,6 +113,7 @@ entity VA05_Sales_Order : managed {
       SALES_DOCUMENT_ITEM  : String;
       MATERIAL_DESCRIPTION : String;
       PERSONNEL_NUMBER     : String;
+      IS_ACTIVE            : String;
 
 }
 
@@ -155,4 +137,74 @@ entity ZSD0070_Billing_Report : managed {
       CREATED_ON            : DateTime;
       START_DATE            : DateTime;
       END_DATE              : DateTime;
+      IS_ACTIVE             : String;
+}
+
+//26-02-2024
+entity sync_header : managed {
+  key ID              : Integer @cds.autoincrement;
+      SYNC_ID         : UUID    @cds.UUID;
+      SYNC_STATUS     : String;
+      CONTROL_ID      : Association to Control_master;
+      CUSTOMER_ID     : Association to Customer_master;
+      SYNC_STARTED_AT : DateTime;
+      SYNC_ENDED_AT   : DateTime;
+      IS_ACTIVE       : String;
+
+}
+
+entity sync_details : managed {
+  key ID                 : Integer @cds.autoincrement;
+      SYNC_HEADER_ID     : Association to sync_header;
+      SYNC_STATUS        : String;
+      CONTROL_ID         : Association to Control_master;
+      REPORT_ID          : Association to Report_master;
+      REPORT_DESTINATION : String;
+      SYNC_STARTED_AT    : DateTime;
+      SYNC_ENDED_AT      : DateTime;
+      CHANGED_BY         : String;
+      CHANGED_ON         : DateTime;
+      CUSTOMER_ID        : Association to Customer_master;
+      IS_ACTIVE          : String;
+
+}
+
+entity Report_master : managed {
+  key ID                 : Integer @cds.autoincrement;
+      REPORT_ID          : UUID    @cds.UUID;
+      REPORT_PATH        : String;
+      REPORT_NAME        : String;
+      REPORT_CREATED_AT  : DateTime;
+      REPORT_DESTINATION : String;
+      CUSTOMER_ID        : Association to Customer_master;
+      IS_ACTIVE          : String;
+      CHANGED_ON         : DateTime;
+      CHANGED_BY         : String;
+}
+
+entity Control_report_mapping : managed {
+  key ID          : Integer @cds.autoincrement;
+      REPORT_ID   : Association to Report_master;
+      CONTROL_ID  : Association to Control_master;
+      CUSTOMER_ID : Association to Customer_master;
+      IS_ACTIVE   : String;
+      CREATED_ON  : DateTime;
+      CHANGED_ON  : DateTime;
+      CHANGED_BY  : String;
+}
+
+entity Price_mismatch_output : managed {
+  key ID           : Integer @cds.autoincrement;
+      SYNC_ID      : Association to sync_header;
+      EMP_ID       : Association to PA0002_Employee_Master;
+      INVOICE_ID   : Association to ZSD0070_Billing_Report;
+      ORDER_ID     : Association to VA05_Sales_Order;
+      CONTROL_ID   : Association to Control_master;
+      CUSTOMER_ID  : Association to Customer_master;
+      SIMULATED_AT : DateTime;
+      SIMULATED_BY : String;
+      IS_ACTIVE    : String;
+      CREATED_ON   : DateTime;
+      CHANGED_ON   : DateTime;
+      CHANGED_BY   : String;
 }
