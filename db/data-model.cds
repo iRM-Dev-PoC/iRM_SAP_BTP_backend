@@ -208,3 +208,17 @@ entity Price_mismatch_output : managed {
       CHANGED_ON   : DateTime;
       CHANGED_BY   : String;
 }
+
+entity Login_user : managed {
+  key ID          : Integer @cds.autoincrement;
+      USER_ID     : UUID    @cds.UUID;
+      USER_NAME   : String;
+      USER_EMAIL  : String;
+      USER_EMP_ID : String;
+      PASSWORD    : String;
+      CUSTOMER_ID : Association to Customer_master;
+      IS_ACTIVE   : String;
+      CREATED_ON  : DateTime;
+      CHANGED_ON  : DateTime;
+      CHANGED_BY  : String;
+}
