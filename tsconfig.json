@@ -30,6 +30,12 @@
       ],
       "@app/share_lib/*": [
         "libs/share_lib/src/*"
+      ],
+      "@app/auth": [
+        "libs/auth/src"
+      ],
+      "@app/auth/*": [
+        "libs/auth/src/*"
       ]
     }
   }
