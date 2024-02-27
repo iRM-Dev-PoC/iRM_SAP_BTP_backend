@@ -3,10 +3,12 @@ import {
   Body,
   Controller,
   Post,
+  Req,
   UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { LoginDto } from 'libs/auth/dto/auth.dto';
 import { JwtAuthGuard } from 'libs/auth/guards/jwtAuth.guard';
 import { LocalGuard } from 'libs/auth/guards/local.guard';
@@ -24,7 +26,9 @@ export class LoginController {
 
   @Post('accessendpoints')
   @UseGuards(JwtAuthGuard)
-  async accessendpoints() {
-    return 'You have access to the endpoints';
+  async accessendpoints(
+    @Req() req: Request,
+  ) {
+    return {'You have access to the endpoints': req.user};
   }
 }
