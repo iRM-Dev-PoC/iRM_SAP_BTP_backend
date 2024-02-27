@@ -37,6 +37,8 @@
     "@sap/cds": "^7.6.3",
     "@sap/cds-dk": "^7.6.0",
     "@sap/xssec": "^3",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
     "dotenv": "^16.4.4",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
