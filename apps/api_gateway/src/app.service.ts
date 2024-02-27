@@ -11,7 +11,7 @@ export class AppService {
                               AS USER_NAME,role_id_id as role_id,
                               (SELECT ROLE_NAME  FROM public.pcf_db_role_master WHERE ID=role_id_id) AS USER_ROLE 
                               FROM ${User_role_mapping}`);
-    console.log(data);
+    // console.log(data);
 
     return data;
   }

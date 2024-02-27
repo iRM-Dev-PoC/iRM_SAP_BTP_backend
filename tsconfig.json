@@ -36,6 +36,12 @@
       ],
       "@app/auth/*": [
         "libs/auth/src/*"
+      ],
+      "@app/guard": [
+        "libs/auth/guards/jwtguards/guard/src"
+      ],
+      "@app/guard/*": [
+        "libs/auth/guards/jwtguards/guard/src/*"
       ]
     }
   }
