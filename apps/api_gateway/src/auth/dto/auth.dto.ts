@@ -13,3 +13,10 @@ export class LoginDto {
   @IsNotEmpty({ message: 'Password is required' })
   password: string;
 }
+
+export class UserPrivilegeDto{
+  role_name: string;
+  module_name: string;
+  submodule_name: string;
+  privilege: string;
+}

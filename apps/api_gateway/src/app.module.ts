@@ -8,28 +8,32 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { LoginModule } from './login/login.module';
-import { LocalStrategy } from '../../../libs/auth/strategies/local.strategy';
-import { AuthModule } from '@app/auth';
-import { JwtStrategy } from 'libs/auth/strategies/jwt.strategy';
 import { ValidateUserMiddleware } from './middlewares/validateuser.middleware';
-import { request } from 'http';
+import { AuthModule } from './auth/src';
+import { LocalStrategy } from './auth/strategies/local.strategy';
+import { JwtStrategy } from './auth/strategies/jwt.strategy';
+import { ProcesscontrolflowModule } from './processcontrolflow/processcontrolflow.module';
 
 @Module({
-  imports: [AuthModule, ConfigModule.forRoot({ isGlobal: true }), LoginModule],
+  imports: [AuthModule, ConfigModule.forRoot({ isGlobal: true }), LoginModule, ProcesscontrolflowModule],
   controllers: [AppController],
   providers: [AppService, LocalStrategy, JwtStrategy],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(ValidateUserMiddleware).forRoutes(
-      {
-        path: 'auth/accessendpoints',
-        method: RequestMethod.ALL,
-      },
-      {
-        path: '/',
-        method: RequestMethod.ALL,
-      },
-    );
+    consumer
+      .apply(ValidateUserMiddleware)
+      .exclude({ path: 'auth/login', method: RequestMethod.POST })
+      .forRoutes('*');
+    // .forRoutes(
+    //   {
+    //     path: 'auth/accessendpoints',
+    //     method: RequestMethod.ALL,
+    //   },
+    //   {
+    //     path: '/',
+    //     method: RequestMethod.ALL,
+    //   },
+    // );
   }
 }

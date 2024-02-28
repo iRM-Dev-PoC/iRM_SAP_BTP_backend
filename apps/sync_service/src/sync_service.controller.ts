@@ -1,8 +1,6 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { SyncServiceService } from './sync_service.service';
-import cds from '@sap/cds';
 import { CreateBooksDto } from './model';
-import { JwtAuthGuard } from 'libs/auth/guards/jwtAuth.guard';
 
 @Controller()
 export class SyncServiceController {
