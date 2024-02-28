@@ -78,16 +78,8 @@ export class RoleGuard implements CanActivate {
 
     if (module && submodule && operation) {
       IsAllowed = privileges.some((privilege) => {
-        // console.log('privilege', privilege);
-        // console.log(
-        //   'flag',
-        //   privilege.module_name.toLowerCase() === module.toLowerCase() &&
-        //     (privilege.submodule_name == null
-        //       ? ''
-        //       : privilege.submodule_name.toLowerCase()) ===
-        //       submodule.toLowerCase() &&
-        //     privilege.privilege.toLowerCase() === operation.toLowerCase(),
-        // );
+        console.log('privilege', privilege);
+       
         return (
           privilege.module_name.toLowerCase() === module.toLowerCase() &&
           (privilege.submodule_name == null

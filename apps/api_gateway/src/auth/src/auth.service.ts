@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import cds from '@sap/cds';
 import { AuthDto, LoginDto } from '../dto/auth.dto';
+import { Request } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -49,5 +50,41 @@ export class AuthService {
     }
   }
 
-  validatePrivileges() {}
+  validatePrivileges(
+    req: Request,
+    module: string,
+    submodule: string,
+    operation: string,
+  ): boolean {
+    const token = req.headers.authorization.split(' ')[1];
+    if (!token) {
+      throw new UnauthorizedException();
+    }
+    const CurrentUser = this.getPayloadFromToken(token);
+    if (!CurrentUser) {
+      throw new UnauthorizedException();
+    }
+    let privileges = CurrentUser.privileges;
+    if (!privileges) {
+      throw new UnauthorizedException('No privileges given to the user');
+    }
+    let IsAllowed = false;
+
+    if (module && submodule && operation) {
+      IsAllowed = privileges.some((privilege) => {
+        // console.log('privilege', privilege);
+
+        return (
+          privilege.module_name.toLowerCase() === module.toLowerCase() &&
+          (privilege.submodule_name == null
+            ? ''
+            : privilege.submodule_name.toLowerCase()) ===
+            submodule.toLowerCase() &&
+          privilege.privilege.toLowerCase().includes(operation.toLowerCase())
+        );
+      });
+    }
+
+    return IsAllowed;
+  }
 }

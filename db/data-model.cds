@@ -285,6 +285,7 @@ entity Module_master {
   key ID               : Integer @cds.autoincrement;
       MODULE_ID        : UUID    @cds.UUID;
       MODULE_NAME      : String;
+      DISPLAY_MODULE_NAME : String;
       MODULE_DESC      : String;
       PARENT_MODULE_ID : Association to Module_master;
       IS_ACTIVE        : String;
@@ -299,6 +300,7 @@ entity SubModule_master {
   key ID               : Integer @cds.autoincrement;
       SUBMODULE_ID     : UUID    @cds.UUID;
       SUBMODULE_NAME   : String;
+      DISPLAY_SUBMODULE_NAME:String;
       SUBMODULE_DESC   : String;
       PARENT_MODULE_ID : Association to Module_master;
       IS_ACTIVE        : String;
