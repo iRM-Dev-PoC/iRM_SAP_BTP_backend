@@ -1,4 +1,3 @@
-import { AuthService } from '@app/auth';
 import {
   Body,
   Controller,
@@ -9,9 +8,10 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { LoginDto } from 'libs/auth/dto/auth.dto';
-import { JwtAuthGuard } from 'libs/auth/guards/jwtAuth.guard';
-import { LocalGuard } from 'libs/auth/guards/local.guard';
+import { LoginDto } from '../auth/dto/auth.dto';
+import { LocalGuard } from '../auth/guards/local.guard';
+import { JwtAuthGuard } from '../auth/guards/jwtAuth.guard';
+import { AuthService } from '../auth/src';
 
 @Controller('auth')
 export class LoginController {

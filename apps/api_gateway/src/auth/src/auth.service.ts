@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import cds from '@sap/cds';
-import { AuthDto, LoginDto } from 'libs/auth/dto/auth.dto';
+import { AuthDto, LoginDto } from '../dto/auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -13,7 +13,7 @@ export class AuthService {
         .columns('user_email', 'id', 'password')
         .where({
           user_email: AuthPayload.username,
-          is_active:'Y'
+          is_active: 'Y',
         }),
     );
     if (!user || user.length === 0) {
@@ -40,7 +40,14 @@ export class AuthService {
     }
   }
 
-  validatePrivileges(){
-    
+  getPayloadFromToken(token: string) {
+    try {
+      // console.log(this.jwtservice.verify(token));
+      return this.jwtservice.verify(token);
+    } catch (error) {
+      throw new UnauthorizedException('Invalid token');
+    }
   }
+
+  validatePrivileges() {}
 }
