@@ -6,8 +6,6 @@ import { AuthService } from '../auth/src';
 export class ValidateUserMiddleware {
   constructor(private authService: AuthService) {}
   use(req: Request, res: Response, next: NextFunction) {
-    // console.log('Request...', req);
-    
     if (!req.headers.authorization) {
       return res
         .status(401)
@@ -16,14 +14,8 @@ export class ValidateUserMiddleware {
       let token: string = req.headers.authorization.split(' ')[1];
       if (!token) {
         return res.status(401).json({ message: 'Unauthorized' });
-      } else {
-        let payload = this.authService.getPayloadFromToken(token);
-        // console.log(payload);
       }
     }
     next();
   }
-
-
-
 }
