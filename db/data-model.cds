@@ -267,6 +267,10 @@ entity User_privilege_mapping {
       CHANGED_ON   : DateTime;
       CHANGED_BY   : String;
       CUSTOMER_ID  : Association to Customer_master;
+      MODULE_ID    : Association to Module_master;
+      SUBMODULE_ID : Association to SubModule_master;
+      DIRECT_PRIVILEGE_FLAG : String;
+
 }
 
 entity User_role_mapping {
@@ -323,4 +327,5 @@ entity Role_module_submodule_mapping {
       CHANGED_BY     : String;
       CUSTOMER_ID    : Association to Customer_master;
       PRIVILEGE_FLAG : String;
+      PRIVILEGE_ID   : Association to Privilege;
 }

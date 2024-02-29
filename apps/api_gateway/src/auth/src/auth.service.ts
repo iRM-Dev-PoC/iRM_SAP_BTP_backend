@@ -23,7 +23,7 @@ export class AuthService {
       if (user[0].password === AuthPayload.password) {
         let userid: string = user[0].id.toString();
         let userprivileges = await cds.run(
-          `SELECT ROLE_NAME,MODULE_NAME,SUBMODULE_NAME,PRIVILEGE from GET_ALL_PRIVILEGES_BY_USER_ID('${userid}')`,
+          `SELECT ROLE_ID,ROLE_NAME,MODULE_NAME,SUBMODULE_NAME,DISPLAY_MODULE_NAME,DISPLAY_SUBMODULE_NAME,PRIVILEGE from GET_ALL_PRIVILEGES_BY_USER_ID('${userid}')`,
         );
         // console.log(userprivileges);
         let payload: AuthDto = {
@@ -33,7 +33,6 @@ export class AuthService {
         };
         return {
           access_token: this.jwtservice.sign(payload),
-          //data: payload,
         };
       } else {
         throw new UnauthorizedException('Invalid credentials');
@@ -56,6 +55,9 @@ export class AuthService {
     submodule: string,
     operation: string,
   ): boolean {
+    if (!req.headers.authorization) {
+      throw new UnauthorizedException('authorization header not found ');
+    }
     const token = req.headers.authorization.split(' ')[1];
     if (!token) {
       throw new UnauthorizedException();
@@ -80,7 +82,7 @@ export class AuthService {
             ? ''
             : privilege.submodule_name.toLowerCase()) ===
             submodule.toLowerCase() &&
-          privilege.privilege.toLowerCase().includes(operation.toLowerCase())
+          privilege.privilege.toLowerCase()===operation.toLowerCase()
         );
       });
     }

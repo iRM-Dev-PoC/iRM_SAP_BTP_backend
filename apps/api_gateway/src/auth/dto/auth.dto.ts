@@ -1,9 +1,19 @@
-import { IsEmail, IsEmpty, IsNotEmpty } from 'class-validator';
+import { IsEmail, IsNotEmpty } from 'class-validator';
+
+export class Privilege{
+  role_id: number;
+  role_name: string;
+  module_name: string;
+  submodule_name: string;
+  display_module_name: string;
+  display_submodule_name: string;
+  privilege: string;
+}
 
 export class AuthDto {
   id: number;
   username: string;
-  privileges: any[];
+  privileges: Privilege[];
 }
 
 export class LoginDto {

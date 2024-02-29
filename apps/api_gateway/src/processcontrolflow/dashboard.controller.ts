@@ -3,10 +3,8 @@ import {
   ForbiddenException,
   Get,
   Req,
-  SetMetadata,
   UseGuards,
 } from '@nestjs/common';
-import { RoleGuard } from '../auth/guards/role.guard';
 import { JwtAuthGuard } from '../auth/guards/jwtAuth.guard';
 import { Request } from 'express';
 import { AuthService } from '../auth/src';
@@ -16,9 +14,9 @@ import { AuthService } from '../auth/src';
 export class DashboardController {
   constructor(private authService: AuthService) {}
 
-  @Get('get_hello')
+  @Get('get-hello')
   getHello(@Req() req: Request) {
-    if (!this.authService.validatePrivileges(req, 'dashboard', '', 'r')) {
+    if (!this.authService.validatePrivileges(req, 'dashboard', 'landing_page', 'create')) {
       throw new ForbiddenException(
         'You are not authorized to perform this operation',
       );

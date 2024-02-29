@@ -3,10 +3,8 @@ import {
   ForbiddenException,
   Get,
   Req,
-  SetMetadata,
   UseGuards,
 } from '@nestjs/common';
-import { RoleGuard } from '../auth/guards/role.guard';
 import { JwtAuthGuard } from '../auth/guards/jwtAuth.guard';
 import { Request } from 'express';
 import { AuthService } from '../auth/src';
@@ -15,14 +13,14 @@ import { AuthService } from '../auth/src';
 @Controller('configuration')
 export class ConfigurationController {
   constructor(private authService: AuthService) {}
-  @Get('add_roles')
+  @Get('add-roles')
   ReadAddRoles(@Req() req: Request) {
     if (
       !this.authService.validatePrivileges(
         req,
         'configuration',
         'add_roles',
-        'r',
+        'read',
       )
     ) {
       throw new ForbiddenException(
@@ -32,7 +30,7 @@ export class ConfigurationController {
     // console.log('inside the ReadAddRoles', req.headers.authorization);
     return {
       submodule: 'add_roles',
-      operation: 'r',
+      operation: 'read',
     };
   }
 
@@ -43,7 +41,7 @@ export class ConfigurationController {
         req,
         'configuration',
         'add_users',
-        'r',
+        'read',
       )
     ) {
       throw new ForbiddenException(
@@ -52,7 +50,7 @@ export class ConfigurationController {
     }
     return {
       submodule: 'add_users',
-      operation: 'r',
+      operation: 'read',
     };
   }
 }

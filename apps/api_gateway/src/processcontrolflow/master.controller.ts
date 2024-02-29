@@ -2,11 +2,10 @@ import {
   Controller,
   ForbiddenException,
   Get,
+  Post,
   Req,
-  SetMetadata,
   UseGuards,
 } from '@nestjs/common';
-import { RoleGuard } from '../auth/guards/role.guard';
 import { JwtAuthGuard } from '../auth/guards/jwtAuth.guard';
 import { Request } from 'express';
 import { AuthService } from '../auth/src';
@@ -16,14 +15,14 @@ export class MasterController {
   constructor(private authService: AuthService) {}
 
   //add submodule for role-based access control
-  @Get('types_of_control')
+  @Get('types-of-control')
   ReadTypeOfControl(@Req() req: Request) {
     if (
       !this.authService.validatePrivileges(
         req,
         'master',
         'types_of_control',
-        'r',
+        'read',
       )
     ) {
       throw new ForbiddenException(
@@ -32,18 +31,18 @@ export class MasterController {
     }
     return {
       submodule: 'types_of_control',
-      operation: 'r',
+      operation: 'read',
     };
   }
 
-  @Get('types_of_control')
+  @Post('types-of-control')
   WriteTypeOfControl(@Req() req: Request) {
     if (
       !this.authService.validatePrivileges(
         req,
         'master',
         'types_of_control',
-        'w',
+        'create',
       )
     ) {
       throw new ForbiddenException(
@@ -52,14 +51,14 @@ export class MasterController {
     }
     return {
       submodule: 'types_of_control',
-      operation: 'r',
+      operation: 'create',
     };
   }
 
-  @Get('control_family')
+  @Get('control-family')
   ReadControlFamily(@Req() req: Request) {
     if (
-      !this.authService.validatePrivileges(req, 'master', 'control_family', 'r')
+      !this.authService.validatePrivileges(req, 'master', 'control_family', 'read')
     ) {
       throw new ForbiddenException(
         'You are not authorized to perform this operation',
@@ -68,18 +67,18 @@ export class MasterController {
 
     return {
       submodule: 'control_family',
-      operation: 'r',
+      operation: 'read',
     };
   }
 
-  @Get('control_attribute')
+  @Get('control-attribute')
   ReadControlAttribute(@Req() req: Request) {
     if (
       !this.authService.validatePrivileges(
         req,
         'master',
         'control_attribute',
-        'r',
+        'read',
       )
     ) {
       throw new ForbiddenException(
@@ -88,27 +87,27 @@ export class MasterController {
     }
     return {
       submodule: 'control_attribute',
-      operation: 'r',
+      operation: 'read',
     };
   }
 
   @Get('report')
   ReadReport(@Req() req: Request) {
-    if (!this.authService.validatePrivileges(req, 'master', 'report', 'r')) {
+    if (!this.authService.validatePrivileges(req, 'master', 'report', 'read')) {
       throw new ForbiddenException(
         'You are not authorized to perform this operation',
       );
     }
     return {
       submodule: 'report',
-      operation: 'r',
+      operation: 'read',
     };
   }
 
-  @Get('control_logic')
+  @Get('control-logic')
   ReadControlLogic(@Req() req: Request) {
     if (
-      !this.authService.validatePrivileges(req, 'master', 'control_logic', 'r')
+      !this.authService.validatePrivileges(req, 'master', 'control_logic', 'read')
     ) {
       throw new ForbiddenException(
         'You are not authorized to perform this operation',
@@ -116,7 +115,7 @@ export class MasterController {
     }
     return {
       submodule: 'control_logic',
-      operation: 'r',
+      operation: 'read',
     };
   }
 }
