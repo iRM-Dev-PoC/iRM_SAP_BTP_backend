@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { SyncServiceController } from './sync_service.controller';
-import { SyncServiceService } from './sync_service.service';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -11,6 +11,7 @@ import { SyncServiceService } from './sync_service.service';
         transport: Transport.KAFKA,
         options: {
           client: {
+            clientId: 'sync',
             brokers: ['localhost:9092'],
           },
           consumer: {
@@ -20,7 +21,7 @@ import { SyncServiceService } from './sync_service.service';
       },
     ]),
   ],
-  controllers: [SyncServiceController],
-  providers: [SyncServiceService],
+  controllers: [AppController],
+  providers: [AppService],
 })
-export class SyncServiceModule {}
+export class AppModule {}

@@ -1,20 +1,22 @@
 import { NestFactory } from '@nestjs/core';
-import { SyncServiceModule } from './sync_service.module';
-import cds from '@sap/cds';
-import { ConfigService } from '@nestjs/config';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(SyncServiceModule);
-  const pdb = await cds.connect
-    .to('db')
-    .then((db) => {
-      console.log('connected to db');
-    })
-    .catch((err) => {
-      console.log('error connecting to db', err);
-    });
-
-  await app.listen(3003);
-  console.log(`Application is running on: ${await app.getUrl()}`);
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
+    AppModule,
+    {
+      transport: Transport.KAFKA,
+      options: {
+        client: {
+          brokers: ['localhost:9092'],
+        },
+        consumer: {
+          groupId: 'sync-consumer',
+        },
+      },
+    },
+  );
+  await app.listen();
 }
 bootstrap();

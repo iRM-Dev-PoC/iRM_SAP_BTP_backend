@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { SyncServiceModule } from './../src/sync_service.module';
+import { SyncServiceModule } from '../src/app.module';
 
 describe('SyncServiceController (e2e)', () => {
   let app: INestApplication;
