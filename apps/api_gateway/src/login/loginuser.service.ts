@@ -30,7 +30,7 @@ export class LoginUserService {
         if (exisingUser && exisingUser.length > 0) {
           await tx.commit();
           return {
-            status: HttpStatus.CONFLICT,
+            statuscode: HttpStatus.CONFLICT,
             message: 'User already exists',
             data: exisingUser,
           };
@@ -41,14 +41,14 @@ export class LoginUserService {
       );
       await tx.commit();
       return {
-        status: HttpStatus.CREATED,
+        statuscode: HttpStatus.CREATED,
         message: 'User created successfully',
         data: createUserDto,
       };
     } catch (error) {
       await tx.rollback();
       return {
-        status: error.status,
+        statuscode: error.status,
         message: error.message,
         data: null,
       };
@@ -63,6 +63,25 @@ export class LoginUserService {
     try {
       updateLoginUser.changed_on = new Date();
       updateLoginUser.changed_by = currentUser.user_id;
+
+      if (updateLoginUser.user_name || updateLoginUser.user_email) {
+        let exisingUser = await tx.run(
+          SELECT.from('PCF_DB_LOGIN_USER')
+            .columns('user_name', 'user_email', 'is_active')
+            .where(
+              `id != '${updateLoginUser.id}' AND (user_name = '${updateLoginUser.user_name}' OR user_email = '${updateLoginUser.user_email}') and is_active = 'Y'`,
+            ),
+        );
+        // console.log('exisingUser', exisingUser);
+        if (exisingUser && exisingUser.length > 0) {
+          await tx.commit();
+          return {
+            statuscode: HttpStatus.CONFLICT,
+            message: 'User already exists',
+            data: exisingUser,
+          };
+        }
+      }
 
       let user = await tx.run(
         UPDATE('PCF_DB_LOGIN_USER')
@@ -83,14 +102,14 @@ export class LoginUserService {
 
       await tx.commit();
       return {
-        status: HttpStatus.OK,
+        statuscode: HttpStatus.OK,
         message: 'User updated successfully',
         data: updateLoginUser,
       };
     } catch (error) {
       await tx.rollback();
       return {
-        status: error.status,
+        statuscode: error.status,
         message: error.message,
         data: null,
       };
@@ -125,14 +144,21 @@ export class LoginUserService {
           }),
       );
 
+      if (!user || user.length == 0) {
+        return {
+          statuscode: HttpStatus.NOT_FOUND,
+          message: 'User not found',
+          data: user,
+        };
+      }
       return {
-        status: HttpStatus.OK,
+        statuscode: HttpStatus.OK,
         message: 'User fetched successfully',
         data: user,
       };
     } catch (error) {
       return {
-        status: error.status,
+        statuscode: error.status,
         message: error.message,
         data: null,
       };
@@ -158,6 +184,13 @@ export class LoginUserService {
       );
 
       await tx.commit();
+      if (user == 0) {
+        return {
+          statuscode: HttpStatus.NOT_FOUND,
+          message: 'User not found for deletion',
+          data: user,
+        };
+      }
       return {
         status: HttpStatus.OK,
         message: 'User deleted successfully',
