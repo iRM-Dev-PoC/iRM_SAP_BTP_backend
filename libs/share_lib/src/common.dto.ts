@@ -2,7 +2,7 @@ import { IsNotEmpty, isNotEmpty } from 'class-validator';
 import { UUID } from 'crypto';
 
 export class ResponseDto {
-  status: any;
+  statuscode: any;
   message: string;
   data: any;
 }

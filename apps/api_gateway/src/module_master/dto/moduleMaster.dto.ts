@@ -1,4 +1,4 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsNumber, isNumber } from 'class-validator';
 
 //#region moduleMaster
 
@@ -8,7 +8,8 @@ export class CreateModuleMasterDto {
   @IsNotEmpty()
   module_name: string;
   module_desc: string;
-  parent_module_id_id: string;
+  @IsNumber()
+  parent_module_id_id: number;
 
   @IsNotEmpty()
   display_module_name: string;
@@ -23,9 +24,10 @@ export class UpdateModuleMasterDto {
   @IsNotEmpty()
   id: string;
 
-  //   module_name: string;
+  module_id: string;
   module_desc: string;
-  parent_module_id_id: string;
+  @IsNumber()
+  parent_module_id_id: number;
   display_module_name: string;
 
   @IsNotEmpty()

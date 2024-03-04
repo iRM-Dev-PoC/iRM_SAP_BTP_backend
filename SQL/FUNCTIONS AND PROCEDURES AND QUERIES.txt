@@ -3,8 +3,10 @@ TODO BEFORE NEW DATABASE SETUP
 	1.change .cdrc.json
 	2.change default-env.json
 	3.change package.json
-	4.change .env
-	5.remove managed from all cds data model
+	4.add .env
+	5.change .env
+	6.remove managed from all cds data model
+	7.make all id fields auto increment and IS_ACTIVE default Y
 
 
 
