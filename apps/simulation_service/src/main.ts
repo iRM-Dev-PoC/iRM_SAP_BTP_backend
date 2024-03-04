@@ -9,14 +9,14 @@ async function bootstrap() {
       transport: Transport.KAFKA,
       options: {
         client: {
-          brokers: process.env.KAFKA_BROKERS.split(','),
+          brokers: ["Localhost:9092"],
         },
         consumer: {
-          groupId: `microservices-${Math.floor(Math.random() * 100)}`,
+          groupId: "simulation-consumer",
         },
       },
     },
   );
-  app.listen();
+  await app.listen();
 }
 bootstrap();
