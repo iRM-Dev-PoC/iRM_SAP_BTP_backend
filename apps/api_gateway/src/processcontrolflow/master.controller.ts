@@ -18,7 +18,7 @@ export class MasterController {
   @Get('types-of-control')
   ReadTypeOfControl(@Req() req: Request) {
     if (
-      !this.authService.validatePrivileges(
+      !this.authService.ValidatePrivileges(
         req,
         'master',
         'types_of_control',
@@ -38,7 +38,7 @@ export class MasterController {
   @Post('types-of-control')
   WriteTypeOfControl(@Req() req: Request) {
     if (
-      !this.authService.validatePrivileges(
+      !this.authService.ValidatePrivileges(
         req,
         'master',
         'types_of_control',
@@ -58,7 +58,7 @@ export class MasterController {
   @Get('control-family')
   ReadControlFamily(@Req() req: Request) {
     if (
-      !this.authService.validatePrivileges(req, 'master', 'control_family', 'read')
+      !this.authService.ValidatePrivileges(req, 'master', 'control_family', 'read')
     ) {
       throw new ForbiddenException(
         'You are not authorized to perform this operation',
@@ -74,7 +74,7 @@ export class MasterController {
   @Get('control-attribute')
   ReadControlAttribute(@Req() req: Request) {
     if (
-      !this.authService.validatePrivileges(
+      !this.authService.ValidatePrivileges(
         req,
         'master',
         'control_attribute',
@@ -93,7 +93,7 @@ export class MasterController {
 
   @Get('report')
   ReadReport(@Req() req: Request) {
-    if (!this.authService.validatePrivileges(req, 'master', 'report', 'read')) {
+    if (!this.authService.ValidatePrivileges(req, 'master', 'report', 'read')) {
       throw new ForbiddenException(
         'You are not authorized to perform this operation',
       );
@@ -107,7 +107,7 @@ export class MasterController {
   @Get('control-logic')
   ReadControlLogic(@Req() req: Request) {
     if (
-      !this.authService.validatePrivileges(req, 'master', 'control_logic', 'read')
+      !this.authService.ValidatePrivileges(req, 'master', 'control_logic', 'read')
     ) {
       throw new ForbiddenException(
         'You are not authorized to perform this operation',

@@ -27,7 +27,7 @@ export class RoleGuard implements CanActivate {
     if (!token) {
       throw new UnauthorizedException();
     }
-    const CurrentUser = this.authService.getPayloadFromToken(token);
+    const CurrentUser = this.authService.GetPayloadFromToken(token);
     if (!CurrentUser) {
       throw new UnauthorizedException();
     }

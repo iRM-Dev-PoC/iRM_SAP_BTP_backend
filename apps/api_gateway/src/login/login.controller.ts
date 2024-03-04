@@ -21,14 +21,13 @@ export class LoginController {
   @UseGuards(LocalGuard)
   @UsePipes(new ValidationPipe())
   async login(@Body() authPayload: LoginDto) {
-    return this.authService.validateUser(authPayload);
+    return this.authService.ValidateUser(authPayload);
   }
 
   @Post('accessendpoints')
   @UseGuards(JwtAuthGuard)
-  async accessendpoints(
-    @Req() req: Request,
-  ) {
-    return {'You have access to the endpoints': req.user};
+  async accessendpoints(@Req() req: Request) {
+    return { 'You have access to the endpoints': req.user };
   }
+
 }

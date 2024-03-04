@@ -16,7 +16,7 @@ export class ConfigurationController {
   @Get('add-roles')
   ReadAddRoles(@Req() req: Request) {
     if (
-      !this.authService.validatePrivileges(
+      !this.authService.ValidatePrivileges(
         req,
         'configuration',
         'add_roles',
@@ -37,7 +37,7 @@ export class ConfigurationController {
   @Get('add_users')
   ReadAddUsers(@Req() req: Request) {
     if (
-      !this.authService.validatePrivileges(
+      !this.authService.ValidatePrivileges(
         req,
         'configuration',
         'add_users',

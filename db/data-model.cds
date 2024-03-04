@@ -37,6 +37,10 @@ entity Customer_master : managed {
       START_DATE       : DateTime;
       END_DATE         : DateTime;
       IS_ACTIVE        : String;
+      CREATED_ON       : DateTime;
+      CREATED_BY       : String;
+      CHANGED_ON       : DateTime;
+      CHANGED_BY       : String;
 
 }
 
@@ -49,6 +53,10 @@ entity Control_master : managed {
       CONTROL_DESC   : String;
       CUSTOMER_ID    : Association to Customer_master;
       IS_ACTIVE      : String;
+      CREATED_ON     : DateTime;
+      CREATED_BY     : String;
+      CHANGED_ON     : DateTime;
+      CHANGED_BY     : String;
 }
 
 entity Control_family_master : managed {
@@ -60,6 +68,10 @@ entity Control_family_master : managed {
       C_MASTER            : Association to many Control_master
                               on C_MASTER.CONTROL_FAMILY = $self;
       IS_ACTIVE           : String;
+      CREATED_ON          : DateTime;
+      CREATED_BY          : String;
+      CHANGED_ON          : DateTime;
+      CHANGED_BY          : String;
 }
 
 
@@ -88,9 +100,10 @@ entity PA0002_Employee_Master : managed {
       MIDDLE_NAME      : String;
       DATE_OF_BIRTH    : DateTime;
       ID_NUMBER        : String;
-      CREATED_BY       : String;
       CREATED_ON       : DateTime;
-
+      CREATED_BY       : String;
+      CHANGED_ON       : DateTime;
+      CHANGED_BY       : String;
 }
 
 entity VA05_Sales_Order : managed {
@@ -104,8 +117,10 @@ entity VA05_Sales_Order : managed {
       CUSTOMER_ID          : Association to Customer_master;
       SALES_DOCUMENT       : String;
       DOCUMENT_DATE        : DateTime;
-      CREATED_BY           : String;
       CREATED_ON           : DateTime;
+      CREATED_BY           : String;
+      CHANGED_ON           : DateTime;
+      CHANGED_BY           : String;
       TIME                 : Time;
       SOLD_TO_PARTY        : String;
       NET_VALUE            : String;
@@ -133,8 +148,10 @@ entity ZSD0070_Billing_Report : managed {
       SUMOF_NET_GROSS_VALUE : String;
       DELIVERY_NUMBER       : String;
       SHIP_TO_PARTY1        : String;
-      CREATED_BY            : String;
       CREATED_ON            : DateTime;
+      CREATED_BY            : String;
+      CHANGED_ON            : DateTime;
+      CHANGED_BY            : String;
       START_DATE            : DateTime;
       END_DATE              : DateTime;
       IS_ACTIVE             : String;
@@ -150,6 +167,10 @@ entity sync_header : managed {
       SYNC_STARTED_AT : DateTime;
       SYNC_ENDED_AT   : DateTime;
       IS_ACTIVE       : String;
+      CREATED_ON      : DateTime;
+      CREATED_BY      : String;
+      CHANGED_ON      : DateTime;
+      CHANGED_BY      : String;
 
 }
 
@@ -162,8 +183,10 @@ entity sync_details : managed {
       REPORT_DESTINATION : String;
       SYNC_STARTED_AT    : DateTime;
       SYNC_ENDED_AT      : DateTime;
-      CHANGED_BY         : String;
+      CREATED_ON         : DateTime;
+      CREATED_BY         : String;
       CHANGED_ON         : DateTime;
+      CHANGED_BY         : String;
       CUSTOMER_ID        : Association to Customer_master;
       IS_ACTIVE          : String;
 
@@ -258,17 +281,17 @@ entity Privilege {
 }
 
 entity User_privilege_mapping {
-  key ID           : Integer @cds.autoincrement;
-      USER_ID      : Association to Login_user;
-      PRIVILEGE_ID : Association to Privilege;
-      IS_ACTIVE    : String;
-      CREATED_BY   : String;
-      CREATED_ON   : DateTime;
-      CHANGED_ON   : DateTime;
-      CHANGED_BY   : String;
-      CUSTOMER_ID  : Association to Customer_master;
-      MODULE_ID    : Association to Module_master;
-      SUBMODULE_ID : Association to SubModule_master;
+  key ID                    : Integer @cds.autoincrement;
+      USER_ID               : Association to Login_user;
+      PRIVILEGE_ID          : Association to Privilege;
+      IS_ACTIVE             : String;
+      CREATED_BY            : String;
+      CREATED_ON            : DateTime;
+      CHANGED_ON            : DateTime;
+      CHANGED_BY            : String;
+      CUSTOMER_ID           : Association to Customer_master;
+      MODULE_ID             : Association to Module_master;
+      SUBMODULE_ID          : Association to SubModule_master;
       DIRECT_PRIVILEGE_FLAG : String;
 
 }
@@ -286,33 +309,33 @@ entity User_role_mapping {
 }
 
 entity Module_master {
-  key ID               : Integer @cds.autoincrement;
-      MODULE_ID        : UUID    @cds.UUID;
-      MODULE_NAME      : String;
+  key ID                  : Integer @cds.autoincrement;
+      MODULE_ID           : UUID    @cds.UUID;
+      MODULE_NAME         : String;
       DISPLAY_MODULE_NAME : String;
-      MODULE_DESC      : String;
-      PARENT_MODULE_ID : Association to Module_master;
-      IS_ACTIVE        : String;
-      CREATED_ON       : DateTime;
-      CREATED_BY       : String;
-      CHANGED_ON       : DateTime;
-      CHANGED_BY       : String;
-      CUSTOMER_ID      : Association to Customer_master;
+      MODULE_DESC         : String;
+      PARENT_MODULE_ID    : Association to Module_master;
+      IS_ACTIVE           : String;
+      CREATED_ON          : DateTime;
+      CREATED_BY          : String;
+      CHANGED_ON          : DateTime;
+      CHANGED_BY          : String;
+      CUSTOMER_ID         : Association to Customer_master;
 }
 
 entity SubModule_master {
-  key ID               : Integer @cds.autoincrement;
-      SUBMODULE_ID     : UUID    @cds.UUID;
-      SUBMODULE_NAME   : String;
-      DISPLAY_SUBMODULE_NAME:String;
-      SUBMODULE_DESC   : String;
-      PARENT_MODULE_ID : Association to Module_master;
-      IS_ACTIVE        : String;
-      CREATED_ON       : DateTime;
-      CREATED_BY       : String;
-      CHANGED_ON       : DateTime;
-      CHANGED_BY       : String;
-      CUSTOMER_ID      : Association to Customer_master;
+  key ID                     : Integer @cds.autoincrement;
+      SUBMODULE_ID           : UUID    @cds.UUID;
+      SUBMODULE_NAME         : String;
+      DISPLAY_SUBMODULE_NAME : String;
+      SUBMODULE_DESC         : String;
+      PARENT_MODULE_ID       : Association to Module_master;
+      IS_ACTIVE              : String;
+      CREATED_ON             : DateTime;
+      CREATED_BY             : String;
+      CHANGED_ON             : DateTime;
+      CHANGED_BY             : String;
+      CUSTOMER_ID            : Association to Customer_master;
 }
 
 entity Role_module_submodule_mapping {
