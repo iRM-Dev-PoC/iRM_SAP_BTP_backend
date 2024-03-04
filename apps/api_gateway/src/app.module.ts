@@ -14,9 +14,10 @@ import { LocalStrategy } from './auth/strategies/local.strategy';
 import { JwtStrategy } from './auth/strategies/jwt.strategy';
 import { ProcesscontrolflowModule } from './processcontrolflow/processcontrolflow.module';
 import { ModuleMasterModule } from './module_master/module_master.module';
+import { SyncServiceModule } from './sync_service/sync_service.module';
 
 @Module({
-  imports: [AuthModule, ConfigModule.forRoot({ isGlobal: true }), LoginModule, ProcesscontrolflowModule, ModuleMasterModule],
+  imports: [AuthModule, ConfigModule.forRoot({ isGlobal: true }), LoginModule, ProcesscontrolflowModule, ModuleMasterModule, SyncServiceModule],
   controllers: [AppController],
   providers: [AppService, LocalStrategy, JwtStrategy],
 })
