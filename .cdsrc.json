@@ -20,13 +20,13 @@
       "impl": "@cap-js/postgres",
       "model": ["srv", "./db/data-model.cds"],
       "credentials": {
-        "host": "0.0.0.0",
-        "port": 5432,
-        "user": "postgres",
-        "password": "1234",
-        "database": "postgres",
+        "host": "postgres-eae2c678-f599-4f4c-a5ff-1732c9eab133.cqryblsdrbcs.us-east-1.rds.amazonaws.com",
+        "port": 6270,
+        "user": "18545e718e8c",
+        "password": "9a47e5f02844de21ae",
+        "database": "zoaaCwlhpvpp",
         "schema": "public",
-        "uri": "postgres://postgres:1234@0.0.0.0:5432/postgres"
+        "uri": "postgres://18545e718e8c:9a47e5f02844de21ae@postgres-eae2c678-f599-4f4c-a5ff-1732c9eab133.cqryblsdrbcs.us-east-1.rds.amazonaws.com:6270/zoaaCwlhpvpp"
       }
     }
   }
