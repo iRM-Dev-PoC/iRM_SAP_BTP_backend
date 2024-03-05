@@ -7,7 +7,6 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { use } from 'passport';
 import { JwtAuthGuard } from '../auth/guards/jwtAuth.guard';
 import { RoleMasterService } from './role_master.service';
 import { AuthService } from '../auth/src';
@@ -16,7 +15,6 @@ import {
   DeleteRoleMasterDto,
   UpdateRoleMasterDto,
 } from './dto/roleMaster.dto';
-import { Console } from 'console';
 
 @Controller('role-master')
 @UseGuards(JwtAuthGuard)
