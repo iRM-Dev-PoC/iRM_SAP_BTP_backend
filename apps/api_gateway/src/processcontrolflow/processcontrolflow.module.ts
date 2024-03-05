@@ -4,9 +4,14 @@ import { DashboardController } from './dashboard.controller';
 import { DataLoadController } from './dataload.controller';
 import { MasterController } from './master.controller';
 import { ConfigurationController } from './configuration.controller';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
-    imports: [AuthModule],
+    imports: [AuthModule,
+        MulterModule.register({
+            dest: './apps/api_gateway/src/processcontrolflow/Documents'
+        })
+    ],
     controllers: [DashboardController,DataLoadController,MasterController,ConfigurationController],
     providers: [],
     exports: [],
