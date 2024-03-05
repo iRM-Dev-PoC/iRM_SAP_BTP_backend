@@ -1,0 +1,2 @@
+#FOR CONNECTING BTP POSTGRES TO LOCAL PGADMIN#
+cf ssh -L localhost:<--localport-->:<--remotehost-ip-->:<--remoteport--> <--app name--> -N

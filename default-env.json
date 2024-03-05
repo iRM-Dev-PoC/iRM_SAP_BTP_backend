@@ -6,12 +6,12 @@
         "label": "postgres",
         "tags": ["postgresql", "relational"],
         "credentials": {
-          "host": "0.0.0.0",
-          "port": "5432",
-          "database": "postgres",
-          "username": "postgres",
-          "password": "1234",
-          "uri": "postgres://postgres:1234@0.0.0.0:5432/postgres",
+          "host": "postgres-eae2c678-f599-4f4c-a5ff-1732c9eab133.cqryblsdrbcs.us-east-1.rds.amazonaws.com",
+          "port": "6270",
+          "database": "zoaaCwlhpvpp",
+          "username": "18545e718e8c",
+          "password": "9a47e5f02844de21ae",
+          "uri": "postgres://18545e718e8c:9a47e5f02844de21ae@postgres-eae2c678-f599-4f4c-a5ff-1732c9eab133.cqryblsdrbcs.us-east-1.rds.amazonaws.com:6270/zoaaCwlhpvpp",
           "schema": "public"
         }
       }
