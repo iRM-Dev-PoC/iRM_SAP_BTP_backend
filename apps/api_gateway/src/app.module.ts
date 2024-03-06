@@ -17,9 +17,16 @@ import { ModuleMasterModule } from './module_master/module_master.module';
 import { SyncServiceModule } from './sync_service/sync_service.module';
 import { SubmoduleMasterModule } from './submodule_master/submodule_master.module';
 import { RoleMasterModule } from './role_master/role_master.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import {typeOrmConfig} from 'ormconfig';
 
 @Module({
-  imports: [AuthModule, ConfigModule.forRoot({ isGlobal: true }), LoginModule, ProcesscontrolflowModule, ModuleMasterModule, SyncServiceModule, SubmoduleMasterModule, RoleMasterModule],
+  imports: [AuthModule,
+     ConfigModule.forRoot({ isGlobal: true }), 
+     LoginModule, ProcesscontrolflowModule,
+      ModuleMasterModule, SyncServiceModule,
+       SubmoduleMasterModule, RoleMasterModule,
+       TypeOrmModule.forRoot(typeOrmConfig)],
   controllers: [AppController],
   providers: [AppService, LocalStrategy, JwtStrategy],
 })
