@@ -133,11 +133,11 @@
           "srv"
         ],
         "credentials": {
-          "host": "postgres-eae2c678-f599-4f4c-a5ff-1732c9eab133.cqryblsdrbcs.us-east-1.rds.amazonaws.com",
-          "port": 6270,
-          "database": "zoaaCwlhpvpp",
-          "user": "18545e718e8c",
-          "password": "9a47e5f02844de21ae"
+          "host": "postgres-cfede104-831e-4cb0-b136-71f53273fec1.cqryblsdrbcs.us-east-1.rds.amazonaws.com",
+          "port": 1943,
+          "database": "QuLwWYimfdJT",
+          "user": "1accda00c2d9",
+          "password": "2d2c144eeba7ea296e"
         }
       }
     },
