@@ -1,0 +1,17 @@
+{
+  "requires": {
+    "[hybrid]": {
+      "custom-service:pcfsql": {
+        "binding": {
+          "type": "cf",
+          "apiEndpoint": "https://api.cf.us10-001.hana.ondemand.com",
+            "org": "ebcc6c09trial",
+            "space": "dev",
+            "instance": "pcfsql",
+            "key":"pcf-key",
+            "resolved":false
+        }
+      }
+    }
+  }
+}
