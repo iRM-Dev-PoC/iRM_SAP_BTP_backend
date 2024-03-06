@@ -7,13 +7,19 @@ import { ConfigurationController } from './configuration.controller';
 import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
-    imports: [AuthModule,
-        MulterModule.register({
-            dest: './apps/api_gateway/src/processcontrolflow/Documents'
-        })
-    ],
-    controllers: [DashboardController,DataLoadController,MasterController,ConfigurationController],
-    providers: [],
-    exports: [],
+  imports: [
+    AuthModule,
+    MulterModule.register({
+      dest: process.env.UPLOAD_DEST,
+    }),
+  ],
+  controllers: [
+    DashboardController,
+    DataLoadController,
+    MasterController,
+    ConfigurationController,
+  ],
+  providers: [],
+  exports: [],
 })
 export class ProcesscontrolflowModule {}
