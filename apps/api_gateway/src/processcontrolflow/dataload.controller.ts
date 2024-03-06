@@ -39,9 +39,11 @@ export class DataLoadController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: './apps/api_gateway/src/processcontrolflow/Documents', 
+        destination: (req, file, cb) => {
+          cb(null, process.env.UPLOAD_DEST);
+        },
         filename: (req, file, cb) => {
-          cb(null, file.originalname); 
+          cb(null, file.originalname);
         },
       }),
       fileFilter: (req, file, cb) => {

@@ -69,3 +69,177 @@ Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
 
 The SAP Cloud SDK is in no way affiliated with or endorsed by Nest and its maintainers.
 While Nest is our recommendation, the SAP Cloud SDK can be used with any framework, so you are free to choose what you are comfortable with.
+
+
+
+
+
+
+
+
+
+
+# NestJS Application With CDS In postgreSQL
+
+This guide will walk you through the steps to create a SAP Cloud application using Cloud Foundry and CAP IRE (Integrated Run-time Environment) and Connection of postgreSQL DB in NestJS Application. Ensure you have the necessary prerequisites installed before proceeding.
+
+## Prerequisites
+
+1. **Node Version Manager (NVM)** - Install NVM to manage Node.js versions.
+2. **SAP Cloud SDK CLI** - Install the SAP Cloud SDK CLI globally using npm.
+
+## Installation Steps
+
+### 1. Install Node Version Manager (NVM)
+
+```bash
+https://github.com/coreybutler/nvm-windows/releases
+```
+
+### 2. Install Required Node.js Version
+
+```bash
+$ nvm install 18.13.0
+$ nvm use 18.13.0
+```
+
+### 3. Install SAP Cloud SDK CLI
+
+```bash
+$ npm install -g @sap-cloud-sdk/cli
+```
+
+### 4. Initialize Project
+
+```bash
+$ sap-cloud-sdk init project-name
+```
+
+Replace `project-name` with your desired project name.
+
+### 4. Establish Connection With postgreSQL Database Loccal/Dockerize
+
+At first, need to add Three Configurations 
+
+**step 1.**
+Firstly need to add `default-env.json` file to your root folder
+```JSON
+{
+  "VCAP_SERVICES": {
+    "postgres": [
+      {
+        "name": "postgres",
+        "label": "postgres",
+        "tags": ["postgresql", "relational"],
+        "credentials": {
+          "host": "0.0.0.0",
+          "port": "5432",
+          "database": "postgres",
+          "username": "postgres",
+          "password": "1234",
+          "uri": "postgres://postgres:1234@0.0.0.0:5432/postgres",
+          "schema": "public"
+        }
+      }
+    ]
+  }
+}
+```
+
+**step 2.**
+Secondly need to add `.cdsrc.json` file to your root folder
+
+```JSON
+{
+  "build": {
+    "target": ".",
+    "tasks": [
+      {
+        "for": "node-cf",
+        "src": "srv",
+        "options": {
+          "model": ["srv"]
+        }
+      }
+    ]
+  },
+  "odata": {
+    "version": "v4"
+  },
+  "requires": {
+    "db": {
+      "kind": "postgres",
+      "impl": "@cap-js/postgres",
+      "model": ["srv", "./db/data-model.cds"],
+      "credentials": {
+        "host": "0.0.0.0",
+        "port": 5432,
+        "user": "postgres",
+        "password": "1234",
+        "database": "postgres",
+        "schema": "public",
+        "uri": "postgres://postgres:1234@0.0.0.0:5432/postgres"
+      }
+    }
+  }
+}
+```
+
+**step 3.**
+Lastly need to add this part in `package.json` file.
+
+```JSON
+ "cds": {
+    "requires": {
+      "db": {
+        "kind": "postgres"
+      },
+      "database": {
+        "impl": "cds-pg",
+        "dialect": "postgres",
+        "model": [
+          "srv"
+        ],
+        "credentials": {
+          "host": "0.0.0.0",
+          "port": 5432,
+          "database": "postgres",
+          "user": "postgres",
+          "password": "1234"
+        }
+      }
+    },
+    "migrations": {
+      "db": {
+        "schema": {
+          "default": "public",
+          "clone": "_cdsdbm_clone",
+          "reference": "_cdsdbm_ref"
+        },
+        "deploy": {
+          "tmpFile": "tmp/_autodeploy.json",
+          "undeployFile": "db/undeploy.json"
+        }
+      }
+    }
+  }
+```
+If you want to use Dockerized PostgreSQL DB, Then first of all you need to stop your local postgresql server and replace all this above mention files hosts to -> `0.0.0.0` and if need to connect postgreSQL admin which is running on docker also then you must follow the below steps:
+
+**step 1.**
+Docker container ls -> this will show all the containers.
+
+**step 2.**
+Docker inspect `<docker container id>`.
+
+**step 3.**
+Find the `ipv4` address and add this to dockerized pgadmin host.
+
+
+
+
+
+
+
+
+
