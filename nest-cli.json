@@ -1,24 +1,23 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
-  "sourceRoot": "apps/process_control_flow/src",
+  "sourceRoot": "apps/api_gateway/src",
   "compilerOptions": {
     "deleteOutDir": true,
     "webpack": true,
-    "tsConfigPath": "apps/process_control_flow/tsconfig.app.json"
+    "tsConfigPath": "apps/api_gateway/tsconfig.app.json",
+    "assets": [
+      {
+        "include": "../public",
+        "outDir": "dist/public",
+        "watchAssets": true
+      }
+    ],
+    "watchAssets": true
   },
   "monorepo": true,
-  "root": "apps/process_control_flow",
+  "root": "apps/api_gateway",
   "projects": {
-    "process_control_flow": {
-      "type": "application",
-      "root": "apps/process_control_flow",
-      "entryFile": "main",
-      "sourceRoot": "apps/process_control_flow/src",
-      "compilerOptions": {
-        "tsConfigPath": "apps/process_control_flow/tsconfig.app.json"
-      }
-    },
     "api_gateway": {
       "type": "application",
       "root": "apps/api_gateway",

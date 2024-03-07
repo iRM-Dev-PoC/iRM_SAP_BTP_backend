@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Body,
   Controller,
   ForbiddenException,
   Get,
@@ -13,10 +14,15 @@ import { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import * as path from 'path';
 import { diskStorage } from 'multer';
+import { ExcelService } from '@app/share_lib/excel.service';
+import * as fs from 'fs';
 
 @Controller('dataload')
 export class DataLoadController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private excelService: ExcelService,
+  ) {}
 
   @Get('get-hello')
   getHello(@Req() req: Request) {
@@ -70,5 +76,12 @@ export class DataLoadController {
     console.log(file);
 
     return { message: 'File uploaded successfully' };
+  }
+
+  @Post('fetch-excel-data')
+  async processFile(@Req() req: Request, @Body() { filename, columns}) {
+    const data = await this.excelService.GetDataFromExcel(filename, columns);
+
+    return data;
   }
 }

@@ -5,6 +5,7 @@ import { DataLoadController } from './dataload.controller';
 import { MasterController } from './master.controller';
 import { ConfigurationController } from './configuration.controller';
 import { MulterModule } from '@nestjs/platform-express';
+import { ShareLibModule } from '@app/share_lib';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { MulterModule } from '@nestjs/platform-express';
     MulterModule.register({
       dest: process.env.UPLOAD_DEST,
     }),
+    ShareLibModule
   ],
   controllers: [
     DashboardController,
