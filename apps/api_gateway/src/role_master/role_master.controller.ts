@@ -15,6 +15,7 @@ import {
   DeleteRoleMasterDto,
   UpdateRoleMasterDto,
 } from './dto/roleMaster.dto';
+import { Request } from 'express';
 
 @Controller('role-master')
 @UseGuards(JwtAuthGuard)
@@ -30,6 +31,12 @@ export class RoleMasterController {
     @Req() req: Request,
     @Body() createRole: CreateRoleMasterDto,
   ) {
+    this.authService.ValidatePrivileges(
+      req,
+      'ROLE_MASTER',
+      'MANAGE_ROLE_MASTER',
+      'write',
+    );
     return await this.roleService.CreateRoleMaster(
       this.authService.GetUserFromRequest(req),
       createRole,

@@ -22,6 +22,7 @@ import { typeOrmConfig } from 'ormconfig';
 import { PrismaService } from '@app/share_lib/prisma.service';
 import { share } from 'rxjs';
 import { ShareLibModule } from '@app/share_lib';
+import { AssignRolePrivilegeModule } from './assign_role_privilege/assign_role_privilege.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { ShareLibModule } from '@app/share_lib';
     RoleMasterModule,
     //  TypeOrmModule.forRoot(typeOrmConfig)
     ShareLibModule,
+    AssignRolePrivilegeModule,
   ],
   controllers: [AppController],
   providers: [AppService, LocalStrategy, JwtStrategy],

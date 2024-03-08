@@ -8,16 +8,15 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwtAuth.guard';
-import { use } from 'passport';
 import { ModuleMasterService } from './module_master.service';
 import {
   CreateModuleMasterDto,
   DeleteModuleMasterDto,
-  ReadModuleMasterDto,
   UpdateModuleMasterDto,
 } from './dto/moduleMaster.dto';
-import { CurrentUserDto, ResponseDto } from '@app/share_lib/common.dto';
+import { ResponseDto } from '@app/share_lib/common.dto';
 import { AuthService } from '../auth/src';
+import { Request } from 'express';
 
 @Controller('module-master')
 @UseGuards(JwtAuthGuard)
@@ -33,6 +32,13 @@ export class ModuleMasterController {
     @Req() req: Request,
     @Body() createModuleDto: CreateModuleMasterDto,
   ): Promise<ResponseDto> {
+    this.authService.ValidatePrivileges(
+      req,
+      'MODULE_MASTER',
+      'MANAGE_MODULE_MASTER',
+      'write',
+    );
+
     return await this.moduleMasterService.CreateModule(
       this.authService.GetUserFromRequest(req),
       createModuleDto,
@@ -44,6 +50,12 @@ export class ModuleMasterController {
     @Req() req: Request,
     @Body() updateModuleDto: UpdateModuleMasterDto,
   ): Promise<ResponseDto> {
+    this.authService.ValidatePrivileges(
+      req,
+      'MODULE_MASTER',
+      'MANAGE_MODULE_MASTER',
+      'update',
+    );
     return await this.moduleMasterService.UpdateModule(
       this.authService.GetUserFromRequest(req),
       updateModuleDto,
@@ -51,12 +63,37 @@ export class ModuleMasterController {
   }
 
   @Post('get-module')
-  async GetModule(@Req() req:Request,@Body() { id, customer_id }): Promise<ResponseDto> {
-    return await this.moduleMasterService.GetModule(this.authService.GetUserFromRequest(req), id, customer_id);
+  async GetModule(
+    @Req() req: Request,
+    @Body() { id, customer_id },
+  ): Promise<ResponseDto> {
+    this.authService.ValidatePrivileges(
+      req,
+      'MODULE_MASTER',
+      'MANAGE_MODULE_MASTER',
+      'read',
+    );
+    return await this.moduleMasterService.GetModule(
+      this.authService.GetUserFromRequest(req),
+      id,
+      customer_id,
+    );
   }
 
   @Post('delete-module')
-  async DeleteModule(@Req() req:Request,@Body() deleteModuleDto: DeleteModuleMasterDto): Promise<ResponseDto> {
-    return await this.moduleMasterService.DeleteModule(this.authService.GetUserFromRequest(req), deleteModuleDto);
+  async DeleteModule(
+    @Req() req: Request,
+    @Body() deleteModuleDto: DeleteModuleMasterDto,
+  ): Promise<ResponseDto> {
+    this.authService.ValidatePrivileges(
+      req,
+      'MODULE_MASTER',
+      'MANAGE_MODULE_MASTER',
+      'delete',
+    );
+    return await this.moduleMasterService.DeleteModule(
+      this.authService.GetUserFromRequest(req),
+      deleteModuleDto,
+    );
   }
 }

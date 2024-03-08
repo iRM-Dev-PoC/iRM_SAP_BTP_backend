@@ -1,4 +1,9 @@
-import { Injectable, Req, UnauthorizedException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  Req,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import cds from '@sap/cds';
 import { AuthDto, LoginDto } from '../dto/auth.dto';
@@ -84,6 +89,7 @@ export class AuthService {
     }
     let IsAllowed = false;
 
+    // console.log('privileges', privileges);
     if (module && submodule && operation) {
       IsAllowed = privileges.some((privilege) => {
         // console.log('privilege', privilege);
@@ -94,11 +100,18 @@ export class AuthService {
             ? ''
             : privilege.submodule_name.toLowerCase()) ===
             submodule.toLowerCase() &&
-          privilege.privilege.toLowerCase() === operation.toLowerCase()
+          (privilege.privilege.toLowerCase() === operation.toLowerCase() ||
+            privilege.privilege.toLowerCase() === 'manage')
         );
       });
     }
+    // console.log('IsAllowed', IsAllowed);
 
+    if (!IsAllowed) {
+      throw new ForbiddenException(
+        'You are not authorized to perform this operation',
+      );
+    }
     return IsAllowed;
   }
 
