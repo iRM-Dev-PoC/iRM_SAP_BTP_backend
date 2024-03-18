@@ -81,7 +81,7 @@
 							"mode": "formdata",
 							"formdata": [
 								{
-									"key": "file",
+									"key": "files",
 									"type": "file",
 									"src": "/C:/Users/RIJU DAS/Downloads/1001_ZSD0070_Billing_Report_20231111003225_Decrypted.xlsx"
 								}
