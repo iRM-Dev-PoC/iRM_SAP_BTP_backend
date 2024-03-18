@@ -6,22 +6,24 @@ import {
   Get,
   Post,
   Req,
-  UploadedFile,
+  UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
 import { AuthService } from '../auth/src';
 import { Request } from 'express';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import * as path from 'path';
 import { diskStorage } from 'multer';
 import { ExcelService } from '@app/share_lib/excel.service';
 import * as fs from 'fs';
+import { CSVService } from '@app/share_lib/csv.service';
 
 @Controller('dataload')
 export class DataLoadController {
   constructor(
     private authService: AuthService,
     private excelService: ExcelService,
+    private csvService: CSVService,
   ) {}
 
   @Get('get-hello')
@@ -43,7 +45,7 @@ export class DataLoadController {
 
   @Post('upload')
   @UseInterceptors(
-    FileInterceptor('file', {
+    FilesInterceptor('files', 10, {
       storage: diskStorage({
         destination: (req, file, cb) => {
           cb(null, process.env.UPLOAD_DEST);
@@ -68,20 +70,25 @@ export class DataLoadController {
       },
     }),
   )
-  async uploadFile(@UploadedFile() file) {
-    if (!file) {
-      throw new BadRequestException('No file uploaded');
+  async uploadFiles(@UploadedFiles() files: Array<Express.Multer.File>) {
+    if (!files || files.length === 0) {
+      throw new BadRequestException('No files uploaded');
     }
 
-    console.log(file);
+    console.log(files);
 
-    return { message: 'File uploaded successfully' };
+    return { message: 'Files uploaded successfully' };
   }
 
   @Post('fetch-excel-data')
-  async processFile(@Req() req: Request, @Body() { filename, columns}) {
-    const data = await this.excelService.GetDataFromExcel(filename, columns);
-
-    return data;
+  async processFile(@Req() req: Request, @Body() { filename, columns }) {
+    const extname = path.extname(filename).toLowerCase();
+    if (extname === '.xlsx' || extname === '.xls') {
+      return await this.excelService.GetDataFromExcel(filename, columns);
+    } else if (extname === '.csv') {
+      return await this.csvService.GetDataFromCSV(filename, columns);
+    } else {
+      throw new BadRequestException('Unsupported file format');
+    }
   }
 }
