@@ -6,12 +6,12 @@
         "label": "postgres",
         "tags": ["postgresql", "relational"],
         "credentials": {
-          "host": "0.0.0.0",
+          "host": "localhost",
           "port": "5432",
           "database": "postgres",
           "username": "postgres",
-          "password": "1234",
-          "uri": "postgres://postgres:1234@0.0.0.0:5432/postgres",
+          "password": "root",
+          "uri": "postgres://postgres:root@localhost:5432/postgres",
           "schema": "public"
         }
       }
