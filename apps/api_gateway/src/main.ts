@@ -12,7 +12,7 @@ async function bootstrap() {
     .catch((err) => {
       console.log('error connecting to db', err);
     });
-  await app.listen(3000);
+  await app.listen(8080);
  
 
   console.log(`Application is running on: ${await app.getUrl()}`);

@@ -13,7 +13,7 @@ Everything is ready to go.
 $ npm run start:dev
 
 # Open the application in your default browser
-$ open http://localhost:3000/
+$ open http://localhost:8080/
 ```
 
 If you have the [Cloud Foundry CLI](https://docs.cloudfoundry.org/cf-cli/install-go-cli.html) and are [logged in](https://docs.cloudfoundry.org/cf-cli/getting-started.html#login), you can deploy the application without any changes to the application.
@@ -234,6 +234,20 @@ Docker inspect `<docker container id>`.
 
 **step 3.**
 Find the `ipv4` address and add this to dockerized pgadmin host.
+
+
+NEED TO INSTALL ADDITIONALY IF YOU ARE CLONING FROM GIT.
+
+To install `Cloud Foundry CLI`, run the following command from the command line or from PowerShell - https://github.com/cloudfoundry/cli/releases 
+```bash
+choco install cloudfoundry-cli
+```
+
+
+To install `sap/cds` , run the following command from the command line or from PowerShell:
+```bash
+npm add -g @sap/cds-dk
+```
 
 
 
