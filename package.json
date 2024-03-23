@@ -46,7 +46,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "csv-parser": "^3.0.0",
-    "dotenv": "^16.4.4",
+    "dotenv": "^16.4.5",
     "jszip": "^3.10.1",
     "kafkajs": "^2.2.4",
     "multer": "^1.4.5-lts.1",

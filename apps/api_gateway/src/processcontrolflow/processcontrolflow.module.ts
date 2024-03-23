@@ -6,6 +6,7 @@ import { MasterController } from './master.controller';
 import { ConfigurationController } from './configuration.controller';
 import { MulterModule } from '@nestjs/platform-express';
 import { ShareLibModule } from '@app/share_lib';
+import { DataImportService } from './data-import/data-import.service';
 
 @Module({
   imports: [
@@ -13,7 +14,7 @@ import { ShareLibModule } from '@app/share_lib';
     MulterModule.register({
       dest: process.env.UPLOAD_DEST,
     }),
-    ShareLibModule
+    ShareLibModule,
   ],
   controllers: [
     DashboardController,
@@ -21,7 +22,7 @@ import { ShareLibModule } from '@app/share_lib';
     MasterController,
     ConfigurationController,
   ],
-  providers: [],
-  exports: [],
+  providers: [DataImportService],
+  exports: [DataImportService],
 })
 export class ProcesscontrolflowModule {}
