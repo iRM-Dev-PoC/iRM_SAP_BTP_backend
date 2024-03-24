@@ -6,7 +6,10 @@ import { MasterController } from './master.controller';
 import { ConfigurationController } from './configuration.controller';
 import { MulterModule } from '@nestjs/platform-express';
 import { ShareLibModule } from '@app/share_lib';
-import { DataImportService } from './data-import/data-import.service';
+import { DataImportService } from './data-import.service';
+import { Pool } from 'pg';
+import { DataService } from './data.service';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -15,6 +18,7 @@ import { DataImportService } from './data-import/data-import.service';
       dest: process.env.UPLOAD_DEST,
     }),
     ShareLibModule,
+    ConfigModule.forRoot(),
   ],
   controllers: [
     DashboardController,
@@ -22,7 +26,19 @@ import { DataImportService } from './data-import/data-import.service';
     MasterController,
     ConfigurationController,
   ],
-  providers: [DataImportService],
-  exports: [DataImportService],
+  providers: [
+    DataImportService,
+    {
+      provide: Pool,
+      useValue: new Pool({
+        user: process.env.POSTGRES_USER,
+        password: process.env.POSTGRES_PASSWORD,
+        host: process.env.POSTGRES_HOST,
+        database: process.env.POSTGRES_DB,
+        port: parseInt(process.env.POSTGRES_PORT),
+      }),
+    },
+    DataService,
+  ],
 })
 export class ProcesscontrolflowModule {}
