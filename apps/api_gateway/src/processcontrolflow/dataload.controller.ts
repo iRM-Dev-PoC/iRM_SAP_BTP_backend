@@ -19,8 +19,8 @@ import * as fs from 'fs';
 import { CSVService } from '@app/share_lib/csv.service';
 import * as xlsx from 'xlsx';
 import { Pool } from 'pg';
-import { DataImportService } from './data-import/data-import.service';
-
+import { DataImportService } from './data-import.service';
+import { DataService } from './data.service';
 
 @Controller('dataload')
 export class DataLoadController {
@@ -29,6 +29,8 @@ export class DataLoadController {
     private excelService: ExcelService,
     private csvService: CSVService,
     private readonly dataImportService: DataImportService,
+    private readonly pool: Pool,
+    private readonly dataService: DataService,
   ) {}
 
   @Get('get-hello')
@@ -85,14 +87,6 @@ export class DataLoadController {
 
     console.log(files);
 
-    // Connect to PostgreSQL
-    const pool = new Pool({
-      user: process.env.POSTGRES_USER,
-      password: process.env.POSTGRES_PASSWORD,
-      host: process.env.POSTGRES_HOST,
-      database: process.env.POSTGRES_DB,
-    });
-
     try {
       const results = [];
 
@@ -101,7 +95,7 @@ export class DataLoadController {
 
         if (extname === '.csv') {
           // Create temporary table and import CSV data
-          await this.dataImportService.importCSVToTempTable(file.path, pool);
+          await this.dataImportService.importCSVToTempTable(file.path);
           results.push({
             message: `File ${file.originalname} data stored in temporary table`,
           });
@@ -110,7 +104,7 @@ export class DataLoadController {
           const csvPath = await this.dataImportService.convertExcelToCSV(
             file.path,
           );
-          await this.dataImportService.importCSVToTempTable(csvPath, pool);
+          await this.dataImportService.importCSVToTempTable(csvPath);
           fs.unlinkSync(csvPath); // Remove the temporary CSV file
           results.push({
             message: `File ${file.originalname} data stored in temporary table`,
@@ -122,14 +116,9 @@ export class DataLoadController {
         }
       }
 
-      return {
-        message: 'Files uploaded successfully',
-        results,
-      };
+      return { message: 'Files uploaded successfully', results };
     } catch (err) {
       throw new BadRequestException(err.message);
-    } finally {
-      pool.end(); // Close the PostgreSQL connection
     }
   }
 
@@ -143,5 +132,11 @@ export class DataLoadController {
     } else {
       throw new BadRequestException('Unsupported file format');
     }
+  }
+
+  @Get('process-temp-table')
+  async processTempTableData() {
+    await this.dataService.processAndStoreTempTableData();
+    return { message: 'Temporary table data processed and stored' };
   }
 }
