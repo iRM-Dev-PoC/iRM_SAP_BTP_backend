@@ -67,7 +67,48 @@ export class DataService {
         WHERE end_year = 9999 AND emp_name IS NOT NULL;
       `);
 
-      // Additional INSERT statements...
+      await client.query(`
+        INSERT INTO billing_sales_data
+        SELECT cnt, billing_document, tbl_billing.sales_document AS b_sls_doc, tbl_sales.sales_document AS sls_doc, tbl_billing.billing_invoice_net_value, tbl_sales.sales_order_net_value
+        FROM (
+          SELECT COUNT(id) AS cnt, "Billing_Document" AS billing_document, "Sales_Document" AS sales_document, "Sales_Document_Item" AS sales_document_item, "Net_Value" AS billing_invoice_net_value
+          FROM public."Billing_Report"
+          GROUP BY "Billing_Document", "Sales_Document", "Sales_Document_Item", "Net_Value"
+        ) AS tbl_billing
+        INNER JOIN (
+          SELECT "Sales_Document" AS sales_document, "Sold_to_Party_Name" AS sold_to_party_name, "Net_Value" AS sales_order_net_value
+          FROM public."Sales_Order"
+          WHERE "Sales_Document" IN (
+            SELECT "Sales_Document"
+            FROM public."Sales_Order"
+            GROUP BY "Sales_Document"
+            HAVING COUNT("Sales_Document") = 1
+          )
+        ) AS tbl_sales
+        ON tbl_billing.sales_document = tbl_sales.sales_document;
+      `);
+
+      await client.query(`
+        INSERT INTO single_billing_data
+        SELECT cnt, billing_document, sales_document, net_value
+        FROM (
+          SELECT COUNT(id) AS cnt, "Billing_Document" AS billing_document, "Sales_Document" AS sales_document, "Net_Value" AS net_value
+          FROM public."Billing_Report"
+          GROUP BY "Billing_Document", "Sales_Document", "Sales_Document_Item", "Net_Value"
+        ) tbl
+        WHERE cnt = 1;
+      `);
+
+      await client.query(`
+        INSERT INTO sales_order_data
+        SELECT sales_document, sold_to_party_name, sales_document_item, net_value_grp, schedule_line_number, formatted_delivery_date
+        FROM (
+          SELECT COUNT(id) AS cnt, "Sales_Document" AS sales_document, "Sales_Document_Item" AS sales_document_item, STRING_AGG("Net_Value", ', ') AS net_value_grp, "Schedule_Line_Number" AS schedule_line_number, TO_CHAR(TO_DATE("Document_Date", 'YYYYMMDD'), 'DD-MM-YYYY') AS formatted_delivery_date, "Sold_to_Party_Name" AS sold_to_party_name
+          FROM public."Sales_Order"
+          GROUP BY "Sales_Document", "Sales_Document_Item", "Schedule_Line_Number", "Document_Date", "Sold_to_Party_Name"
+        ) tbl
+        WHERE cnt = 1;
+      `);
     } catch (err) {
       console.error('Error processing temporary table data:', err);
     } finally {
