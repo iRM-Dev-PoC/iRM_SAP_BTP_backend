@@ -9,7 +9,7 @@ import { ShareLibModule } from '@app/share_lib';
 import { DataImportService } from './data-import.service';
 import { Pool } from 'pg';
 import { DataService } from './data.service';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -30,13 +30,29 @@ import { ConfigModule } from '@nestjs/config';
     DataImportService,
     {
       provide: Pool,
-      useValue: new Pool({
-        user: process.env.POSTGRES_USER,
-        password: process.env.POSTGRES_PASSWORD,
-        host: process.env.POSTGRES_HOST,
-        database: process.env.POSTGRES_DB,
-        port: parseInt(process.env.POSTGRES_PORT),
-      }),
+      useFactory: (configService: ConfigService) => {
+        const postgresUser = configService. get<string>('POSTGRES_USER');
+        const postgresPassword = configService.get<string>('POSTGRES_PASSWORD');
+        const postgresHost = configService.get<string>('POSTGRES_HOST');
+        const postgresDatabase = configService.get<string>('POSTGRES_DB');
+        const postgresPort = configService.get<number>('POSTGRES_PORT');
+
+        // Validate the password
+        if (!postgresPassword || typeof postgresPassword !== 'string') {
+          throw new Error(
+            'POSTGRES_PASSWORD environment variable must be a non-empty string',
+          );
+        }
+
+        return new Pool({
+          user: postgresUser,
+          password: postgresPassword,
+          host: postgresHost,
+          database: postgresDatabase,
+          port: postgresPort,
+        });
+      },
+      inject: [ConfigService],
     },
     DataService,
   ],
