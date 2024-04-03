@@ -18,31 +18,16 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "allowJs": true,
+    "resolveJsonModule": true,
     "paths": {
-      "@app/db": [
-        "libs/db/src"
-      ],
-      "@app/db/*": [
-        "libs/db/src/*"
-      ],
-      "@app/share_lib": [
-        "libs/share_lib/src"
-      ],
-      "@app/share_lib/*": [
-        "libs/share_lib/src/*"
-      ],
-      "@app/auth": [
-        "libs/auth/src"
-      ],
-      "@app/auth/*": [
-        "libs/auth/src/*"
-      ],
-      "@app/guard": [
-        "libs/auth/guards/jwtguards/guard/src"
-      ],
-      "@app/guard/*": [
-        "libs/auth/guards/jwtguards/guard/src/*"
-      ]
+      "@app/db": ["libs/db/src"],
+      "@app/db/*": ["libs/db/src/*"],
+      "@app/share_lib": ["libs/share_lib/src"],
+      "@app/share_lib/*": ["libs/share_lib/src/*"],
+      "@app/auth": ["libs/auth/src"],
+      "@app/auth/*": ["libs/auth/src/*"],
+      "@app/guard": ["libs/auth/guards/jwtguards/guard/src"],
+      "@app/guard/*": ["libs/auth/guards/jwtguards/guard/src/*"]
     }
   }
 }

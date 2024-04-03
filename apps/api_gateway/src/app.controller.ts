@@ -1,14 +1,17 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { JwtAuthGuard } from './auth/guards/jwtAuth.guard';
 
-@Controller()
+@Controller('random')
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
-  // @UseGuards(JwtAuthGuard)
-  async getHello() {
-    return await this.appService.getHello();
+  async getData() {
+    try {
+      const result = await this.appService.someMethod();
+      return result; 
+    } catch (error) {
+      return { error: error.message };
+    }
   }
 }
