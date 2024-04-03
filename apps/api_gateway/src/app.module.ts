@@ -23,6 +23,8 @@ import { PrismaService } from '@app/share_lib/prisma.service';
 import { share } from 'rxjs';
 import { ShareLibModule } from '@app/share_lib';
 import { AssignRolePrivilegeModule } from './assign_role_privilege/assign_role_privilege.module';
+import { DatabaseModule } from '@app/share_lib/database/database.module';
+import { DatabaseService } from '@app/share_lib/database/database.service';
 
 @Module({
   imports: [
@@ -37,9 +39,10 @@ import { AssignRolePrivilegeModule } from './assign_role_privilege/assign_role_p
     //  TypeOrmModule.forRoot(typeOrmConfig)
     ShareLibModule,
     AssignRolePrivilegeModule,
+    DatabaseModule,
   ],
   controllers: [AppController],
-  providers: [AppService, LocalStrategy, JwtStrategy],
+  providers: [AppService, LocalStrategy, JwtStrategy, DatabaseService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
