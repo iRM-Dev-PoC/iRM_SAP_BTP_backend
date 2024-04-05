@@ -14,8 +14,8 @@ import { AuthService } from '../auth/src';
 import { CreateLoginUserDto, DeleteLoginUserDto, UpdateLoginUserDto } from './dto/loginuser.dto';
 
 @Controller('loginuser')
-@UseGuards(JwtAuthGuard)
-@UsePipes(new ValidationPipe())
+//@UseGuards(JwtAuthGuard)
+//@UsePipes(new ValidationPipe())
 export class LoginUserController {
   constructor(
     private loginUserService: LoginUserService,
@@ -27,7 +27,7 @@ export class LoginUserController {
     @Body() createUserDto: CreateLoginUserDto,
   ) {
     return await this.loginUserService.CreateUser(
-      this.authService.GetUserFromRequest(req),
+      //this.authService.GetUserFromRequest(req),
       createUserDto,
     );
   }
@@ -38,7 +38,7 @@ export class LoginUserController {
     @Body() updateLoginUser: UpdateLoginUserDto,
   ) {
     return await this.loginUserService.UpdateUser(
-      this.authService.GetUserFromRequest(req),
+      // this.authService.GetUserFromRequest(req),
       updateLoginUser,
     );
   }
@@ -46,7 +46,7 @@ export class LoginUserController {
   @Post('get-user')
   async ReadUser(@Req() req: Request, @Body() { id, customer_id }) {
     return await this.loginUserService.ReadLoginUser(
-      this.authService.GetUserFromRequest(req),
+      // this.authService.GetUserFromRequest(req),
       id,
       customer_id,
     );
@@ -58,7 +58,7 @@ export class LoginUserController {
     @Body() deleteLoginUser: DeleteLoginUserDto,
   ) {
     return await this.loginUserService.DeleteLoginUser(
-      this.authService.GetUserFromRequest(req),
+      // this.authService.GetUserFromRequest(req),
       deleteLoginUser,
     );
   }

@@ -18,14 +18,14 @@ export class LoginController {
   constructor(private authService: AuthService) {}
 
   @Post('login')
-  @UseGuards(LocalGuard)
+  // @UseGuards(LocalGuard)
   @UsePipes(new ValidationPipe())
   async login(@Body() authPayload: LoginDto) {
     return this.authService.ValidateUser(authPayload);
   }
 
   @Post('accessendpoints')
-  @UseGuards(JwtAuthGuard)
+  //@UseGuards(JwtAuthGuard)
   async accessendpoints(@Req() req: Request) {
     return { 'You have access to the endpoints': req.user };
   }

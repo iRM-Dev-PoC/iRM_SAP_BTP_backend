@@ -30,7 +30,7 @@ export class DatabaseService implements OnApplicationShutdown {
             console.error(err);
             reject(err);
           } else {
-            console.log('Connected to SAP HANA database sumannnnnnnnnnnnnnnnnnnnnnnnnnnnnnn');
+            console.log('Connected to SAP HANA database');
             resolve(null);
           }
         });
