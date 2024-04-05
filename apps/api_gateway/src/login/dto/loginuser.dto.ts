@@ -10,7 +10,7 @@ import { IsNotEmpty } from "class-validator";
     @IsNotEmpty()
     user_email: string;
     @IsNotEmpty()
-    password: string;
+    password: string; 
     @IsNotEmpty()
     customer_id_id: string;
     user_emp_id: string;

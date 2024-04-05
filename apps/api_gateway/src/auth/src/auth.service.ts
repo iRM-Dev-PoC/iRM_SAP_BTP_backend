@@ -6,23 +6,27 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import cds from '@sap/cds';
+import { DatabaseService } from '@app/share_lib/database/database.service';
 import { AuthDto, LoginDto } from '../dto/auth.dto';
 import { Request } from 'express';
 import { CurrentUserDto } from '@app/share_lib/common.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(private jwtservice: JwtService) {}
+  constructor(
+    private jwtservice: JwtService,
+    private databaseService: DatabaseService,
+  ) {}
 
   async ValidateUser(AuthPayload: LoginDto) {
     try {
-      const user = await cds.run(
-        SELECT.from('PCF_DB_LOGIN_USER')
-          .columns('user_email', 'id', 'password')
-          .where({
-            user_email: AuthPayload.username,
-            is_active: 'Y',
-          }),
+      const hanaOptions = this.databaseService.getHanaOptions();
+      const user = await this.databaseService.executeQuery(
+        `SELECT * from ${hanaOptions.schema}.PCF_DB_LOGIN_USER`,
+        hanaOptions,
+        // user_email: AuthPayload.username,
+        //   is_active: 'Y',
+        // }),
       );
       if (!user || user.length === 0) {
         throw new UnauthorizedException('Invalid credentials');
@@ -116,17 +120,18 @@ export class AuthService {
   }
 
   GetUserFromRequest(req): CurrentUserDto {
-    if (!req.headers.authorization) {
-      throw new UnauthorizedException('authorization header not found ');
-    }
-    const token = req.headers.authorization.split(' ')[1];
-    if (!token) {
-      throw new UnauthorizedException();
-    }
-    const { privileges, ...CurrentUser }: any = this.GetPayloadFromToken(token);
-    if (!CurrentUser) {
-      throw new UnauthorizedException();
-    }
-    return CurrentUser;
+    // if (!req.headers.authorization) {
+    //   throw new UnauthorizedException('authorization header not found ');
+    // }
+    // const token = req.headers.authorization.split(' ')[1];
+    // if (!token) {
+    //   throw new UnauthorizedException();
+    // }
+    // const { privileges, ...CurrentUser }: any = this.GetPayloadFromToken(token);
+    // if (!CurrentUser) {
+    //   throw new UnauthorizedException();
+    // }
+    // return CurrentUser;
+    return null;
   }
 }

@@ -4,6 +4,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from '../strategies/local.strategy';
 import { LocalGuard } from '../guards/local.guard';
+import { DatabaseModule } from '@app/share_lib/database/database.module';
+import { DatabaseService } from '@app/share_lib/database/database.service';
+
 
 @Module({
   imports: [
@@ -12,8 +15,9 @@ import { LocalGuard } from '../guards/local.guard';
       secret: 'secret',
       signOptions: { expiresIn: '2h' },
     }),
+    DatabaseModule,
   ],
-  providers: [AuthService],
+  providers: [AuthService, DatabaseService],
   exports: [AuthService],
 })
 export class AuthModule {}
