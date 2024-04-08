@@ -27,6 +27,7 @@ export class LoginUserService {
       createUserDto.created_on = new Date();
       //console.log(currentUser.user_id);
       // createUserDto.created_by = currentUser.user_id ? currentUser.user_id : "4"; //
+      // const randomUserId = Math.floor(Math.random());
       createUserDto.created_by = '4';
       if (createUserDto.user_name || createUserDto.user_email) {
         // let exisingUser = await tx.run(
@@ -55,7 +56,8 @@ export class LoginUserService {
       //   INSERT.into('PCF_DB_LOGIN_USER').entries(createUserDto),
       // );
 
-      let query = `INSERT INTO ${hanaOptions.schema}.PCF_DB_LOGIN_USER (ID, user_name, user_email) VALUES (1, '${createUserDto.user_name}', '${createUserDto.user_email}')`;
+      let uuid = uuidv4();
+      let query = `INSERT INTO ${hanaOptions.schema}.PCF_DB_LOGIN_USER (user_id, user_name, user_email) VALUES ('${uuid}', '${createUserDto.user_name}', '${createUserDto.user_email}' )`;
       console.log(query);
 
       let user = await this.databaseService.executeQuery(query, hanaOptions);
@@ -127,7 +129,7 @@ export class LoginUserService {
       //     ),
       // );
 
-      let query = `UPDATE ${hanaOptions.schema}.PCF_DB_LOGIN_USER SET user_name = '${updateLoginUser.user_name}', user_email = '${updateLoginUser.user_email}', password = '${updateLoginUser.password}', user_emp_id = '${updateLoginUser.user_emp_id}', changed_on = '${changedOnIsoString}', changed_by = '${updateLoginUser.changed_by}' WHERE id = '${updateLoginUser.id}' AND customer_id_id='${updateLoginUser.customer_id_id}' AND is_active = 'Y'`;
+      let query = `UPDATE ${hanaOptions.schema}.PCF_DB_LOGIN_USER SET user_name = '${updateLoginUser.user_name}', user_email = '${updateLoginUser.user_email}', password = '${updateLoginUser.password}', user_emp_id = '${updateLoginUser.user_emp_id}', changed_on = '${changedOnIsoString}', changed_by = '${updateLoginUser.changed_by}' WHERE id = '${updateLoginUser.id}' AND customer_id_id='${updateLoginUser.customer_id_customer_id}' AND is_active = 'Y'`;
 
       console.log(query);
 
