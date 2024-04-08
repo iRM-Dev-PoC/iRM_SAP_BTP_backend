@@ -2,5 +2,7 @@ Dockerfile
 .dockerignore
 node_modules/
 npm-debug.log
-dist
+dist/
+README.md
+postmancollection/
 k8-templates/

@@ -1,6 +1,4 @@
-<a href="https://community.sap.com/topics/cloud-sdk"><img src="https://help.sap.com/doc/2324e9c3b28748a4ae2ad08166d77675/1.0/en-US/logo-with-js.svg" alt="SAP Cloud SDK for JavaScript Logo" height="122.92" width="226.773"/></a>
-
-# Welcome to Your Application!
+# Welcome to Our Application!
 
 This is your **SAP Cloud Platform Cloud Foundry** application powered by the [SAP Cloud SDK for JavaScript](https://community.sap.com/topics/cloud-sdk) and [NestJS](https://nestjs.com/).
 
@@ -70,15 +68,8 @@ Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
 The SAP Cloud SDK is in no way affiliated with or endorsed by Nest and its maintainers.
 While Nest is our recommendation, the SAP Cloud SDK can be used with any framework, so you are free to choose what you are comfortable with.
 
-
-
-
-
-
-
-
-
-
+---
+<br/>
 # NestJS Application With CDS In postgreSQL
 
 This guide will walk you through the steps to create a SAP Cloud application using Cloud Foundry and CAP IRE (Integrated Run-time Environment) and Connection of postgreSQL DB in NestJS Application. Ensure you have the necessary prerequisites installed before proceeding.
@@ -251,9 +242,111 @@ npm add -g @sap/cds-dk
 
 
 
+## How to Run this Project Using DOCKER
+
+**Step 1 :**
+
+Run the following command after pulling the docker image
+
+```bash
+docker run --env-file ./.env -p 8080:8080 ghcr.io/imtrpdevsuman/irm_sap_btp_backend:latest
+```
+
+you need the `.env` file to run it. Here is the `.env` format
+
+```bash
+UPLOAD_DEST='./public'
+```
+
+## How to containerize your nestjs app and pushing to github?
 
 
+**Step 1 :**
+You need a `Dockerfile` in your root of your project
 
+```dockerfile
+# Stage 1: Build the application
+FROM node:18-alpine AS build
 
+WORKDIR /app
 
+# Copy package.json and package-lock.json
+COPY package*.json ./
 
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the application code
+COPY . .
+
+# Build the application
+RUN npm run build
+
+# Stage 2: Create the production image
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy built files from the previous stage
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/node_modules ./node_modules
+
+# Expose port (if needed)
+EXPOSE 8080
+
+# Command to run the application
+CMD ["node", "./dist/apps/api_gateway/main.js"]
+
+```
+
+**Step 2 :**
+
+Now you need create a docker image. The the following commands
+
+You need to name the image like this, if you want to push it to github.
+
+```bash
+docker build . -t ghcr.io/imtrpdevsuman/irm_sap_btp_backend:latest
+```
+
+**Step 3 :**
+Now you need to run the image. Use the following command to run this image.
+
+```bash
+docker run --env-file ./.env -p 8080:8080 ghcr.io/imtrpdevsuman/irm_sap_btp_backend:latest
+```
+
+We are mapping the 3000 port of the docker with the local 8080 port. and we need the `.env` file.
+
+**Step 4 :**
+
+Now let's push this image to github. First you need the genarate a personal access token (classic) from your github account. Follow this step to generate the token.
+
+Goto you github account -> Sttings -> Developer Settings -> Personal Access Token (Classic).
+
+Now generate a new token and save it somewhere securely. Make sure you have the permission for the following -
+
+`write:packages,
+delete:packages`
+
+You will need this token for authentication.
+
+**Step 5 :**
+
+Now run the following command to login into github
+
+```bash
+docker login ghcr.io
+```
+
+It will ask you some questions. If it asks for the Username, just enter your github usename. Use you access token that you just generated as you password.
+
+**Step 6 :**
+
+Now we are ready to push it to the github. Run the following command to push the image to the github.
+
+```bash
+docker push ghcr.io/imtrpdevsuman/irm_sap_btp_backend:latest
+```
+
+It should sucessfully push the image to github.
