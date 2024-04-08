@@ -1,0 +1,12 @@
+COLUMN TABLE pcf_db_Books (
+  ID INTEGER NOT NULL,
+  title NVARCHAR(5000),
+  author NVARCHAR(5000),
+  stock INTEGER,
+  INC_ID INTEGER,
+  INC_ID_STR NVARCHAR(36),
+  PRIMARY KEY(ID)
+) WITH ASSOCIATIONS (
+  MANY TO MANY JOIN pcf_db_Books_texts AS texts ON (texts.ID = ID),
+  MANY TO ONE JOIN pcf_db_Books_texts AS localized ON (localized.ID = ID AND localized.locale = SESSION_CONTEXT('LOCALE'))
+)

@@ -12,7 +12,7 @@ import { IsNotEmpty } from "class-validator";
     @IsNotEmpty()
     password: string; 
     @IsNotEmpty()
-    customer_id_id: string;
+    customer_id: string;
     user_emp_id: string;
     created_on: Date;
     created_by: string;
@@ -25,7 +25,7 @@ import { IsNotEmpty } from "class-validator";
     user_email: string;
     password: string;
     @IsNotEmpty()
-    customer_id_id: string;
+    customer_id_customer_id: string;
     user_emp_id: string;
     changed_on: Date;
     changed_by: string;

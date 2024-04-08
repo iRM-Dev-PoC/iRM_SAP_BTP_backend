@@ -30,8 +30,7 @@ entity Orders : managed {
 
 
 entity Customer_master : managed {
-  key ID               : Integer @cds.autoincrement;
-      CUSTOMER_ID      : UUID    @cds.UUID;
+  key CUSTOMER_ID      : UUID @cds.UUID;
       CUSTOMER_NAME    : String;
       CUSTOMER_ADDRESS : String;
       START_DATE       : DateTime;
@@ -193,8 +192,7 @@ entity sync_details : managed {
 }
 
 entity Report_master : managed {
-  key ID                 : Integer @cds.autoincrement;
-      REPORT_ID          : UUID    @cds.UUID;
+  key REPORT_ID          : UUID    @cds.UUID;
       REPORT_PATH        : String;
       REPORT_NAME        : String;
       REPORT_CREATED_AT  : DateTime;
@@ -237,25 +235,23 @@ entity Price_mismatch_output : managed {
 }
 
 entity Login_user : managed {
-  key ID          : Integer @cds.autoincrement;
-      USER_ID     : UUID    @cds.UUID;
-      USER_NAME   : String;
-      USER_EMAIL  : String;
-      USER_EMP_ID : String;
-      PASSWORD    : String;
-      CUSTOMER_ID : Association to Customer_master;
-      IS_ACTIVE   : String;
-      CREATED_ON  : DateTime;
-      CREATED_BY  : String;
-      CHANGED_ON  : DateTime;
-      CHANGED_BY  : String;
-      ROLE_ID     : Association to Role_master;
-      ROLE_NAME   : String;
+  key USER_ID      : UUID @cds.UUID;
+  USER_NAME   : String;
+  USER_EMAIL  : String;
+  USER_EMP_ID : String;
+  PASSWORD    : String;
+  CUSTOMER_ID : Association to Customer_master;
+  IS_ACTIVE   : String;
+  CREATED_ON  : DateTime;
+  CREATED_BY  : String;
+  CHANGED_ON  : DateTime;
+  CHANGED_BY  : String;
+  ROLE_ID     : Association to Role_master;
+  ROLE_NAME   : String;
 }
 
 entity Role_master : managed {
-  key ID              : Integer @cds.autoincrement;
-      ROLE_ID         : UUID    @cds.UUID;
+  key ROLE_ID         : UUID @cds.UUID;
       ROLE_NAME       : String;
       ROLE_DESC       : String;
       CUSTOMER_ID     : Association to Customer_master;
@@ -268,8 +264,7 @@ entity Role_master : managed {
 }
 
 entity Privilege {
-  key ID             : Integer @cds.autoincrement;
-      PRIVILEGE_ID   : UUID    @cds.UUID;
+  key PRIVILEGE_ID   : UUID    @cds.UUID;
       PRIVILEGE_NAME : String;
       PRIVILEGE_DESC : String;
       IS_ACTIVE      : String;
@@ -309,8 +304,7 @@ entity User_role_mapping {
 }
 
 entity Module_master {
-  key ID                  : Integer @cds.autoincrement;
-      MODULE_ID           : UUID    @cds.UUID;
+  key MODULE_ID           : UUID    @cds.UUID;
       MODULE_NAME         : String;
       DISPLAY_MODULE_NAME : String;
       MODULE_DESC         : String;

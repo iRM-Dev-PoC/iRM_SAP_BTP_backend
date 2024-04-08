@@ -11,6 +11,21 @@
           "key": "pcf-key",
           "resolved": false
         }
+      },
+      "db": {
+        "binding": {
+          "type": "cf",
+          "apiEndpoint": "https://api.cf.us10-001.hana.ondemand.com",
+          "org": "d06ac7fdtrial",
+          "space": "dev",
+          "instance": "iRM-HDI-instance",
+          "key": "iRM-HDI-instance-key",
+          "resolved": false
+        },
+        "kind": "hana",
+        "vcap": {
+          "name": "db"
+        }
       }
     }
   }
