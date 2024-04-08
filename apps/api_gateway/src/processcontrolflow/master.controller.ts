@@ -9,7 +9,7 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwtAuth.guard';
 import { Request } from 'express';
 import { AuthService } from '../auth/src';
-@UseGuards(JwtAuthGuard)
+// @UseGuards(JwtAuthGuard)
 @Controller('master')
 export class MasterController {
   constructor(private authService: AuthService) {}

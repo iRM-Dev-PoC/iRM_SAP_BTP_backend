@@ -19,7 +19,7 @@ import { SubmoduleMasterModule } from './submodule_master/submodule_master.modul
 import { RoleMasterModule } from './role_master/role_master.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from 'ormconfig';
-import { PrismaService } from '@app/share_lib/prisma.service';
+
 import { share } from 'rxjs';
 import { ShareLibModule } from '@app/share_lib';
 import { AssignRolePrivilegeModule } from './assign_role_privilege/assign_role_privilege.module';
