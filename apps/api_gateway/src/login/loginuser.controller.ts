@@ -1,6 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
+  Get,
+  Patch,
   Post,
   Req,
   UseGuards,
@@ -32,7 +35,7 @@ export class LoginUserController {
     );
   }
 
-  @Post('update-user')
+  @Patch('update-user')
   async UpdateUser(
     @Req() req: Request,
     @Body() updateLoginUser: UpdateLoginUserDto,
@@ -43,7 +46,7 @@ export class LoginUserController {
     );
   }
 
-  @Post('get-user')
+  @Get('get-user')
   async ReadUser(@Req() req: Request, @Body() { id, customer_id }) {
     return await this.loginUserService.ReadLoginUser(
       // this.authService.GetUserFromRequest(req),
@@ -52,7 +55,7 @@ export class LoginUserController {
     );
   }
 
-  @Post('delete-user')
+  @Delete('delete-user')
   async DeleteUser(
     @Req() req: Request,
     @Body() deleteLoginUser: DeleteLoginUserDto,
@@ -61,5 +64,10 @@ export class LoginUserController {
       // this.authService.GetUserFromRequest(req),
       deleteLoginUser,
     );
+  }
+
+  @Get('get-all-users')
+  async GetAllUsers() {
+    return await this.loginUserService.GetAllUsers();
   }
 }
