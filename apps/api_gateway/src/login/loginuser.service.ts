@@ -8,11 +8,13 @@ import {
 } from './dto/loginuser.dto';
 import { DatabaseService } from '@app/share_lib/database/database.service';
 import { CurrentUserDto, ResponseDto } from '@app/share_lib/common.dto';
+import { AppService } from '../app.service';
 
 @Injectable()
 export class LoginUserService {
   constructor(
     private databaseService: DatabaseService,
+    private readonly appService: AppService,
     // private jwtservice: JwtService,
   ) {}
 
@@ -22,24 +24,8 @@ export class LoginUserService {
   ): Promise<ResponseDto> {
     const hanaOptions = this.databaseService.getHanaOptions();
     try {
-      const generateQuery = `SELECT id FROM ${hanaOptions.schema}.PCF_DB_LOGIN_USER ORDER BY id DESC LIMIT 1`;
-      const res = await this.databaseService.executeQuery(
-        generateQuery,
-        hanaOptions,
-      );
-
-      var lastUserId;
-      var nextUserId: number;
-
-      if (res && res.length > 0) {
-        lastUserId = res[0].ID;
-        nextUserId = parseInt(lastUserId) + 1;
-      } else {
-        nextUserId = 1;
-      }
-
-      console.log('lastUsedID', lastUserId);
-      console.log('nextUserId', nextUserId);
+      const tableName = 'PCF_DB_LOGIN_USER';
+      const nextUserId = await this.appService.getLastUserId(tableName)
 
       createUserDto.id = nextUserId;
       createUserDto.user_id = uuidv4();
