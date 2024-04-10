@@ -25,7 +25,7 @@ export class LoginUserService {
     const hanaOptions = this.databaseService.getHanaOptions();
     try {
       const tableName = 'PCF_DB_LOGIN_USER';
-      const nextUserId = await this.appService.getLastUserId(tableName)
+      const nextUserId = await this.appService.getLastUserId(tableName);
 
       createUserDto.id = nextUserId;
       createUserDto.user_id = uuidv4();
@@ -47,7 +47,7 @@ export class LoginUserService {
       }
 
       let query = `
-    INSERT INTO ${hanaOptions.schema}.PCF_DB_LOGIN_USER (ID, USER_ID, USER_NAME, USER_EMAIL, PASSWORD, USER_EMP_ID, CREATED_ON, CREATED_BY) VALUES (${createUserDto.id}, '${createUserDto.user_id}', '${createUserDto.user_name}', '${createUserDto.user_email}', '${createUserDto.password}', '${createUserDto.user_emp_id}', TO_TIMESTAMP('${createUserDto.created_on.toISOString().slice(0, 23)}', 'YYYY-MM-DD"T"HH24:MI:SS.FF9'), '${createUserDto.created_by}')
+    INSERT INTO ${hanaOptions.schema}.PCF_DB_LOGIN_USER (ID, USER_ID, USER_NAME, USER_EMAIL, PASSWORD, USER_EMP_ID, CREATED_ON, CREATED_BY, IS_ACTIVE) VALUES (${createUserDto.id}, '${createUserDto.user_id}', '${createUserDto.user_name}', '${createUserDto.user_email}', '${createUserDto.password}', '${createUserDto.user_emp_id}', TO_TIMESTAMP('${createUserDto.created_on.toISOString().slice(0, 23)}', 'YYYY-MM-DD"T"HH24:MI:SS.FF9'), '${createUserDto.created_by}', 'Y')
   `;
       console.log(query);
 
@@ -76,7 +76,7 @@ export class LoginUserService {
     // let tx = cds.transaction();
     try {
       updateLoginUser.changed_on = new Date();
-      updateLoginUser.changed_by = '4';
+      updateLoginUser.changed_by = '2';
 
       const changedOnIsoString = updateLoginUser.changed_on.toISOString();
 
@@ -120,7 +120,9 @@ export class LoginUserService {
       //     ),
       // );
 
-      let query = `UPDATE ${hanaOptions.schema}.PCF_DB_LOGIN_USER SET user_name = '${updateLoginUser.user_name}', user_email = '${updateLoginUser.user_email}', password = '${updateLoginUser.password}', user_emp_id = '${updateLoginUser.user_emp_id}', changed_on = '${changedOnIsoString}', changed_by = '${updateLoginUser.changed_by}' WHERE id = '${updateLoginUser.id}' AND customer_id_id='${updateLoginUser.customer_id_customer_id}' AND is_active = 'Y'`;
+      // let query = `UPDATE ${hanaOptions.schema}.PCF_DB_LOGIN_USER SET user_name = '${updateLoginUser.user_name}', user_email = '${updateLoginUser.user_email}', password = '${updateLoginUser.password}', user_emp_id = '${updateLoginUser.user_emp_id}', changed_on = '${changedOnIsoString}', changed_by = '${updateLoginUser.changed_by}' WHERE id = '${updateLoginUser.id}' AND customer_id_id='${updateLoginUser.customer_id_customer_id}' AND is_active = 'Y'`;
+
+      let query = `UPDATE ${hanaOptions.schema}.PCF_DB_LOGIN_USER SET user_name = '${updateLoginUser.user_name}', user_email = '${updateLoginUser.user_email}', password = '${updateLoginUser.password}', user_emp_id = '${updateLoginUser.user_emp_id}', changed_on = '${changedOnIsoString}', changed_by = '${updateLoginUser.changed_by}' WHERE id = '${updateLoginUser.id}' AND is_active = 'Y'`;
 
       console.log(query);
 
@@ -143,8 +145,8 @@ export class LoginUserService {
 
   async ReadLoginUser(
     // currentUser: CurrentUserDto,
-    id: string,
-    customer_id: string,
+    id: number,
+    customer_id: number,
   ): Promise<ResponseDto> {
     const hanaOptions = this.databaseService.getHanaOptions();
     try {
@@ -170,7 +172,8 @@ export class LoginUserService {
       //     }),
       // );
 
-      let query = `SELECT id, user_id, user_name, user_email, is_active, customer_id_id, user_emp_id, created_on, created_by, changed_on, changed_by FROM ${hanaOptions.schema}.PCF_DB_LOGIN_USER WHERE customer_id_id = '${customer_id}' AND id = '${id}' AND is_active = 'Y'`;
+      // let query = `SELECT id, user_id, user_name, user_email, is_active, customer_id_id, user_emp_id, created_on, created_by, changed_on, changed_by FROM ${hanaOptions.schema}.PCF_DB_LOGIN_USER WHERE customer_id_id = '${customer_id}' AND id = '${id}' AND is_active = 'Y'`;
+      let query = `SELECT id, user_id, user_name, user_email, is_active, customer_id_id, user_emp_id, created_on, created_by, changed_on, changed_by FROM ${hanaOptions.schema}.PCF_DB_LOGIN_USER WHERE  id = '${id}' AND is_active = 'Y'`;
 
       let user = await this.databaseService.executeQuery(query, hanaOptions);
 
@@ -216,9 +219,11 @@ export class LoginUserService {
 
       const changedOnIsoString = new Date().toISOString();
 
-      let query = `UPDATE ${hanaOptions.schema}.PCF_DB_LOGIN_USER SET is_active = 'N', changed_on = '${changedOnIsoString}', changed_by = '4' WHERE id = '${deleteLoginUser.id}' AND customer_id_id = '${deleteLoginUser.customer_id}' AND is_active = 'Y'`;
+      // let query = `UPDATE ${hanaOptions.schema}.PCF_DB_LOGIN_USER SET is_active = 'N', changed_on = '${changedOnIsoString}', changed_by = '4' WHERE id = '${deleteLoginUser.id}' AND customer_id_id = '${deleteLoginUser.customer_id}' AND is_active = 'Y'`;
+      const query = `DELETE FROM ${hanaOptions.schema}.PCF_DB_LOGIN_USER  WHERE id = '${deleteLoginUser.id}' AND is_active = 'Y' `;
 
       let user = await this.databaseService.executeQuery(query, hanaOptions);
+      console.log(user);
 
       // await tx.commit();
       if (user == 0) {
@@ -238,6 +243,35 @@ export class LoginUserService {
       return {
         status: error.status,
         message: error.message,
+        data: null,
+      };
+    }
+  }
+
+  async GetAllUsers(): Promise<ResponseDto> {
+    const hanaOptions = this.databaseService.getHanaOptions();
+    try {
+      const query = `SELECT * FROM ${hanaOptions.schema}.PCF_DB_LOGIN_USER`;
+      const users = await this.databaseService.executeQuery(query, hanaOptions);
+      console.log(users);      
+
+      if (!users || users.length === 0) {
+        return {
+          statuscode: HttpStatus.NOT_FOUND,
+          message: 'No users found',
+          data: users,
+        };
+      }
+
+      return {
+        statuscode: HttpStatus.OK,
+        message: 'Users fetched successfully',
+        data: users,
+      };
+    } catch (error) {
+      return {
+        statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Error fetching users',
         data: null,
       };
     }
