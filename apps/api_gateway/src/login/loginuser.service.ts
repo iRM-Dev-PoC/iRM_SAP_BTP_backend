@@ -20,25 +20,32 @@ export class LoginUserService {
     //currentUser: CurrentUserDto,
     createUserDto: CreateLoginUserDto,
   ): Promise<ResponseDto> {
-    //let tx = cds.transaction();
     const hanaOptions = this.databaseService.getHanaOptions();
     try {
+      const generateQuery = `SELECT id FROM ${hanaOptions.schema}.PCF_DB_LOGIN_USER ORDER BY id DESC LIMIT 1`;
+      const res = await this.databaseService.executeQuery(
+        generateQuery,
+        hanaOptions,
+      );
+
+      var lastUserId;
+      var nextUserId: number;
+
+      if (res && res.length > 0) {
+        lastUserId = res[0].ID;
+        nextUserId = parseInt(lastUserId) + 1;
+      } else {
+        nextUserId = 1;
+      }
+
+      console.log('lastUsedID', lastUserId);
+      console.log('nextUserId', nextUserId);
+
+      createUserDto.id = nextUserId;
       createUserDto.user_id = uuidv4();
       createUserDto.created_on = new Date();
-      //console.log(currentUser.user_id);
-      // createUserDto.created_by = currentUser.user_id ? currentUser.user_id : "4"; //
-      // const randomUserId = Math.floor(Math.random());
-      createUserDto.created_by = '4';
+      createUserDto.created_by = '1';
       if (createUserDto.user_name || createUserDto.user_email) {
-        // let exisingUser = await tx.run(
-
-        //   SELECT.from('PCF_DB_LOGIN_USER')
-        //     .columns('user_name', 'user_email', 'is_active')
-        //     .where(
-        //       `user_name = '${createUserDto.user_name}' OR user_email = '${createUserDto.user_email}' and is_active = 'Y'`,
-        //     ),
-        // );
-
         let exisingUser = await this.databaseService.executeQuery(
           `SELECT user_name, user_email, is_active FROM ${hanaOptions.schema}.PCF_DB_LOGIN_USER WHERE user_name = '${createUserDto.user_name}' OR user_email = '${createUserDto.user_email}' and is_active = 'Y'`,
           hanaOptions,
@@ -52,12 +59,10 @@ export class LoginUserService {
           };
         }
       }
-      // let user = await tx.run(
-      //   INSERT.into('PCF_DB_LOGIN_USER').entries(createUserDto),
-      // );
 
-      let uuid = uuidv4();
-      let query = `INSERT INTO ${hanaOptions.schema}.PCF_DB_LOGIN_USER (user_id, user_name, user_email) VALUES ('${uuid}', '${createUserDto.user_name}', '${createUserDto.user_email}' )`;
+      let query = `
+    INSERT INTO ${hanaOptions.schema}.PCF_DB_LOGIN_USER (ID, USER_ID, USER_NAME, USER_EMAIL, PASSWORD, USER_EMP_ID, CREATED_ON, CREATED_BY) VALUES (${createUserDto.id}, '${createUserDto.user_id}', '${createUserDto.user_name}', '${createUserDto.user_email}', '${createUserDto.password}', '${createUserDto.user_emp_id}', TO_TIMESTAMP('${createUserDto.created_on.toISOString().slice(0, 23)}', 'YYYY-MM-DD"T"HH24:MI:SS.FF9'), '${createUserDto.created_by}')
+  `;
       console.log(query);
 
       let user = await this.databaseService.executeQuery(query, hanaOptions);
@@ -228,8 +233,6 @@ export class LoginUserService {
       let query = `UPDATE ${hanaOptions.schema}.PCF_DB_LOGIN_USER SET is_active = 'N', changed_on = '${changedOnIsoString}', changed_by = '4' WHERE id = '${deleteLoginUser.id}' AND customer_id_id = '${deleteLoginUser.customer_id}' AND is_active = 'Y'`;
 
       let user = await this.databaseService.executeQuery(query, hanaOptions);
-
-
 
       // await tx.commit();
       if (user == 0) {
