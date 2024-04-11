@@ -1,8 +1,9 @@
-import { IsNotEmpty, IsNumber, isNumber } from 'class-validator';
+import { IsNotEmpty, IsNumber } from 'class-validator';
 
 //#region moduleMaster
 
 export class CreateModuleMasterDto {
+  id: number;
   module_id: string; //UUID;
 
   @IsNotEmpty()
@@ -14,7 +15,7 @@ export class CreateModuleMasterDto {
   @IsNotEmpty()
   display_module_name: string;
 
-  @IsNotEmpty()
+  // @IsNotEmpty()
   customer_id_id: string;
   created_on: Date;
   created_by: string;
@@ -22,22 +23,22 @@ export class CreateModuleMasterDto {
 
 export class UpdateModuleMasterDto {
   @IsNotEmpty()
-  id: string;
+  id: number;
 
   module_id: string;
   module_desc: string;
-  @IsNumber()
+  // @IsNumber()
   parent_module_id_id: number;
   display_module_name: string;
 
-  @IsNotEmpty()
+  // @IsNotEmpty()
   customer_id_id: string;
   changed_on: Date;
   changed_by: string;
 }
 
 export class ReadModuleMasterDto {
-  id: string;
+  id: number;
   module_id: string;
   display_module_name: string;
   module_desc: string;
@@ -52,8 +53,8 @@ export class ReadModuleMasterDto {
 
 export class DeleteModuleMasterDto {
   @IsNotEmpty()
-  id: string;
-  @IsNotEmpty()
+  id: number;
+  // @IsNotEmpty()
   customer_id: string;
 }
 //#endregion moduleMaster
