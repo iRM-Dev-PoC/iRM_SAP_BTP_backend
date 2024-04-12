@@ -1,6 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
+  Get,
+  Patch,
   Post,
   Req,
   UseGuards,
@@ -18,7 +21,6 @@ import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwtAuth.guard';
 
 @Controller('submodule-master')
-
 export class SubmoduleMasterController {
   constructor(
     private submoduleService: SubmoduleMasterService,
@@ -30,62 +32,67 @@ export class SubmoduleMasterController {
     @Req() req: Request,
     @Body() createSubModule: CreateSubModuleMasterDto,
   ) {
-    this.authService.ValidatePrivileges(
-      req,
-      'SUBMODULE_MASTER',
-      'MANAGE_SUBMODULE_MASTER',
-      'write',
-    );
+    // this.authService.ValidatePrivileges(
+    //   req,
+    //   'SUBMODULE_MASTER',
+    //   'MANAGE_SUBMODULE_MASTER',
+    //   'write',
+    // );
     return await this.submoduleService.CreateSubModule(
-      this.authService.GetUserFromRequest(req),
+      // this.authService.GetUserFromRequest(req),
       createSubModule,
     );
   }
 
-  @Post('get-submodule')
+  @Get('get-submodule')
   async GetSubModule(@Req() req: Request, @Body() { id, customer_id }) {
-    this.authService.ValidatePrivileges(
-      req,
-      'SUBMODULE_MASTER',
-      'MANAGE_SUBMODULE_MASTER',
-      'read',
-    );
+    // this.authService.ValidatePrivileges(
+    //   req,
+    //   'SUBMODULE_MASTER',
+    //   'MANAGE_SUBMODULE_MASTER',
+    //   'read',
+    // );
     return await this.submoduleService.GetSubModule(id, customer_id);
   }
 
-  @Post('update-submodule')
+  @Patch('update-submodule')
   async UpdateSubModule(
     @Req() req: Request,
     @Body() updateSubModule: UpdateSubModuleMasterDto,
   ) {
-    this.authService.ValidatePrivileges(
-      req,
-      'SUBMODULE_MASTER',
-      'MANAGE_SUBMODULE_MASTER',
-      'update',
-    );
+    // this.authService.ValidatePrivileges(
+    //   req,
+    //   'SUBMODULE_MASTER',
+    //   'MANAGE_SUBMODULE_MASTER',
+    //   'update',
+    // );
 
     return await this.submoduleService.UpdateSubModule(
-      this.authService.GetUserFromRequest(req),
+      // this.authService.GetUserFromRequest(req),
       updateSubModule,
     );
   }
 
-  @Post('delete-submodule')
+  @Delete('delete-submodule')
   async DeleteSubModule(
     @Req() req: Request,
     @Body() deleteSubModule: DeleteSubModuleMasterDto,
   ) {
-    this.authService.ValidatePrivileges(
-      req,
-      'SUBMODULE_MASTER',
-      'MANAGE_SUBMODULE_MASTER',
-      'delete',
-    );
+    // this.authService.ValidatePrivileges(
+    //   req,
+    //   'SUBMODULE_MASTER',
+    //   'MANAGE_SUBMODULE_MASTER',
+    //   'delete',
+    // );
 
     return await this.submoduleService.DeleteSubModule(
-      this.authService.GetUserFromRequest(req),
+      // this.authService.GetUserFromRequest(req),
       deleteSubModule,
     );
+  }
+
+  @Get('get-all-SubModules')
+  async GetAllUsers() {
+    return await this.submoduleService.GetAllSubModules();
   }
 }
