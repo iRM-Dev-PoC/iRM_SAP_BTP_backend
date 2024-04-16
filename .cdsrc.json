@@ -16,17 +16,16 @@
   },
   "requires": {
     "db": {
-      "kind": "postgres",
-      "impl": "@cap-js/postgres",
+      "impl": "@sap/cds-hana",
+      "kind": "hana",
       "model": ["srv", "./db/data-model.cds"],
       "credentials": {
-        "host": "localhost",
-        "port": 5432,
-        "user": "postgres",
-        "password": "root",
-        "database": "postgres",
-        "schema": "public",
-        "uri": "postgres://postgres:root@localhost:5432/postgres"
+        "host": "77b3e199-d8bd-4de5-a385-0d6b9d30faa0.hana.trial-us10.hanacloud.ondemand.com",
+        "port": 443,
+        "user": "2069C68E511D4336A641FEA1E29B6E4D_1C7C19L597LQFAP6K3T0NITD3_RT",
+        "password": "Au2HwOnQP.2.Y3P_g-xmgx_PctyLJp--sgKybCNpCd.NxJ.Zk-I-9ahtmkx0VIOTtjHksUmOiwAKy4yJrii2QXQi.eMXV8AV5hfSpLa4.3XxpVxcJJuM-rB0KgT1.xmH",
+        "schema": "2069C68E511D4336A641FEA1E29B6E4D",
+        "uri": "jdbc:sap://77b3e199-d8bd-4de5-a385-0d6b9d30faa0.hana.trial-us10.hanacloud.ondemand.com:443?encrypt=true&validateCertificate=true&currentschema=2069C68E511D4336A641FEA1E29B6E4D"
       }
     }
   }

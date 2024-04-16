@@ -28,9 +28,8 @@ export class LoginUserService {
       const nextUserId = await this.appService.getLastUserId(tableName);
 
       createUserDto.id = nextUserId;
-      createUserDto.user_id = uuidv4();
       createUserDto.created_on = new Date();
-      createUserDto.created_by = '1';
+      createUserDto.created_by = 1;
       if (createUserDto.user_name || createUserDto.user_email) {
         let exisingUser = await this.databaseService.executeQuery(
           `SELECT user_name, user_email, is_active FROM ${hanaOptions.schema}.PCF_DB_LOGIN_USER WHERE user_name = '${createUserDto.user_name}' OR user_email = '${createUserDto.user_email}' and is_active = 'Y'`,
@@ -47,7 +46,7 @@ export class LoginUserService {
       }
 
       let query = `
-    INSERT INTO ${hanaOptions.schema}.PCF_DB_LOGIN_USER (ID, USER_ID, USER_NAME, USER_EMAIL, PASSWORD, USER_EMP_ID, CREATED_ON, CREATED_BY, IS_ACTIVE) VALUES (${createUserDto.id}, '${createUserDto.user_id}', '${createUserDto.user_name}', '${createUserDto.user_email}', '${createUserDto.password}', '${createUserDto.user_emp_id}', TO_TIMESTAMP('${createUserDto.created_on.toISOString().slice(0, 23)}', 'YYYY-MM-DD"T"HH24:MI:SS.FF9'), '${createUserDto.created_by}', 'Y')
+    INSERT INTO ${hanaOptions.schema}.PCF_DB_LOGIN_USER (ID, USER_NAME, USER_EMAIL, PASSWORD, USER_EMP_ID, CREATED_ON, CREATED_BY, IS_ACTIVE) VALUES (${createUserDto.id}, '${createUserDto.user_name}', '${createUserDto.user_email}', '${createUserDto.password}', '${createUserDto.user_emp_id}', TO_TIMESTAMP('${createUserDto.created_on.toISOString().slice(0, 23)}', 'YYYY-MM-DD"T"HH24:MI:SS.FF9'), '${createUserDto.created_by}', 'Y')
   `;
       console.log(query);
 
@@ -76,7 +75,7 @@ export class LoginUserService {
     // let tx = cds.transaction();
     try {
       updateLoginUser.changed_on = new Date();
-      updateLoginUser.changed_by = '2';
+      updateLoginUser.changed_by = 2;
 
       const changedOnIsoString = updateLoginUser.changed_on.toISOString();
 
