@@ -4,51 +4,45 @@ import { IsNotEmpty, IsNumber } from 'class-validator';
 
 export class CreateModuleMasterDto {
   id: number;
-  module_id: string; //UUID;
-
   @IsNotEmpty()
   module_name: string;
   module_desc: string;
   @IsNumber()
-  parent_module_id_id: number;
+  parent_module_id: number;
 
   @IsNotEmpty()
   display_module_name: string;
 
-  // @IsNotEmpty()
-  customer_id_id: string;
+  @IsNotEmpty()
+  customer_id: number;
   created_on: Date;
-  created_by: string;
+  created_by: number;
 }
 
 export class UpdateModuleMasterDto {
   @IsNotEmpty()
   id: number;
-
-  module_id: string;
   module_desc: string;
-  // @IsNumber()
-  parent_module_id_id: number;
+  @IsNumber()
+  parent_module_id: number;
   display_module_name: string;
-
-  // @IsNotEmpty()
-  customer_id_id: string;
+  @IsNotEmpty()
+  customer_id: number;
   changed_on: Date;
-  changed_by: string;
+  changed_by: number;
 }
 
 export class ReadModuleMasterDto {
   id: number;
-  module_id: string;
   display_module_name: string;
   module_desc: string;
-  parent_module_id_id: string;
+  parent_module_id: string;
   is_active: string;
   created_on: Date;
-  created_by: string;
+  created_by: number;
   changed_on: Date;
-  changed_by: string;
-  customer_id_id: string;
+  changed_by: number;
+  customer_id: number;
 }
 
 export class DeleteModuleMasterDto {

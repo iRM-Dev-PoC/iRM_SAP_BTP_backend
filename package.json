@@ -133,39 +133,5 @@
       "^@app/auth(|/.*)$": "<rootDir>/libs/auth/src/$1",
       "^@app/guard(|/.*)$": "<rootDir>/libs/auth/src/guards/jwtguards/guard/src/$1"
     }
-  },
-  "cds": {
-    "requires": {
-      "db": {
-        "kind": "postgres"
-      },
-      "database": {
-        "impl": "cds-pg",
-        "dialect": "postgres",
-        "model": [
-          "srv"
-        ],
-        "credentials": {
-          "host": "localhost",
-          "port": 5432,
-          "database": "postgres",
-          "user": "postgres",
-          "password": "root"
-        }
-      }
-    },
-    "migrations": {
-      "db": {
-        "schema": {
-          "default": "public",
-          "clone": "_cdsdbm_clone",
-          "reference": "_cdsdbm_ref"
-        },
-        "deploy": {
-          "tmpFile": "tmp/_autodeploy.json",
-          "undeployFile": "db/undeploy.json"
-        }
-      }
-    }
   }
 }

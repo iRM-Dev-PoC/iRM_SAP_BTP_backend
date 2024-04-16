@@ -1,5 +1,0 @@
-COLUMN TABLE pcf_db_Authors (
-  ID INTEGER NOT NULL,
-  name NVARCHAR(5000),
-  PRIMARY KEY(ID)
-)
