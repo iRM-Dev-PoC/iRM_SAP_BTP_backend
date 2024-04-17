@@ -38,6 +38,6 @@ export class ReadRoleMasterDto {
 export class DeleteRoleMasterDto {
   @IsNotEmpty()
   id: number;
-//   @IsNotEmpty()
+  @IsNotEmpty()
   customer_id: number;
 }

@@ -20,25 +20,16 @@ export class ModuleMasterService {
     // currentUser: CurrentUserDto,
     createModuleDto: CreateModuleMasterDto,
   ): Promise<ResponseDto> {
-    // const hanaOptions = this.databaseService.getHanaOptions();
     try {
       const db = await cds.connect.to('db');
 
       const tableName = 'PCF_DB_MODULE_MASTER';
-      // const nextUserId = await this.appService.getLastUserId(tableName);
-
-      // createModuleDto.id = nextUserId;
       createModuleDto.created_by = 1;
       createModuleDto.module_name = createModuleDto.module_name.toUpperCase();
       createModuleDto.display_module_name =
         createModuleDto.display_module_name.toUpperCase();
 
-      // Checking if module name or display name already exist
       if (createModuleDto.module_name || createModuleDto.display_module_name) {
-        // let existingModule = await this.databaseService.executeQuery(
-        //   `SELECT module_name, display_module_name, is_active FROM ${hanaOptions.schema}.PCF_DB_MODULE_MASTER WHERE module_name = '${createModuleDto.module_name}' OR display_module_name = '${createModuleDto.display_module_name}' AND is_active = 'Y'`,
-        //   hanaOptions,
-        // );
         const whereClause = cds.parse.expr(
           `MODULE_NAME= '${createModuleDto.module_name}' OR DISPLAY_MODULE_NAME= '${createModuleDto.display_module_name}'`,
         );
@@ -54,12 +45,6 @@ export class ModuleMasterService {
         }
       }
 
-      // Constructing the INSERT query
-      // let query = `
-      //   INSERT INTO ${hanaOptions.schema}.PCF_DB_MODULE_MASTER (ID, module_id, module_name, module_desc, display_module_name, created_on, created_by, is_active)
-      //   VALUES ('${createModuleDto.id}', '${createModuleDto.module_id}', '${createModuleDto.module_name}', '${createModuleDto.module_desc}', '${createModuleDto.display_module_name}', TO_TIMESTAMP('${createModuleDto.created_on.toISOString().slice(0, 23)}', 'YYYY-MM-DD"T"HH24:MI:SS.FF9'), '${createModuleDto.created_by}', 'Y')
-      // `;
-
       const createdModule = await INSERT.into(tableName).entries({
         MODULE_NAME: `${createModuleDto.module_name}`,
         MODULE_DESC: `${createModuleDto.module_desc}`,
@@ -68,14 +53,10 @@ export class ModuleMasterService {
         CREATED_BY: createModuleDto.created_by,
       });
 
-      // Executing the INSERT query
-      // await this.databaseService.executeQuery(query, hanaOptions);
-
       return {
         statuscode: HttpStatus.CREATED,
         message: 'Module created successfully',
         data: createModuleDto,
-        // data: createdModule,
       };
     } catch (error) {
       return {
@@ -123,6 +104,7 @@ export class ModuleMasterService {
         })
         .where({
           ID: updateModuleDto.id,
+          CUSTOMER_ID: updateModuleDto.customer_id,
           IS_ACTIVE: 'Y',
         });
 
@@ -140,52 +122,11 @@ export class ModuleMasterService {
     }
   }
 
-  // async GetModule(
-  //   // currentUser: CurrentUserDto,
-  //   id,
-  //   customer_id,
-  // ): Promise<ResponseDto> {
-  //   const hanaOptions = this.databaseService.getHanaOptions();
-  //   try {
-  //     let query = `
-  //       SELECT
-  //         *
-  //       FROM ${hanaOptions.schema}.PCF_DB_MODULE_MASTER
-  //       WHERE
-  //         id = '${Number(id)}' AND
-  //         is_active = 'Y'
-  //     `;
-
-  //     let module = await this.databaseService.executeQuery(query, hanaOptions);
-
-  //     if (!module || module.length == 0) {
-  //       return {
-  //         statuscode: HttpStatus.NOT_FOUND,
-  //         message: 'Module not found',
-  //         data: module,
-  //       };
-  //     }
-
-  //     return {
-  //       statuscode: HttpStatus.OK,
-  //       message: 'Module fetched successfully',
-  //       data: module,
-  //     };
-  //   } catch (error) {
-  //     return {
-  //       statuscode: error.status,
-  //       message: error.message,
-  //       data: null,
-  //     };
-  //   }
-  // }
-
   async GetModule(
     // currentUser: CurrentUserDto,
     id,
     customer_id,
   ): Promise<ResponseDto> {
-    // const hanaOptions = this.databaseService.getHanaOptions();
     try {
       const db = await cds.connect.to('db');
 
@@ -221,7 +162,6 @@ export class ModuleMasterService {
     // currentUser: CurrentUserDto,
     deleteModuleMaster: DeleteModuleMasterDto,
   ): Promise<ResponseDto> {
-    // const hanaOptions = this.databaseService.getHanaOptions();
     try {
       const db = await cds.connect.to('db');
 
@@ -229,6 +169,7 @@ export class ModuleMasterService {
         .set({ IS_ACTIVE: 'N' })
         .where({
           ID: deleteModuleMaster.id,
+          CUSTOMER_ID: deleteModuleMaster.customer_id,
           IS_ACTIVE: 'Y',
         });
 
@@ -256,12 +197,8 @@ export class ModuleMasterService {
 
   async GetAllModules() // currentUser: CurrentUserDto,
   : Promise<ResponseDto> {
-    // const hanaOptions = this.databaseService.getHanaOptions(); // Getting HANA options
     try {
       const db = await cds.connect.to('db');
-      // let query = `SELECT * FROM ${hanaOptions.schema}.PCF_DB_MODULE_MASTER`;
-
-      // let modules = await this.databaseService.executeQuery(query, hanaOptions);
 
       const modules = await db.read('PCF_DB_MODULE_MASTER');
 
