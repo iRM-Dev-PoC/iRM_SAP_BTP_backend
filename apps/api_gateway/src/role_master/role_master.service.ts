@@ -140,7 +140,7 @@ export class RoleMasterService {
         .set({
           ROLE_NAME: updateRoleMaster.role_name,
           ROLE_DESC: updateRoleMaster.role_desc,
-          CHANGED_ON: updateRoleMaster.changed_on.toISOString().slice(0, 23),
+          CHANGED_ON: updateRoleMaster.changed_on.toISOString(),
           CHANGED_BY: updateRoleMaster.changed_by,
         })
         .where({
