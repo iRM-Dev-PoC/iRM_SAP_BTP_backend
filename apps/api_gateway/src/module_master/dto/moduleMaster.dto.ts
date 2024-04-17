@@ -48,7 +48,7 @@ export class ReadModuleMasterDto {
 export class DeleteModuleMasterDto {
   @IsNotEmpty()
   id: number;
-  // @IsNotEmpty()
+  @IsNotEmpty()
   customer_id: string;
 }
 //#endregion moduleMaster
