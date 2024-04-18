@@ -14,9 +14,14 @@ export class CreateLoginUserDto {
   customer_id: number;
   user_emp_id: string;
   @IsNotEmpty()
+  role_id: number;
+  @IsNotEmpty()
   created_on: Date;
   @IsNotEmpty()
   created_by: number;
+  designation: string;
+  @IsNotEmpty()
+  salt: string;
 }
 
 export class UpdateLoginUserDto {
@@ -24,7 +29,6 @@ export class UpdateLoginUserDto {
   id: number;
   user_name: string;
   user_email: string;
-  password: string;
   @IsNotEmpty()
   customer_id: number;
   user_emp_id: number;
@@ -36,7 +40,6 @@ export class ReadLoginUserDto {
   id: number;
   user_name: string;
   user_email: string;
-  // password: string;
   is_active: string;
   customer_id: string;
   user_emp_id: string;
@@ -49,7 +52,9 @@ export class ReadLoginUserDto {
 export class DeleteLoginUserDto {
   @IsNotEmpty()
   id: number;
-  // @IsNotEmpty()
-  customer_id: string;
+  @IsNotEmpty()
+  customer_id: number;
+  changed_on: Date;
+  changed_by: number;
 }
 //#endregion loginuser

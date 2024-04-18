@@ -7,12 +7,8 @@ export class CreateModuleMasterDto {
   @IsNotEmpty()
   module_name: string;
   module_desc: string;
-  @IsNumber()
-  parent_module_id: number;
-
   @IsNotEmpty()
   display_module_name: string;
-
   @IsNotEmpty()
   customer_id: number;
   created_on: Date;
@@ -22,9 +18,8 @@ export class CreateModuleMasterDto {
 export class UpdateModuleMasterDto {
   @IsNotEmpty()
   id: number;
+  module_name: string;
   module_desc: string;
-  @IsNumber()
-  parent_module_id: number;
   display_module_name: string;
   @IsNotEmpty()
   customer_id: number;
@@ -36,7 +31,6 @@ export class ReadModuleMasterDto {
   id: number;
   display_module_name: string;
   module_desc: string;
-  parent_module_id: string;
   is_active: string;
   created_on: Date;
   created_by: number;
@@ -49,6 +43,8 @@ export class DeleteModuleMasterDto {
   @IsNotEmpty()
   id: number;
   @IsNotEmpty()
-  customer_id: string;
+  customer_id: number;
+  changed_on: Date;
+  changed_by: number;
 }
 //#endregion moduleMaster

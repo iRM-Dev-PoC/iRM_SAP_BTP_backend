@@ -51,5 +51,7 @@ export class DeleteSubModuleMasterDto {
   id: number;
   @IsNotEmpty()
   customer_id: number;
+  changed_on: Date;
+  changed_by: number;
 }
 //#endregion moduleMaster
