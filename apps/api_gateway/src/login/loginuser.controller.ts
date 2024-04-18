@@ -14,7 +14,11 @@ import { JwtAuthGuard } from '../auth/guards/jwtAuth.guard';
 
 import { LoginUserService } from './loginuser.service';
 import { AuthService } from '../auth/src';
-import { CreateLoginUserDto, DeleteLoginUserDto, UpdateLoginUserDto } from './dto/loginuser.dto';
+import {
+  CreateLoginUserDto,
+  DeleteLoginUserDto,
+  UpdateLoginUserDto,
+} from './dto/loginuser.dto';
 
 @Controller('loginuser')
 //@UseGuards(JwtAuthGuard)

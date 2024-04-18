@@ -181,12 +181,19 @@ export class SubmoduleMasterService {
     try {
       const db = await cds.connect.to('db');
 
-      const affectedRows = await UPDATE('PCF_DB_SUBMODULE_MASTER')
-        .set({ IS_ACTIVE: 'N' })
+      deleteSubModule.changed_on = new Date();
+      deleteSubModule.changed_by = 3;
+
+      const affectedRows = await UPDATE("PCF_DB_SUBMODULE_MASTER")
+        .set({
+          IS_ACTIVE: "N",
+          CHANGED_ON: deleteSubModule.changed_on.toISOString(),
+          CHANGED_BY: deleteSubModule.changed_by,
+        })
         .where({
           ID: deleteSubModule.id,
           CUSTOMER_ID: deleteSubModule.customer_id,
-          IS_ACTIVE: 'Y',
+          IS_ACTIVE: "Y",
         });
 
       if (affectedRows === 0) {

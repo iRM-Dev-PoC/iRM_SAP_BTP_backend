@@ -97,6 +97,7 @@ export class ModuleMasterService {
 
       const updatedModule = await UPDATE('PCF_DB_MODULE_MASTER')
         .set({
+          MODULE_NAME: updateModuleDto.module_name,
           MODULE_DESC: updateModuleDto.module_desc,
           DISPLAY_MODULE_NAME: updateModuleDto.display_module_name,
           CHANGED_ON: updateModuleDto.changed_on.toISOString().slice(0, 23),
@@ -165,8 +166,15 @@ export class ModuleMasterService {
     try {
       const db = await cds.connect.to('db');
 
+      deleteModuleMaster.changed_on = new Date();
+      deleteModuleMaster.changed_by = 3;
+
       const affectedRows = await UPDATE('PCF_DB_MODULE_MASTER')
-        .set({ IS_ACTIVE: 'N' })
+        .set({
+          IS_ACTIVE: 'N',
+          CHANGED_ON: deleteModuleMaster.changed_on.toISOString(),
+          CHANGED_BY: deleteModuleMaster.changed_by
+        })
         .where({
           ID: deleteModuleMaster.id,
           CUSTOMER_ID: deleteModuleMaster.customer_id,
@@ -200,7 +208,9 @@ export class ModuleMasterService {
     try {
       const db = await cds.connect.to('db');
 
-      const modules = await db.read('PCF_DB_MODULE_MASTER');
+      const whereClause = cds.parse.expr(`IS_ACTIVE = 'Y'`);
+
+      const modules = await db.read('PCF_DB_MODULE_MASTER').where(whereClause);
 
       if (!modules || modules.length === 0) {
         return {

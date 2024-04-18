@@ -178,12 +178,19 @@ export class RoleMasterService {
     try {
       const db = await cds.connect.to('db');
 
-      const affectedRows = await UPDATE('PCF_DB_ROLE_MASTER')
-        .set({ IS_ACTIVE: 'N' })
+      deleteRoleMaster.changed_on = new Date();
+      deleteRoleMaster.changed_by = 3;
+
+      const affectedRows = await UPDATE("PCF_DB_ROLE_MASTER")
+        .set({
+          IS_ACTIVE: "N",
+          CHANGED_ON: deleteRoleMaster.changed_on.toISOString(),
+          CHANGED_BY: deleteRoleMaster.changed_by,
+        })
         .where({
           ID: deleteRoleMaster.id,
           CUSTOMER_ID: deleteRoleMaster.customer_id,
-          IS_ACTIVE: 'Y',
+          IS_ACTIVE: "Y",
         });
 
       if (affectedRows === 0) {
