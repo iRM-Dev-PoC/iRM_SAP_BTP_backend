@@ -24,7 +24,7 @@ import { create } from 'domain';
 import { get } from 'http';
 
 @Controller('assign-role-privilege')
-@UseGuards(JwtAuthGuard)
+// @UseGuards(JwtAuthGuard)
 @UsePipes(new ValidationPipe())
 export class AssignRolePrivilegeController {
   constructor(
@@ -38,7 +38,7 @@ export class AssignRolePrivilegeController {
     @Body() createRoletoPrivilege: CreateAssignRolePrivilegeDto,
   ) {
     return await this.assignRolePrivilege.InsertRoleModuleSubmodulePrivilegeMapping(
-      this.authService.GetUserFromRequest(req),
+      // this.authService.GetUserFromRequest(req),
       createRoletoPrivilege,
     );
   }
@@ -50,7 +50,7 @@ export class AssignRolePrivilegeController {
     getRoleModuleSubmodulePrivilegeMappingDto: GetRoleModuleSubmodulePrivilegeMappingDto,
   ) {
     return await this.assignRolePrivilege.GetRoleModuleSubmodulePrivilegeMapping(
-      this.authService.GetUserFromRequest(req),
+      // this.authService.GetUserFromRequest(req),
       getRoleModuleSubmodulePrivilegeMappingDto,
     );
   }
@@ -62,7 +62,7 @@ export class AssignRolePrivilegeController {
     updateRoleModuleSubmodulePrivilegeMappingDto: UpdateRoleModuleSubmodulePrivilegeMappingDto,
   ) {
     return await this.assignRolePrivilege.UpdateRoleModuleSubmodulePrivilegeMapping(
-      this.authService.GetUserFromRequest(req),
+      // this.authService.GetUserFromRequest(req),
       updateRoleModuleSubmodulePrivilegeMappingDto,
     );
   }
@@ -71,12 +71,12 @@ export class AssignRolePrivilegeController {
   async DeleteRoleModuleSubmodulePrivilegeMapping(
     @Req() req: Request,
     @Body()
-    { id, customer_id_id },
+    { id, customer_id },
   ) {
     return await this.assignRolePrivilege.DeleteRoleModuleSubmodulePrivilegeMapping(
-      this.authService.GetUserFromRequest(req),
+      // this.authService.GetUserFromRequest(req),
       id,
-      customer_id_id,
+      customer_id
     );
   }
 
@@ -87,7 +87,7 @@ export class AssignRolePrivilegeController {
     createAssignRoleToUserDto: CreateAssignRoleToUserDto,
   ) {
     return await this.assignRolePrivilege.AssignRoleToUser(
-      this.authService.GetUserFromRequest(req),
+      // this.authService.GetUserFromRequest(req),
       createAssignRoleToUserDto,
     );
   }
@@ -99,7 +99,7 @@ export class AssignRolePrivilegeController {
     getRoleOfUserDto: GetRoleOfUserDto,
   ) {
     return await this.assignRolePrivilege.GetRoleOfUser(
-      this.authService.GetUserFromRequest(req),
+      // this.authService.GetUserFromRequest(req),
       getRoleOfUserDto,
     );
   }
@@ -111,7 +111,7 @@ export class AssignRolePrivilegeController {
     updateRoleOfUserDto: UpdateRoleOfUserDto,
   ) {
     return await this.assignRolePrivilege.UpdateRoleOfUser(
-      this.authService.GetUserFromRequest(req),
+      // this.authService.GetUserFromRequest(req),
       updateRoleOfUserDto,
     );
   }

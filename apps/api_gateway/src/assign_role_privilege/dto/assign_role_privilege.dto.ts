@@ -1,123 +1,127 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber } from 'class-validator';
 
 export class CreateAssignRolePrivilegeDto {
+  id: number;
   @IsNotEmpty()
-  @IsString()
-  role_id_id: string;
+  @IsNumber()
+  role_id: number;
 
   @IsNotEmpty()
-  @IsString()
-  module_id_id: string;
+  @IsNumber()
+  module_id: number;
 
   @IsNotEmpty()
-  @IsString()
-  submodule_id_id: string;
+  @IsNumber()
+  submodule_id: number;
 
   @IsNotEmpty()
-  @IsString()
-  privilege_id_id: string;
+  @IsNumber()
+  privilege_id: number;
+  @IsNotEmpty()
+  @IsNumber()
+  customer_id: number;
+
+  privilege_flag: string;
 
   created_on: Date;
-  created_by: string;
-
-  @IsNotEmpty()
-  @IsString()
-  customer_id_id: string;
+  created_by: number;
 }
 
 export class GetRoleModuleSubmodulePrivilegeMappingDto {
   @IsNotEmpty()
-  @IsString()
-  id: string;
+  @IsNumber()
+  id: number;
 
   @IsNotEmpty()
-  @IsString()
-  customer_id_id: string;
+  @IsNumber()
+  customer_id: number;
 }
 
 export class UpdateRoleModuleSubmodulePrivilegeMappingDto {
   @IsNotEmpty()
-  @IsString()
-  id: string;
+  @IsNumber()
+  id: number;
 
   @IsNotEmpty()
-  @IsString()
-  customer_id_id: string;
+  @IsNumber()
+  customer_id: number;
 
   @IsNotEmpty()
-  @IsString()
-  role_id_id: string;
+  @IsNumber()
+  role_id: number;
 
   @IsNotEmpty()
-  @IsString()
-  module_id_id: string;
+  @IsNumber()
+  module_id: number;
 
   @IsNotEmpty()
-  @IsString()
-  submodule_id_id: string;
+  @IsNumber()
+  submodule_id: number;
 
   @IsNotEmpty()
-  @IsString()
-  privilege_id_id: string;
+  @IsNumber()
+  privilege_id: number;
 
   updated_on: Date;
-  updated_by: string;
+  updated_by: number;
 }
 
 export class CreateAssignRoleToUserDto {
-  @IsNotEmpty()
-  @IsString()
-  role_id_id: string;
+  id: number;
 
   @IsNotEmpty()
-  @IsString()
-  user_id_id: string;
+  @IsNumber()
+  user_id: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  role_id: number;
 
   created_on: Date;
-  created_by: string;
+  created_by: number;
 
   @IsNotEmpty()
-  @IsString()
-  customer_id_id: string;
+  @IsNumber()
+  customer_id: number;
 }
 
 export class GetRoleOfUserDto {
   @IsNotEmpty()
-  @IsString()
-  user_id_id: string;
+  @IsNumber()
+  user_id: number;
 
   @IsNotEmpty()
-  @IsString()
-  customer_id_id: string;
+  @IsNumber()
+  customer_id: number;
 }
 
-export class UpdateRoleOfUserDto{
+export class UpdateRoleOfUserDto {
   @IsNotEmpty()
-  @IsString()
-  user_id_id: string;
+  @IsNumber()
+  user_id: number;
 
   @IsNotEmpty()
-  @IsString()
-  customer_id_id: string;
+  @IsNumber()
+  customer_id: number;
 
   @IsNotEmpty()
-  @IsString()
-  role_id_id: string;
+  @IsNumber()
+  role_id: number;
 
   changed_on: Date;
-  changed_by: string;
+  changed_by: number;
 }
 
 export class DeleteRoleFromUserDto {
   @IsNotEmpty()
-  @IsString()
-  user_id_id: string;
+  @IsNumber()
+  user_id: number;
 
   @IsNotEmpty()
-  @IsString()
-  role_id_id: string;
+  @IsNumber()
+  role_id: number;
 
   @IsNotEmpty()
-  @IsString()
-  customer_id_id: string;
+  @IsNumber()
+  customer_id: number;
 }
