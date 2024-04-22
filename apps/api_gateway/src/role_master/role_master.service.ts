@@ -164,7 +164,7 @@ export class RoleMasterService {
       };
     } catch (error) {
       return {
-        statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
+        statuscode: HttpStatus.BAD_REQUEST,
         message: 'Role update failed',
         data: error,
       };
@@ -196,14 +196,14 @@ export class RoleMasterService {
       if (affectedRows === 0) {
         return {
           statuscode: HttpStatus.NOT_FOUND,
-          message: 'Module not found for deletion',
+          message: 'Role not found for deletion',
           data: null,
         };
       }
 
       return {
         statuscode: HttpStatus.OK,
-        message: 'Module deleted successfully',
+        message: 'Role deleted successfully',
         data: affectedRows,
       };
     } catch (error) {

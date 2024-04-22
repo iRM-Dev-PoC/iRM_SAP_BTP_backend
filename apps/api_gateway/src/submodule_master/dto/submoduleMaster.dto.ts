@@ -22,7 +22,6 @@ export class UpdateSubModuleMasterDto {
   @IsNotEmpty()
   id: number;
   submodule_name: string;
-  submodule_id: string;
   submodule_desc: string;
   @IsNumber()
   parent_module_id: number;

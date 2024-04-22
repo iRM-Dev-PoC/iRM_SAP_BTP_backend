@@ -64,7 +64,7 @@ export class RoleMasterController {
     );
   }
 
-  @Delete('delete-role')
+  @Patch('delete-role')
   async DeleteRole(
     @Req() req: Request,
     @Body() deleteRole: DeleteRoleMasterDto,

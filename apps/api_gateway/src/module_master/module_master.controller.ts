@@ -83,7 +83,7 @@ export class ModuleMasterController {
     );
   }
 
-  @Delete('delete-module')
+  @Patch('delete-module')
   async DeleteModule(
     @Req() req: Request,
     @Body() deleteModuleDto: DeleteModuleMasterDto,
