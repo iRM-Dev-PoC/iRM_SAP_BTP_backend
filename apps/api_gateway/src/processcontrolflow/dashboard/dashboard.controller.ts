@@ -5,14 +5,19 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwtAuth.guard';
+import { JwtAuthGuard } from '../../auth/guards/jwtAuth.guard';
 import { Request } from 'express';
-import { AuthService } from '../auth/src';
-@UseGuards(JwtAuthGuard)
+import { AuthService } from '../../auth/src';
+import { DashboardService } from './dashboard.service';
+
+// @UseGuards(JwtAuthGuard)
 @Controller('dashboard')
 // Add metadata
 export class DashboardController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private dashboardService : DashboardService,
+    private authService: AuthService
+  ) {}
 
   @Get('get-hello')
   getHello(@Req() req: Request) {
@@ -22,5 +27,10 @@ export class DashboardController {
       );
     }
     return 'Hello from dashboard controller!';
+  }
+
+  @Get('control-checkpoints')
+  async getControlCheckpoints() {
+    return await this.dashboardService.getControlCheckPoints();
   }
 }

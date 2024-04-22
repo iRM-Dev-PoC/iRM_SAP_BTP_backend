@@ -17,8 +17,6 @@ import { ModuleMasterModule } from './module_master/module_master.module';
 import { SyncServiceModule } from './sync_service/sync_service.module';
 import { SubmoduleMasterModule } from './submodule_master/submodule_master.module';
 import { RoleMasterModule } from './role_master/role_master.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { typeOrmConfig } from 'ormconfig';
 
 import { share } from 'rxjs';
 import { ShareLibModule } from '@app/share_lib';
@@ -39,7 +37,7 @@ import { DatabaseService } from '@app/share_lib/database/database.service';
     //  TypeOrmModule.forRoot(typeOrmConfig)
     ShareLibModule,
     AssignRolePrivilegeModule,
-    DatabaseModule,
+    DatabaseModule
   ],
   controllers: [AppController],
   providers: [AppService, LocalStrategy, JwtStrategy, DatabaseService],
