@@ -21,71 +21,69 @@ import { get } from 'http';
 
 @Injectable()
 @UsePipes(new ValidationPipe())
-@UseGuards(JwtAuthGuard)
+// @UseGuards(JwtAuthGuard)
 export class AssignRolePrivilegeService {
   constructor() {}
 
   async InsertRoleModuleSubmodulePrivilegeMapping(
-    currentUser: CurrentUserDto,
+    // currentUser: CurrentUserDto,
     createRoleModuleSubmodulePrivilegeMappingDto: CreateAssignRolePrivilegeDto,
   ): Promise<ResponseDto> {
-    let tx = cds.transaction();
     try {
+      const db = await cds.connect.to("db");
+
       createRoleModuleSubmodulePrivilegeMappingDto.created_on = new Date();
-      createRoleModuleSubmodulePrivilegeMappingDto.created_by =
-        currentUser.user_id;
+      createRoleModuleSubmodulePrivilegeMappingDto.created_by = 1; // current user id
       console.log(createRoleModuleSubmodulePrivilegeMappingDto);
 
       if (
-        createRoleModuleSubmodulePrivilegeMappingDto.role_id_id &&
-        createRoleModuleSubmodulePrivilegeMappingDto.module_id_id &&
-        createRoleModuleSubmodulePrivilegeMappingDto.submodule_id_id &&
-        createRoleModuleSubmodulePrivilegeMappingDto.privilege_id_id
+        createRoleModuleSubmodulePrivilegeMappingDto.role_id &&
+        createRoleModuleSubmodulePrivilegeMappingDto.module_id &&
+        createRoleModuleSubmodulePrivilegeMappingDto.submodule_id &&
+        createRoleModuleSubmodulePrivilegeMappingDto.privilege_id
       ) {
-        let exisingRoleModuleSubmodulePrivilegeMapping = await tx.run(
-          SELECT.from('PCF_DB_ROLE_MODULE_SUBMODULE_MAPPING')
-            .where(`ROLE_ID_ID ='${createRoleModuleSubmodulePrivilegeMappingDto.role_id_id}'
-           AND MODULE_ID_ID ='${createRoleModuleSubmodulePrivilegeMappingDto.module_id_id}'
-            AND SUBMODULE_ID_ID ='${createRoleModuleSubmodulePrivilegeMappingDto.submodule_id_id}'
-            AND PRIVILEGE_ID_ID= '${createRoleModuleSubmodulePrivilegeMappingDto.privilege_id_id}'
-            AND CUSTOMER_ID_ID='${createRoleModuleSubmodulePrivilegeMappingDto.customer_id_id}'
-            AND IS_ACTIVE='Y'`),
-        );
-        console.log(exisingRoleModuleSubmodulePrivilegeMapping);
-        if (exisingRoleModuleSubmodulePrivilegeMapping.length > 0) {
-          await tx.commit();
+        const whereClause = cds.parse.expr(`
+        ROLE_ID = '${createRoleModuleSubmodulePrivilegeMappingDto.role_id}' AND
+        MODULE_ID = '${createRoleModuleSubmodulePrivilegeMappingDto.module_id}' AND
+        SUBMODULE_ID = '${createRoleModuleSubmodulePrivilegeMappingDto.submodule_id}' AND
+        PRIVILEGE_ID = '${createRoleModuleSubmodulePrivilegeMappingDto.privilege_id}' AND
+        CUSTOMER_ID = '${createRoleModuleSubmodulePrivilegeMappingDto.customer_id}' AND
+        IS_ACTIVE = 'Y'
+      `);
+
+        const existingMapping = await db
+          .read("PCF_DB_ROLE_MODULE_SUBMODULE_MAPPING")
+          .where(whereClause);
+
+        if (existingMapping && existingMapping.length > 0) {
           return {
             statuscode: HttpStatus.CONFLICT,
-            message: 'this map is  already exists',
-            data: exisingRoleModuleSubmodulePrivilegeMapping,
+            message: "This mapping already exists",
+            data: existingMapping,
           };
         }
       }
 
-      let result = await tx.run(
-        INSERT.into('PCF_DB_ROLE_MODULE_SUBMODULE_MAPPING').entries(
+      const createdMapping = await db.run(
+        INSERT.into("PCF_DB_ROLE_MODULE_SUBMODULE_MAPPING").entries(
           createRoleModuleSubmodulePrivilegeMappingDto,
         ),
       );
-      console.log(result);
 
-      if (result) {
-        await tx.commit();
+      if (createdMapping) {
         return {
           statuscode: HttpStatus.CREATED,
-          message: 'Role Module Submodule Privilege  mapped successfully',
+          message: "Role Module Submodule Privilege mapped successfully",
           data: createRoleModuleSubmodulePrivilegeMappingDto,
         };
       } else {
-        await tx.rollback();
         return {
           statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: 'Role Module Submodule Privilege  mapping failed',
+          message: "Role Module Submodule Privilege mapping failed",
           data: null,
         };
       }
     } catch (error) {
-      await tx.rollback();
       return {
         statuscode: error.status,
         message: error.message,
@@ -95,34 +93,36 @@ export class AssignRolePrivilegeService {
   }
 
   async GetRoleModuleSubmodulePrivilegeMapping(
-    currentUser: CurrentUserDto,
+    // currentUser: CurrentUserDto,
     getRoleModuleSubmodulePrivilegeMappingDto: GetRoleModuleSubmodulePrivilegeMappingDto,
   ): Promise<ResponseDto> {
-    let tx = cds.transaction();
     try {
-      let result = await tx.run(
-        SELECT.from('PCF_DB_ROLE_MODULE_SUBMODULE_MAPPING').where(
-          `id ='${getRoleModuleSubmodulePrivilegeMappingDto.id}' and customer_id_id='${getRoleModuleSubmodulePrivilegeMappingDto.customer_id_id}' and is_active='Y'`,
-        ),
-      );
-      // console.log(result);
-      if (result.length > 0) {
-        await tx.commit();
+      const db = await cds.connect.to("db");
+
+      const whereClause = cds.parse.expr(`
+      ID = '${getRoleModuleSubmodulePrivilegeMappingDto.id}' AND
+      CUSTOMER_ID = '${getRoleModuleSubmodulePrivilegeMappingDto.customer_id}' AND
+      IS_ACTIVE = 'Y'
+    `);
+
+      let result = await db
+        .read("PCF_DB_ROLE_MODULE_SUBMODULE_MAPPING")
+        .where(whereClause);
+
+      if (result && result.length > 0) {
         return {
           statuscode: HttpStatus.OK,
-          message: 'Role Module Submodule Privilege  fetched successfully',
+          message: "Role Module Submodule Privilege fetched successfully",
           data: result,
         };
       } else {
-        await tx.rollback();
         return {
           statuscode: HttpStatus.NOT_FOUND,
-          message: 'Role Module Submodule Privilege  mapping not found',
+          message: "Role Module Submodule Privilege mapping not found",
           data: null,
         };
       }
     } catch (error) {
-      await tx.rollback();
       return {
         statuscode: error.status,
         message: error.message,
@@ -132,67 +132,62 @@ export class AssignRolePrivilegeService {
   }
 
   async UpdateRoleModuleSubmodulePrivilegeMapping(
-    currentUser: CurrentUserDto,
+    // currentUser: CurrentUserDto,
     updateRoleModuleSubmodulePrivilegeMappingDto: UpdateRoleModuleSubmodulePrivilegeMappingDto,
   ): Promise<ResponseDto> {
-    let tx = cds.transaction();
     try {
-      let exisingRoleModuleSubmodulePrivilegeMapping = await tx.run(
-        SELECT.from('PCF_DB_ROLE_MODULE_SUBMODULE_MAPPING')
-          .where(`ROLE_ID_ID ='${updateRoleModuleSubmodulePrivilegeMappingDto.role_id_id}'
-             AND MODULE_ID_ID ='${updateRoleModuleSubmodulePrivilegeMappingDto.module_id_id}'
-              AND SUBMODULE_ID_ID ='${updateRoleModuleSubmodulePrivilegeMappingDto.submodule_id_id}'
-              AND PRIVILEGE_ID_ID= '${updateRoleModuleSubmodulePrivilegeMappingDto.privilege_id_id}'
-              AND CUSTOMER_ID_ID='${updateRoleModuleSubmodulePrivilegeMappingDto.customer_id_id}'
-              AND IS_ACTIVE='Y'`),
-      );
+      const db = await cds.connect.to("db");
 
-      if (exisingRoleModuleSubmodulePrivilegeMapping.length > 0) {
-        await tx.commit();
+      // Check if the mapping already exists
+      let existingMapping = await db
+        .read("PCF_DB_ROLE_MODULE_SUBMODULE_MAPPING")
+        .where({
+          role_id: updateRoleModuleSubmodulePrivilegeMappingDto.role_id,
+          module_id: updateRoleModuleSubmodulePrivilegeMappingDto.module_id,
+          submodule_id:
+            updateRoleModuleSubmodulePrivilegeMappingDto.submodule_id,
+          privilege_id:
+            updateRoleModuleSubmodulePrivilegeMappingDto.privilege_id,
+          customer_id: updateRoleModuleSubmodulePrivilegeMappingDto.customer_id,
+        });
+
+      if (existingMapping && existingMapping.length > 0) {
         return {
           statuscode: HttpStatus.CONFLICT,
-          message: 'this map is  already exists',
-          data: exisingRoleModuleSubmodulePrivilegeMapping,
+          message: "This map already exists",
+          data: existingMapping,
         };
       }
 
-      let result = await tx.run(
-        UPDATE('PCF_DB_ROLE_MODULE_SUBMODULE_MAPPING')
-          .set({
-            ROLE_ID_ID: updateRoleModuleSubmodulePrivilegeMappingDto.role_id_id,
-            MODULE_ID_ID:
-              updateRoleModuleSubmodulePrivilegeMappingDto.module_id_id,
-            SUBMODULE_ID_ID:
-              updateRoleModuleSubmodulePrivilegeMappingDto.submodule_id_id,
-            PRIVILEGE_ID_ID:
-              updateRoleModuleSubmodulePrivilegeMappingDto.privilege_id_id,
-            CHANGED_ON: new Date(),
-            CHANGED_BY: currentUser.user_id,
-          })
-          .where(
-            `id ='${updateRoleModuleSubmodulePrivilegeMappingDto.id}' and customer_id_id='${updateRoleModuleSubmodulePrivilegeMappingDto.customer_id_id}' and is_active='Y'`,
-          ),
-      );
-      // console.log(result);
+      // Update the mapping
+      let result = await db
+        .update("PCF_DB_ROLE_MODULE_SUBMODULE_MAPPING")
+        .set({
+          CHANGED_ON: new Date(),
+          CHANGED_BY: 2, // Assuming this is the current user ID
+        })
+        .where({
+          id: updateRoleModuleSubmodulePrivilegeMappingDto.id,
+          customer_id: updateRoleModuleSubmodulePrivilegeMappingDto.customer_id,
+          IS_ACTIVE: "Y",
+        });
+
       if (result) {
-        await tx.commit();
         return {
           statuscode: HttpStatus.OK,
-          message: 'Role Module Submodule Privilege  updated successfully',
+          message: "Role Module Submodule Privilege updated successfully",
           data: updateRoleModuleSubmodulePrivilegeMappingDto,
         };
       } else {
-        await tx.rollback();
         return {
           statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: 'Role Module Submodule Privilege  update failed',
+          message: "Role Module Submodule Privilege update failed",
           data: null,
         };
       }
     } catch (error) {
-      await tx.rollback();
       return {
-        statuscode: error.status,
+        statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
         message: error.message,
         data: null,
       };
@@ -200,99 +195,106 @@ export class AssignRolePrivilegeService {
   }
 
   async DeleteRoleModuleSubmodulePrivilegeMapping(
-    currentUser: CurrentUserDto,
-    id: string,
-    customer_id_id: string,
+    // currentUser: CurrentUserDto,
+    id: number,
+    customer_id: number,
   ): Promise<ResponseDto> {
-    let tx = cds.transaction();
     try {
-      let result = await tx.run(
-        UPDATE('PCF_DB_ROLE_MODULE_SUBMODULE_MAPPING')
-          .set({
-            IS_ACTIVE: 'N',
-            CHANGED_ON: new Date(),
-            CHANGED_BY: currentUser.user_id,
-          })
-          .where(`id ='${id}' and customer_id_id='${customer_id_id}'`),
-      );
-      // console.log(result);
+      const db = await cds.connect.to("db");
+
+      // Update the mapping to mark it as inactive
+      let result = await db
+        .update("PCF_DB_ROLE_MODULE_SUBMODULE_MAPPING")
+        .set({
+          IS_ACTIVE: "N",
+          CHANGED_ON: new Date(),
+          CHANGED_BY: 3, // Assuming this is the current user ID
+        })
+        .where({
+          id: id,
+          customer_id: customer_id,
+        });
+
       if (result) {
-        await tx.commit();
         return {
           statuscode: HttpStatus.OK,
-          message: 'Role Module Submodule Privilege  deleted successfully',
+          message: "Role Module Submodule Privilege deleted successfully",
           data: result,
         };
       } else {
-        await tx.rollback();
         return {
           statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: 'Role Module Submodule Privilege  delete failed',
+          message: "Role Module Submodule Privilege delete failed",
           data: null,
         };
       }
     } catch (error) {
-      await tx.rollback();
       return {
-        statuscode: error.status,
+        statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
         message: error.message,
         data: null,
       };
     }
   }
+
   //role assign to user
+
   async AssignRoleToUser(
-    currentUser: CurrentUserDto,
+    // currentUser: CurrentUserDto,
     createAssignRoleToUserDto: CreateAssignRoleToUserDto,
   ) {
-    let tx = cds.transaction();
     try {
-      let exisingRoleModuleSubmodulePrivilegeMapping = await tx.run(
-        SELECT.from('PCF_DB_USER_ROLE_MAPPING')
-          .where(`ROLE_ID_ID ='${createAssignRoleToUserDto.role_id_id}'
-              AND USER_ID_ID ='${createAssignRoleToUserDto.user_id_id}'
-             AND CUSTOMER_ID_ID ='${createAssignRoleToUserDto.customer_id_id}'
-              AND IS_ACTIVE='Y'`),
-      );
+      // Connect to the database
+      const db = await cds.connect.to("db");
 
-      if (exisingRoleModuleSubmodulePrivilegeMapping.length > 0) {
-        await tx.commit();
+      // Check if the role is already assigned to the user
+      let existingRoleAssignment = await db
+        .read("PCF_DB_USER_ROLE_MAPPING")
+        .where({
+          role_id: createAssignRoleToUserDto.role_id,
+          user_id: createAssignRoleToUserDto.user_id,
+          customer_id: createAssignRoleToUserDto.customer_id,
+          IS_ACTIVE: "Y",
+        });
+
+      // If the role assignment already exists, return conflict status
+      if (existingRoleAssignment.length > 0) {
         return {
           statuscode: HttpStatus.CONFLICT,
-          message: 'this role is  already assigned to user',
-          data: exisingRoleModuleSubmodulePrivilegeMapping,
+          message: "This role is already assigned to the user",
+          data: existingRoleAssignment,
         };
       }
 
+      // Set created_on and created_by fields
       createAssignRoleToUserDto.created_on = new Date();
-      createAssignRoleToUserDto.created_by = currentUser.user_id;
+      createAssignRoleToUserDto.created_by = 1; // Assuming this is the current user id
 
-      let result = await tx.run(
-        INSERT.into('PCF_DB_USER_ROLE_MAPPING').entries(
-          createAssignRoleToUserDto,
-        ),
-      );
-      // console.log(result);
+      // Insert the role assignment
+      let result = await db.insert([
+        { entity: "PCF_DB_USER_ROLE_MAPPING", ...createAssignRoleToUserDto },
+      ]);
 
+
+      // If insertion is successful, return success status
       if (result) {
-        await tx.commit();
         return {
           statuscode: HttpStatus.CREATED,
-          message: 'Role  assigned to user successfully',
+          message: "Role assigned to user successfully",
           data: createAssignRoleToUserDto,
         };
       } else {
-        await tx.rollback();
+        // If insertion fails, return internal server error status
         return {
           statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: 'Role  assigned to user failed',
+          message: "Role assigned to user failed",
           data: null,
         };
       }
     } catch (error) {
-      await tx.rollback();
+      // If an error occurs, return internal server error status along with the error message
       return {
-        statuscode: error.status,
+        statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
         message: error.message,
         data: null,
       };
@@ -300,34 +302,36 @@ export class AssignRolePrivilegeService {
   }
 
   async GetRoleOfUser(
-    currentUser: CurrentUserDto,
+    // currentUser: CurrentUserDto,
     getRoleOfUserDto: GetRoleOfUserDto,
   ) {
-    let tx = cds.transaction();
     try {
-      let result = await tx.run(
-        `SELECT USER_ID_ID,(SELECT USER_EMAIL FROM PCF_DB_LOGIN_USER WHERE ID=USER_ID_ID),ROLE_ID_ID,(SELECT ROLE_NAME FROM PCF_DB_ROLE_MASTER WHERE ID=ROLE_ID_ID) FROM PCF_DB_USER_ROLE_MAPPING WHERE USER_ID_ID='${getRoleOfUserDto.user_id_id}' AND CUSTOMER_ID_ID='${currentUser.customer_id}' AND IS_ACTIVE='Y'`,
+      const db = await cds.connect.to("db");
+
+      // Set the customer_id (assuming it's retrieved from the current user)
+      getRoleOfUserDto.customer_id = 1; //current user customer id
+
+      // Fetch the role of the user from the database
+      let result = await db.run(
+        `SELECT user_id,(SELECT USER_EMAIL FROM PCF_DB_LOGIN_USER WHERE ID=user_id),role_id,(SELECT ROLE_NAME FROM PCF_DB_ROLE_MASTER WHERE ID=role_id) FROM PCF_DB_USER_ROLE_MAPPING WHERE user_id='${getRoleOfUserDto.user_id}' AND customer_id='${getRoleOfUserDto.customer_id}' AND IS_ACTIVE='Y'`,
       );
-      // console.log(result);
+
       if (result.length > 0) {
-        await tx.commit();
         return {
           statuscode: HttpStatus.OK,
-          message: 'Role  fetched successfully',
+          message: "Role fetched successfully",
           data: result,
         };
       } else {
-        await tx.rollback();
         return {
           statuscode: HttpStatus.NOT_FOUND,
-          message: 'Role  not found',
+          message: "Role not found",
           data: null,
         };
       }
     } catch (error) {
-      await tx.rollback();
       return {
-        statuscode: error.status,
+        statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
         message: error.message,
         data: null,
       };
@@ -335,55 +339,54 @@ export class AssignRolePrivilegeService {
   }
 
   async UpdateRoleOfUser(
-    currentUser: CurrentUserDto,
+    // currentUser: CurrentUserDto,
     updateRoleOfUserDto: UpdateRoleOfUserDto,
   ) {
-    let tx = cds.transaction();
     try {
-      let exisingresult = await tx.run(
-        SELECT.from('PCF_DB_USER_ROLE_MAPPING').where(
-          `USER_ID_ID ='${updateRoleOfUserDto.user_id_id}' AND ROLE_ID_ID='${updateRoleOfUserDto.role_id_id}' AND CUSTOMER_ID_ID='${updateRoleOfUserDto.customer_id_id}' AND IS_ACTIVE='Y'`,
+      const db = await cds.connect.to("db");
+
+      // Check if the role is already assigned to the user
+      let existingResult = await db.run(
+        SELECT.from("PCF_DB_USER_ROLE_MAPPING").where(
+          `user_id ='${updateRoleOfUserDto.user_id}' AND role_id='${updateRoleOfUserDto.role_id}' AND customer_id='${updateRoleOfUserDto.customer_id}' AND IS_ACTIVE='Y'`,
         ),
       );
 
-      if (exisingresult.length > 0) {
-        await tx.commit();
+      if (existingResult.length > 0) {
         return {
           statuscode: HttpStatus.CONFLICT,
-          message: 'this role is  already assigned to this user',
-          data: exisingresult,
+          message: "This role is already assigned to this user",
+          data: existingResult,
         };
       }
 
-      let result = await tx.run(
-        UPDATE('PCF_DB_USER_ROLE_MAPPING')
+      // Update the role of the user
+      let result = await db.run(
+        UPDATE("PCF_DB_USER_ROLE_MAPPING")
           .set({
-            ROLE_ID_ID: updateRoleOfUserDto.role_id_id,
+            role_id: updateRoleOfUserDto.role_id,
             CHANGED_ON: new Date(),
-            CHANGED_BY: currentUser.user_id,
+            CHANGED_BY: 2,
           })
           .where(
-            `USER_ID_ID ='${updateRoleOfUserDto.user_id_id}' AND CUSTOMER_ID_ID='${updateRoleOfUserDto.customer_id_id}' AND IS_ACTIVE='Y'`,
+            `user_id ='${updateRoleOfUserDto.user_id}' AND customer_id='${updateRoleOfUserDto.customer_id}' AND IS_ACTIVE='Y'`,
           ),
       );
-      // console.log(result);
+
       if (result) {
-        await tx.commit();
         return {
           statuscode: HttpStatus.OK,
-          message: 'Role  updated successfully',
+          message: "Role updated successfully",
           data: updateRoleOfUserDto,
         };
       } else {
-        await tx.rollback();
         return {
           statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: 'Role  update failed',
+          message: "Role update failed",
           data: null,
         };
       }
     } catch (error) {
-      await tx.rollback();
       return {
         statuscode: error.status,
         message: error.message,
@@ -391,43 +394,46 @@ export class AssignRolePrivilegeService {
       };
     }
   }
-  async RemoveRoleFromUser(currentUser:CurrentUserDto,
-    deleteRoleFromUserDto:DeleteRoleFromUserDto){
-      let tx = cds.transaction();
-      try {
-        let result = await tx.run(
-          UPDATE('PCF_DB_USER_ROLE_MAPPING')
-            .set({
-              IS_ACTIVE: 'N',
-              CHANGED_ON: new Date(),
-              CHANGED_BY: currentUser.user_id,
-            })
-            .where(`USER_ID_ID ='${deleteRoleFromUserDto.user_id_id}' AND ROLE_ID_ID='${deleteRoleFromUserDto.role_id_id}' AND CUSTOMER_ID_ID='${deleteRoleFromUserDto.customer_id_id}' AND IS_ACTIVE='Y'`),
-        );
-        // console.log(result);
-        if (result) {
-          await tx.commit();
-          return {
-            statuscode: HttpStatus.OK,
-            message: 'Role  removed successfully',
-            data: result,
-          };
-        } else {
-          await tx.rollback();
-          return {
-            statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
-            message: 'Role  remove failed',
-            data: null,
-          };
-        }
-      } catch (error) {
-        await tx.rollback();
+
+  async RemoveRoleFromUser(
+    currentUser: CurrentUserDto,
+    deleteRoleFromUserDto: DeleteRoleFromUserDto,
+  ) {
+    try {
+      const db = await cds.connect.to("db");
+
+      // Update the role of the user to mark it as inactive
+      let result = await db.run(
+        UPDATE("PCF_DB_USER_ROLE_MAPPING")
+          .set({
+            IS_ACTIVE: "N",
+            CHANGED_ON: new Date(),
+            CHANGED_BY: currentUser.user_id,
+          })
+          .where(
+            `user_id ='${deleteRoleFromUserDto.user_id}' AND role_id='${deleteRoleFromUserDto.role_id}' AND customer_id='${deleteRoleFromUserDto.customer_id}' AND IS_ACTIVE='Y'`,
+          ),
+      );
+
+      if (result) {
         return {
-          statuscode: error.status,
-          message: error.message,
+          statuscode: HttpStatus.OK,
+          message: "Role removed successfully",
+          data: result,
+        };
+      } else {
+        return {
+          statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: "Role remove failed",
           data: null,
         };
       }
-
+    } catch (error) {
+      return {
+        statuscode: error.status,
+        message: error.message,
+        data: null,
+      };
+    }
   }
 }
