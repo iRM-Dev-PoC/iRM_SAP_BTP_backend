@@ -73,7 +73,7 @@ export class SubmoduleMasterController {
     );
   }
 
-  @Delete('delete-submodule')
+  @Patch('delete-submodule')
   async DeleteSubModule(
     @Req() req: Request,
     @Body() deleteSubModule: DeleteSubModuleMasterDto,

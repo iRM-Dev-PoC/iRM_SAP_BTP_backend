@@ -59,7 +59,7 @@ export class LoginUserController {
     );
   }
 
-  @Delete('delete-user')
+  @Patch('delete-user')
   async DeleteUser(
     @Req() req: Request,
     @Body() deleteLoginUser: DeleteLoginUserDto,

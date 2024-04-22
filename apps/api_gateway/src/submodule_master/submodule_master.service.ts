@@ -77,8 +77,8 @@ export class SubmoduleMasterService {
       };
     } catch (error) {
       return {
-        statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: 'Error while creating submodule',
+        statuscode: HttpStatus.BAD_REQUEST,
+        message: 'Error while creating submodule - Please fill all the required fields',
         data: error,
       };
     }
@@ -126,7 +126,6 @@ export class SubmoduleMasterService {
           IS_ACTIVE: 'Y',
         });
 
-      await db.run(`COMMIT`);
 
       return {
         statuscode: HttpStatus.OK,
@@ -167,7 +166,7 @@ export class SubmoduleMasterService {
       };
     } catch (error) {
       return {
-        statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
+        statuscode: HttpStatus.BAD_REQUEST,
         message: 'Error while fetching submodule',
         data: error,
       };
@@ -188,7 +187,7 @@ export class SubmoduleMasterService {
         .set({
           IS_ACTIVE: "N",
           CHANGED_ON: deleteSubModule.changed_on.toISOString(),
-          CHANGED_BY: deleteSubModule.changed_by,
+          CHANGED_BY: deleteSubModule.changed_by
         })
         .where({
           ID: deleteSubModule.id,
@@ -211,7 +210,7 @@ export class SubmoduleMasterService {
       };
     } catch (error) {
       return {
-        statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
+        statuscode: HttpStatus.BAD_REQUEST,
         message: 'Error while deleting submodule',
         data: error,
       };

@@ -74,7 +74,7 @@ export class LoginUserService {
       };
     } catch (error) {
       return {
-        statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
+        statuscode: HttpStatus.BAD_REQUEST,
         message: "Error while creating user",
         data: error,
       };
@@ -130,7 +130,7 @@ export class LoginUserService {
       };
     } catch (error) {
       return {
-        statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
+        statuscode: HttpStatus.BAD_REQUEST,
         message: "Error while updating user",
         data: error,
       };
@@ -164,7 +164,7 @@ export class LoginUserService {
       };
     } catch (error) {
       return {
-        statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
+        statuscode: HttpStatus.BAD_REQUEST,
         message: "Error while fetching user",
         data: error,
       };
