@@ -20,15 +20,21 @@ export class DashboardService {
         `IS_ACTIVE = 'Y'`,
       );
 
-      const allControlCheckpoints = await db.read('PCF_DB_CHECK_POINT_MASTER').where(whereClause);
+      let allControlCheckpoints = await db.read('PCF_DB_CHECK_POINT_MASTER').where(whereClause);
 
       if (!allControlCheckpoints || allControlCheckpoints.length === 0) {
+
         return {
           statuscode: HttpStatus.NOT_FOUND,
           message: 'No Control Check Points found',
           data: allControlCheckpoints,
         };
       }
+
+      /** Modify RISK_SCORE as of now hard coded */
+      allControlCheckpoints.forEach(item => {
+        item.RISK_SCORE = 50;
+      })
 
       return {
         statuscode: HttpStatus.OK,
