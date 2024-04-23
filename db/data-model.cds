@@ -14,33 +14,32 @@ entity Customer_master  {
       CHANGED_BY       : Integer;
 }
 
-// entity Control_master  {
-//   key ID             : Integer ;
-//       CONTROL_FAMILY : Association to Control_family_master;
-//       CONTROL_NAME   : String;
-//       CONTROL_DESC   : String;
-//       CUSTOMER_ID    : Association to Customer_master;
-//       IS_ACTIVE      : String;
-//       CREATED_ON     :  Timestamp;
-//       CREATED_BY     : String;
-//       CHANGED_ON     :  Timestamp;
-//       CHANGED_BY     : String;
-// }
+@cds.persistence.exists
+entity Control_master  {
+  key ID             : Integer ;
+      CONTROL_FAMILY : Association to Control_family_master;
+      CONTROL_NAME   : String;
+      CONTROL_DESC   : String;
+      CUSTOMER_ID    : Association to Customer_master;
+      IS_ACTIVE      : String;
+      CREATED_ON     :  Timestamp;
+      CREATED_BY     : String;
+      CHANGED_ON     :  Timestamp;
+      CHANGED_BY     : String;
+}
 
-
-// entity Control_family_master  {
-//   key ID                  : Integer ;
-//       CONTROL_FAMILY_NAME : String;
-//       CONTROL_FAMILY_DESC : String;
-//       CUSTOMER_ID         : Association to Customer_master;
-//       C_MASTER            : Association to many Control_master
-//                               on C_MASTER.CONTROL_FAMILY = $self;
-//       IS_ACTIVE           : String;
-//       CREATED_ON          :  Timestamp;
-//       CREATED_BY          : String;
-//       CHANGED_ON          :  Timestamp;
-//       CHANGED_BY          : String;
-// }
+@cds.persistence.exists
+entity Control_family_master  {
+  key ID                  : Integer;
+      CONTROL_FAMILY_NAME : String;
+      CONTROL_FAMILY_DESC : String;
+      CUSTOMER_ID         : Association to Customer_master;
+      IS_ACTIVE           : String;
+      CREATED_ON          : Timestamp;
+      CREATED_BY          : String;
+      CHANGED_ON          : Timestamp;
+      CHANGED_BY          : String;
+}
 
 
 
@@ -152,32 +151,46 @@ entity Customer_master  {
 
 // }
 
-// entity Report_master  {
-//   key ID                 : Integer ;
-//       REPORT_ID          : UUID    @cds.UUID;
-//       REPORT_PATH        : String;
-//       REPORT_NAME        : String;
-//       REPORT_CREATED_AT  :  Timestamp;
-//       REPORT_DESTINATION : String;
-//       CUSTOMER_ID        : Association to Customer_master;
-//       IS_ACTIVE          : String;
-//       CREATED_BY         : String;
-//       CREATED_ON         :  Timestamp;
-//       CHANGED_ON         :  Timestamp;
-//       CHANGED_BY         : String;
-// }
+@cds.persistence.exists
+entity Report_master  {
+  key ID                 : Integer ;
+      REPORT_PATH        : String;
+      REPORT_NAME        : String;
+      REPORT_DESTINATION : String;
+      CUSTOMER_ID        : Association to Customer_master;
+      IS_ACTIVE          : String;
+      CREATED_BY         : String;
+      CREATED_ON         : Timestamp;
+      CHANGED_ON         : Timestamp;
+      CHANGED_BY         : String;
+}
 
-// entity Control_report_mapping  {
-//   key ID          : Integer ;
-//       REPORT_ID   : Association to Report_master;
-//       CONTROL_ID  : Association to Control_master;
-//       CUSTOMER_ID : Association to Customer_master;
-//       IS_ACTIVE   : String;
-//       CREATED_BY  : String;
-//       CREATED_ON  :  Timestamp;
-//       CHANGED_ON  :  Timestamp;
-//       CHANGED_BY  : String;
-// }
+@cds.persistence.exists
+entity Check_point_master {
+  key ID                : Integer ;
+      CHECK_POINT_NAME  : String;
+      CHECK_POINT_DESC  : String;
+      CUSTOMER_ID       : Association to Customer_master;
+      IS_ACTIVE         : String;
+      CREATED_ON        : Timestamp;
+      CREATED_BY        : String;
+      CHANGED_ON        : Timestamp;
+      CHANGED_BY        : String;
+
+}
+
+@cds.persistence.exists
+entity Report_checkpoint_mapping  {
+  key ID              : Integer ;
+      REPORT_ID       : Association to Report_master;
+      CHECK_POINT_ID  : Association to Check_point_master;
+      CUSTOMER_ID     : Association to Customer_master;
+      IS_ACTIVE       : String;
+      CREATED_BY      : String;
+      CREATED_ON      : Timestamp;
+      CHANGED_ON      : Timestamp;
+      CHANGED_BY      : String;
+}
 
 // entity Price_mismatch_output  {
 //   key ID           : Integer ;
