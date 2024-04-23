@@ -23,6 +23,7 @@ import { ShareLibModule } from '@app/share_lib';
 import { AssignRolePrivilegeModule } from './assign_role_privilege/assign_role_privilege.module';
 import { DatabaseModule } from '@app/share_lib/database/database.module';
 import { DatabaseService } from '@app/share_lib/database/database.service';
+import { PrivilegeMasterModule } from './privilege_master/privilege_master.module';
 
 @Module({
   imports: [
@@ -37,7 +38,8 @@ import { DatabaseService } from '@app/share_lib/database/database.service';
     //  TypeOrmModule.forRoot(typeOrmConfig)
     ShareLibModule,
     AssignRolePrivilegeModule,
-    DatabaseModule
+    DatabaseModule,
+    PrivilegeMasterModule
   ],
   controllers: [AppController],
   providers: [AppService, LocalStrategy, JwtStrategy, DatabaseService],
@@ -46,8 +48,8 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(ValidateUserMiddleware)
-      .exclude({ path: 'auth/login', method: RequestMethod.POST })
-      .forRoutes('*');
+      .exclude({ path: "auth/login", method: RequestMethod.POST })
+      .forRoutes("*");
     // .forRoutes(
     //   {
     //     path: 'auth/accessendpoints',
