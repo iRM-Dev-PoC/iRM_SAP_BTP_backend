@@ -24,48 +24,45 @@ export class LoginUserService {
   ): Promise<ResponseDto> {
     try {
       const db = await cds.connect.to("db");
-
       const tableName = "PCF_DB_LOGIN_USER";
 
-      const password = createUserDto.password;
+      // Fetch existing UMP_IDs for the given customer_id
+      const umpIdsQuery = `SELECT USER_EMP_ID FROM ${tableName} WHERE CUSTOMER_ID = ${createUserDto.customer_id}`;
+      const umpIdsResult = await db.run(umpIdsQuery);
 
-      const { hash, salt } = generateHash(password);
-
-      // console.log('isPasswordValid', validateHash(password, salt, hash));
-      createUserDto.password = hash;
-      createUserDto.salt = salt;
-      createUserDto.created_on = new Date();
-      createUserDto.created_by = 1;
-
-      if (createUserDto.user_name || createUserDto.user_email) {
-        const whereClause = cds.parse.expr(
-          `USER_NAME = '${createUserDto.user_name}' OR USER_EMAIL = '${createUserDto.user_email}' AND IS_ACTIVE = 'Y'`,
-        );
-
-        const existingUser = await db
-          .read("PCF_DB_LOGIN_USER")
-          .where(whereClause);
-
-        if (existingUser && existingUser.length > 0) {
-          return {
-            statuscode: HttpStatus.CONFLICT,
-            message: "User already exists",
-            data: existingUser,
-          };
+      let maxEmp = 0;
+      umpIdsResult.forEach((row: { USER_EMP_ID: string }) => {
+        const empNumber = parseInt(row.USER_EMP_ID.split("-").pop() || "0");
+        if (empNumber > maxEmp) {
+          maxEmp = empNumber;
         }
-      }
+      });
 
-      const createdUser = await INSERT.into(tableName).entries({
+      // Increment EMP number
+      maxEmp++;
+
+      // Construct UMP_ID
+      const umpId = `CUST-${createUserDto.customer_id}-EMP-${maxEmp}`;
+      createUserDto.user_emp_id = umpId;
+
+      // Generate hash for password
+      const { hash, salt } = generateHash(createUserDto.password);
+
+      // Prepare user data for insertion
+      const userData = {
         USER_NAME: createUserDto.user_name,
         USER_EMAIL: createUserDto.user_email,
-        PASSWORD: createUserDto.password,
+        PASSWORD: hash,
         USER_EMP_ID: createUserDto.user_emp_id,
         ROLE_ID: createUserDto.role_id,
         CUSTOMER_ID: createUserDto.customer_id,
-        CREATED_BY: createUserDto.created_by,
+        CREATED_BY: 1,
         DESIGNATION: createUserDto.designation,
-        SALT: createUserDto.salt,
-      });
+        SALT: salt,
+      };
+
+      // Insert user into the database
+      await INSERT.into(tableName).entries(userData);
 
       return {
         statuscode: HttpStatus.CREATED,
@@ -80,6 +77,7 @@ export class LoginUserService {
       };
     }
   }
+
 
   async UpdateUser(
     // currentUser: CurrentUserDto,
@@ -242,7 +240,7 @@ export class LoginUserService {
 
       if (!users || users.length === 0) {
         return {
-          statuscode: HttpStatus.NOT_FOUND,
+          statuscode: HttpStatus.OK,
           message: "No users found",
           data: users,
         };
