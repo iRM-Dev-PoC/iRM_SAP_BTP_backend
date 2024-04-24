@@ -24,6 +24,7 @@ import { AssignRolePrivilegeModule } from './assign_role_privilege/assign_role_p
 import { DatabaseModule } from '@app/share_lib/database/database.module';
 import { DatabaseService } from '@app/share_lib/database/database.service';
 import { PrivilegeMasterModule } from './privilege_master/privilege_master.module';
+import { ReportMasterModule } from './report_master/report_master.module';
 
 @Module({
   imports: [
@@ -39,7 +40,8 @@ import { PrivilegeMasterModule } from './privilege_master/privilege_master.modul
     ShareLibModule,
     AssignRolePrivilegeModule,
     DatabaseModule,
-    PrivilegeMasterModule
+    PrivilegeMasterModule,
+    ReportMasterModule
   ],
   controllers: [AppController],
   providers: [AppService, LocalStrategy, JwtStrategy, DatabaseService],
