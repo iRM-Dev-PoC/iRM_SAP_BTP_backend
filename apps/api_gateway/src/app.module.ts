@@ -25,6 +25,7 @@ import { DatabaseModule } from '@app/share_lib/database/database.module';
 import { DatabaseService } from '@app/share_lib/database/database.service';
 import { PrivilegeMasterModule } from './privilege_master/privilege_master.module';
 import { ReportMasterModule } from './report_master/report_master.module';
+import { ControlMasterModule } from './control_master/control_master.module';
 
 @Module({
   imports: [
@@ -41,7 +42,8 @@ import { ReportMasterModule } from './report_master/report_master.module';
     AssignRolePrivilegeModule,
     DatabaseModule,
     PrivilegeMasterModule,
-    ReportMasterModule
+    ReportMasterModule,
+    ControlMasterModule,
   ],
   controllers: [AppController],
   providers: [AppService, LocalStrategy, JwtStrategy, DatabaseService],
