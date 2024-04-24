@@ -42,7 +42,7 @@ export class LoginUserService {
       maxEmp++;
 
       // Construct UMP_ID
-      const umpId = `CUST-${createUserDto.customer_id}-EMP-${maxEmp}`;
+      const umpId = `EMP-${maxEmp}`;
       createUserDto.user_emp_id = umpId;
 
       // Generate hash for password
