@@ -80,7 +80,7 @@ export class RoleMasterService {
       const db = await cds.connect.to('db');
 
       const whereClause = cds.parse.expr(
-        `ID = '${Number(id)}' AND IS_ACTIVE = 'Y'`,
+        `ID = '${Number(id)}' AND CUSTOMER_ID = '${Number(customer_id)}' AND IS_ACTIVE = 'Y'`,
       );
 
       const result = await db.read('PCF_DB_ROLE_MASTER').where(whereClause);

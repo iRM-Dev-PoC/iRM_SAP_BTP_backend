@@ -77,7 +77,7 @@ export class ReportMasterService {
 
       if (updateReportDto.report_name) {
         const whereClause = cds.parse.expr(
-          `ID != '${updateReportDto.id}' AND DISPLAY_Report_NAME = '${updateReportDto.report_name.toUpperCase()}' AND IS_ACTIVE = 'Y'`,
+          `ID != '${updateReportDto.id}' AND CUSTOMER_ID = '${updateReportDto.customer_id}' AND REPORT_NAME = '${updateReportDto.report_name.toUpperCase()}' AND IS_ACTIVE = 'Y'`,
         );
 
         const existingReport = await db
@@ -93,7 +93,7 @@ export class ReportMasterService {
         }
       }
 
-      const updatedReport = await UPDATE('PCF_DB_Report_MASTER')
+      const updatedReport = await UPDATE('PCF_DB_REPORT_MASTER')
         .set({
           REPORT_NAME: updateReportDto.report_name,
           REPORT_DESC: updateReportDto.report_destination,
