@@ -26,6 +26,8 @@ import { DatabaseService } from '@app/share_lib/database/database.service';
 import { PrivilegeMasterModule } from './privilege_master/privilege_master.module';
 import { ReportMasterModule } from './report_master/report_master.module';
 import { ControlMasterModule } from './control_master/control_master.module';
+import { CheckPointMasterModule } from './check_point_master/check_point_master.module';
+import { ReportCheckPointMappingModule } from './report_check_point_mapping/report_check_point_mapping.module';
 
 @Module({
   imports: [
@@ -44,6 +46,8 @@ import { ControlMasterModule } from './control_master/control_master.module';
     PrivilegeMasterModule,
     ReportMasterModule,
     ControlMasterModule,
+    CheckPointMasterModule,
+    ReportCheckPointMappingModule,
   ],
   controllers: [AppController],
   providers: [AppService, LocalStrategy, JwtStrategy, DatabaseService],
