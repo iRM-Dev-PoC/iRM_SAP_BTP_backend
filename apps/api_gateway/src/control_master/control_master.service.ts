@@ -25,7 +25,6 @@ export class ControlMasterService {
 
       const tableName = "PCF_DB_CONTROL_MASTER";
       createControlDto.created_by = 1;
-      createControlDto.control_name = createControlDto.control_name.toUpperCase();
 
       if (createControlDto.control_name) {
         const whereClause = cds.parse.expr(
@@ -129,7 +128,7 @@ export class ControlMasterService {
       const db = await cds.connect.to("db");
 
       const whereClause = cds.parse.expr(
-        `ID = '${Number(id)}' AND '${Number(customer_id)}' AND IS_ACTIVE = 'Y'`,
+        `ID = '${Number(id)}' AND CUSTOMER_ID = '${Number(customer_id)}' AND IS_ACTIVE = 'Y'`,
       );
 
       const control = await db.read("PCF_DB_CONTROL_MASTER").where(whereClause);

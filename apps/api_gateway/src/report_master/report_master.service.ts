@@ -96,7 +96,7 @@ export class ReportMasterService {
       const updatedReport = await UPDATE('PCF_DB_REPORT_MASTER')
         .set({
           REPORT_NAME: updateReportDto.report_name,
-          REPORT_DESC: updateReportDto.report_destination,
+          REPORT_DESTINATION: updateReportDto.report_destination,
           REPORT_PATH: updateReportDto.report_path,
           CHANGED_ON: updateReportDto.changed_on.toISOString().slice(0, 23),
           CHANGED_BY: updateReportDto.changed_by,
