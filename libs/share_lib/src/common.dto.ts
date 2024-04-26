@@ -5,6 +5,8 @@ export class ResponseDto {
   statuscode: any;
   message: string;
   data: any;
+  reportdata?: any;
+  checkpointdata?: any;
 }
 
 export class CurrentUserDto {
