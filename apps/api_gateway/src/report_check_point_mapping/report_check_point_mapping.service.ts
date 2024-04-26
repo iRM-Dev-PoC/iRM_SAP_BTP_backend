@@ -218,12 +218,27 @@ export class ReportCheckPointMappingService {
       const modules = await db
         .read("PCF_DB_REPORT_CHECKPOINT_MAPPING")
         .where(whereClause);
+        
+      const checkPointData = await db
+        .read("PCF_DB_CHECK_POINT_MASTER")
+        .columns(
+          "ID",
+          "CHECK_POINT_NAME"
+        )
+        .where(whereClause);
 
+      const reportData = await db
+        .read("PCF_DB_REPORT_MASTER")
+        .columns("ID", "REPORT_NAME")
+        .where(whereClause);
+
+      console.log(`report data = ${reportData} | check point data = ${checkPointData}`);
+      
       if (!modules || modules.length === 0) {
         return {
-          statuscode: HttpStatus.NOT_FOUND,
+          statuscode: HttpStatus.OK,
           message: "No Report Check Point Mapping found",
-          data: modules,
+          data: module
         };
       }
 
@@ -231,6 +246,8 @@ export class ReportCheckPointMappingService {
         statuscode: HttpStatus.OK,
         message: "Report Check Point Mapping fetched successfully",
         data: modules,
+        reportdata: reportData,
+        checkpointdata: checkPointData,
       };
     } catch (error) {
       return {
