@@ -1,13 +1,13 @@
-import { CurrentUserDto, ResponseDto } from '@app/share_lib/common.dto';
-import { HttpStatus, Injectable } from '@nestjs/common';
-import cds from '@sap/cds';
+import { CurrentUserDto, ResponseDto } from "@app/share_lib/common.dto";
+import { HttpStatus, Injectable } from "@nestjs/common";
+import cds from "@sap/cds";
 import {
   CreateReportCheckPointMappingDto,
   DeleteReportCheckPointMappingDto,
   UpdateReportCheckPointMappingDto,
 } from "./dto/report_check_point_mapping.dto";
-import { AppService } from '../app.service';
-import { DatabaseService } from '@app/share_lib/database/database.service';
+import { AppService } from "../app.service";
+import { DatabaseService } from "@app/share_lib/database/database.service";
 
 @Injectable()
 export class ReportCheckPointMappingService {
@@ -215,16 +215,38 @@ export class ReportCheckPointMappingService {
 
       const whereClause = cds.parse.expr(`IS_ACTIVE = 'Y'`);
 
-      const modules = await db
-        .read("PCF_DB_REPORT_CHECKPOINT_MAPPING")
-        .where(whereClause);
-        
+      const sqlQuery = `
+        SELECT
+		      mapping.ID,
+          mapping.IS_ACTIVE,
+          mapping.CREATED_ON,
+          mapping.CREATED_BY,
+          mapping.CHANGED_ON,
+          mapping.CHANGED_BY,
+          mapping.CHECK_POINT_ID,
+          mapping.REPORT_ID,
+          mapping.CUSTOMER_ID,
+          checkpoint.CHECK_POINT_NAME,
+          report.REPORT_NAME,
+          customer.CUSTOMER_NAME
+        FROM
+          "2069C68E511D4336A641FEA1E29B6E4D"."PCF_DB_REPORT_CHECKPOINT_MAPPING" AS mapping
+        LEFT JOIN
+          "2069C68E511D4336A641FEA1E29B6E4D"."PCF_DB_REPORT_MASTER" AS report ON mapping.REPORT_ID = report.ID
+        LEFT JOIN
+          "2069C68E511D4336A641FEA1E29B6E4D"."PCF_DB_CHECK_POINT_MASTER" AS checkpoint ON mapping.CHECK_POINT_ID = checkpoint.ID
+        LEFT JOIN
+          "2069C68E511D4336A641FEA1E29B6E4D"."PCF_DB_CUSTOMER_MASTER" AS customer ON mapping.CUSTOMER_ID = customer.ID
+        WHERE
+          mapping.IS_ACTIVE = 'Y'
+        ORDER BY mapping.CHECK_POINT_ID
+          ;`;
+
+      const modules = await db.run(sqlQuery);
+
       const checkPointData = await db
         .read("PCF_DB_CHECK_POINT_MASTER")
-        .columns(
-          "ID",
-          "CHECK_POINT_NAME"
-        )
+        .columns("ID", "CHECK_POINT_NAME")
         .where(whereClause);
 
       const reportData = await db
@@ -232,13 +254,11 @@ export class ReportCheckPointMappingService {
         .columns("ID", "REPORT_NAME")
         .where(whereClause);
 
-      console.log(`report data = ${reportData} | check point data = ${checkPointData}`);
-      
       if (!modules || modules.length === 0) {
         return {
           statuscode: HttpStatus.OK,
           message: "No Report Check Point Mapping found",
-          data: module
+          data: modules,
         };
       }
 
