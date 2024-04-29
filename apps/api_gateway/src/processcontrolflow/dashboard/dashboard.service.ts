@@ -25,7 +25,7 @@ export class DashboardService {
       if (!allControlCheckpoints || allControlCheckpoints.length === 0) {
 
         return {
-          statuscode: HttpStatus.NOT_FOUND,
+          statuscode: HttpStatus.OK,
           message: 'No Control Check Points found',
           data: allControlCheckpoints,
         };

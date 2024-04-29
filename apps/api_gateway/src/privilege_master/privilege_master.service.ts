@@ -214,7 +214,7 @@ export class PrivilegeMasterService {
 
       if (!Privileges || Privileges.length === 0) {
         return {
-          statuscode: HttpStatus.NOT_FOUND,
+          statuscode: HttpStatus.OK,
           message: 'No Privileges found',
           data: Privileges,
         };

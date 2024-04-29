@@ -212,7 +212,7 @@ export class ReportMasterService {
 
       if (!Reports || Reports.length === 0) {
         return {
-          statuscode: HttpStatus.NOT_FOUND,
+          statuscode: HttpStatus.OK,
           message: 'No Reports found',
           data: Reports,
         };

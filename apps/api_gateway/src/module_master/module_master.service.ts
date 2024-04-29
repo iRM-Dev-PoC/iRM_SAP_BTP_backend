@@ -214,7 +214,7 @@ export class ModuleMasterService {
 
       if (!modules || modules.length === 0) {
         return {
-          statuscode: HttpStatus.NOT_FOUND,
+          statuscode: HttpStatus.OK,
           message: 'No modules found',
           data: modules,
         };

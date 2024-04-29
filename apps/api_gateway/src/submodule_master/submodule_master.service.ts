@@ -230,7 +230,7 @@ export class SubmoduleMasterService {
 
       if (!submodules || submodules.length === 0) {
         return {
-          statuscode: HttpStatus.NOT_FOUND,
+          statuscode: HttpStatus.OK,
           message: 'No submodules found',
           data: submodules,
         };
