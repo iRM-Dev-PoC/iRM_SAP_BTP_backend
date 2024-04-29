@@ -16,7 +16,7 @@
         "binding": {
           "type": "cf",
           "apiEndpoint": "https://api.cf.us10-001.hana.ondemand.com",
-          "org": "d06ac7fdtrial",
+          "org": "b6990d8ftrial",
           "space": "dev",
           "instance": "iRM-HDI-instance",
           "key": "iRM-HDI-instance-key",

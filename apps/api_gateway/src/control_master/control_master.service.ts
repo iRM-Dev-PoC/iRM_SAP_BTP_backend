@@ -210,7 +210,7 @@ export class ControlMasterService {
 
       if (!controls || controls.length === 0) {
         return {
-          statuscode: HttpStatus.NOT_FOUND,
+          statuscode: HttpStatus.OK,
           message: "No controls found",
           data: controls,
         };

@@ -44,7 +44,6 @@
     "@sap/cds": "^7.6.3",
     "@sap/cds-dk": "^7.6.0",
     "@sap/cds-hana": "^2",
-    "@sap/hana-client": "^2.20.20",
     "@sap/xsenv": "^5.1.0",
     "@sap/xssec": "^3.6.1",
     "class-transformer": "^0.5.1",

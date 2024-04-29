@@ -228,7 +228,7 @@ export class RoleMasterService {
 
       if (!roles || roles.length === 0) {
         return {
-          statuscode: HttpStatus.NOT_FOUND,
+          statuscode: HttpStatus.OK,
           message: 'No roles found',
           data: roles,
         };

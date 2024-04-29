@@ -219,7 +219,7 @@ export class CheckPointMasterService {
 
       if (!modules || modules.length === 0) {
         return {
-          statuscode: HttpStatus.NOT_FOUND,
+          statuscode: HttpStatus.OK,
           message: "No check point found",
           data: modules,
         };
