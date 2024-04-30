@@ -66,60 +66,78 @@ export class DataImportService {
       const syncHdrId = syncHdrData[0].ID;
       console.log(`hdr ID : ${syncHdrId}`);
   
-      // insert into sync_details
-      const syncData = await INSERT.into('PCF_DB_SYNC_DETAILS').entries({
-        SYNC_HEADER_ID: syncHdrId,
-        CONTROL_ID: 1,
-        REPORT_ID: 1,
-        SYNC_STARTED_AT: `${new Date().toISOString()}`,
-        CREATED_BY: `1`,
-        SYNC_STATUS: 'Initiated',
-        CREATED_ON: `${new Date().toISOString()}`,
+      const workbook = xlsx.readFile(csvPath);
+      // Get the first sheet
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+
+
+      // Convert sheet to JSON object
+      const data: insertData[] = xlsx.utils.sheet_to_json(sheet);
+      
+      const insertData = data.map(item  => {
+        return {
+          SYNC_HEADER_ID: syncHdrId,
+          CUSTOMER_ID: 1,
+          CLIENT: String(item.CLIENT),
+          PERSONNEL_NUMBER: String(item.PERSONNEL_NUMBER),
+          FIRST_NAME: String(item.FIRST_NAME),
+          LAST_NAME: String(item.LAST_NAME),
+          DATE_OF_BIRTH: String(item.DATE_OF_BIRTH),
+          ID_NUMBER: String(item.ID_NUMBER),
+        };
       });
 
+      console.log(insertData);
 
-        const workbook = xlsx.readFile(csvPath);
-        // Get the first sheet
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
+      const fileNameUpper = fileName.toUpperCase(); 
 
-
-        // Convert sheet to JSON object
-        const data: insertData[] = xlsx.utils.sheet_to_json(sheet);
-        
-        const insertData = data.map(item  => {
-          return {
-            SYNC_HEADER_ID: syncHdrId,
-            CUSTOMER_ID: 1,
-            CLIENT: String(item.CLIENT),
-            PERSONNEL_NUMBER: String(item.PERSONNEL_NUMBER),
-            FIRST_NAME: String(item.FIRST_NAME),
-            LAST_NAME: String(item.LAST_NAME),
-            DATE_OF_BIRTH: String(item.DATE_OF_BIRTH),
-            ID_NUMBER: String(item.ID_NUMBER),
-          };
+      // batch insert into db
+      if(fileNameUpper.includes('EMPLOYEE')) {
+        // insert into sync_details
+        const syncData = await INSERT.into('PCF_DB_SYNC_DETAILS').entries({
+          SYNC_HEADER_ID: syncHdrId,
+          CONTROL_ID: 1,
+          REPORT_ID: 1,
+          SYNC_STARTED_AT: `${new Date().toISOString()}`,
+          CREATED_BY: `1`,
+          SYNC_STATUS: 'Initiated',
+          CREATED_ON: `${new Date().toISOString()}`,
         });
-
-        console.log(insertData);
-
-        const fileNameUpper = fileName.toUpperCase(); 
-
-        // batch insert into db
-        if(fileNameUpper.includes('EMPLOYEE')) {
-          console.log('employee report');
-          // insert into employee_master
-          try {
-            const insertRows = await INSERT(insertData).into('PA0002_EMPLOYEE_MASTER');
-            // console.log('rows insert ', insertData);
-          } catch(err) {
-            console.error('Can not insert rows! ', err)
-          }
-
-        } else if (fileName.includes('BILLING')) {
-          // insert into billing_master
-        } else if (fileName.includes('SALES')) {
-          // insert into sales_order_master
+        console.log('employee report');
+        // insert into employee_master
+        try {
+          const insertRows = await INSERT(insertData).into('PA0002_EMPLOYEE_MASTER');
+          // console.log('rows insert ', insertData);
+        } catch(err) {
+          console.error('Can not insert rows! ', err)
         }
+
+      } else if (fileName.includes('BILLING')) {
+        // insert into sync_details
+        const syncData = await INSERT.into('PCF_DB_SYNC_DETAILS').entries({
+          SYNC_HEADER_ID: syncHdrId,
+          CONTROL_ID: 1,
+          REPORT_ID: 2,
+          SYNC_STARTED_AT: `${new Date().toISOString()}`,
+          CREATED_BY: `1`,
+          SYNC_STATUS: 'Initiated',
+          CREATED_ON: `${new Date().toISOString()}`,
+        });
+        // insert into billing_master
+      } else if (fileName.includes('SALES')) {
+        // insert into sync_details
+        const syncData = await INSERT.into('PCF_DB_SYNC_DETAILS').entries({
+          SYNC_HEADER_ID: syncHdrId,
+          CONTROL_ID: 1,
+          REPORT_ID: 3,
+          SYNC_STARTED_AT: `${new Date().toISOString()}`,
+          CREATED_BY: `1`,
+          SYNC_STATUS: 'Initiated',
+          CREATED_ON: `${new Date().toISOString()}`,
+        });
+        // insert into sales_order_master
+      }
 
 
 
