@@ -5,11 +5,11 @@ import * as xlsx from "xlsx";
 import { Readable } from "stream";
 import * as csv from "csv-parser";
 import { join } from "path";
-import  cds  from "@sap/cds"; 
+import  cds, { struct }  from "@sap/cds"; 
 import { Any } from "typeorm";
 
 
-type insertData = {
+type insertDataEmployee = {
   CLIENT:string;
   PERSONNEL_NUMBER:string;
   FIRST_NAME:string;
@@ -19,6 +19,39 @@ type insertData = {
   DATE_OF_BIRTH:string;
   MIDDLE_NAME?: string; 
   ID_NUMBER:string;
+  CREATED_BY:string;
+  CREATED_ON:string;
+}
+
+type insertDataSalesOrder = {
+  SALES_DOCUMENT: string;
+  DOCUMENT_DATE: string;
+  CREATED_BY: string;
+  CREATED_ON: string;
+  TIME: string;
+  SOLD_TO_PARTY: string;
+  NET_VALUE: string;
+  SOLD_TO_PARTY_NAME: string;
+  SALES_DOCUMENT_ITEM: string;
+  MATERIAL_DESCRIPTION: string;
+  PERSONNEL_NUMBER: string;
+  SCHEDULE_LINE_NUMBER: string;
+}
+
+type insertDataBillingInvoice = {
+  BILLING_DOCUMENT: string;
+  SALES_DOCUMENT: string;
+  PAYER_DESCRIPTION: string;
+  ITEM_DESCRIPTION: string;
+  BILLING_DATE: string;
+  NET_VALUE: string;
+  TAX_AMOUNT: string;
+  COST: string;
+  GRORSS_VALUE: string;
+  SALES_DOCUMENT_ITEM: string;
+  CREATED_BY: string;
+  CREATED_ON: string;
+  SUMOF_NET_GROSS_VALUE: string;
 }
 
 @Injectable()
@@ -71,29 +104,14 @@ export class DataImportService {
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
 
-
-      // Convert sheet to JSON object
-      const data: insertData[] = xlsx.utils.sheet_to_json(sheet);
-      
-      const insertData = data.map(item  => {
-        return {
-          SYNC_HEADER_ID: syncHdrId,
-          CUSTOMER_ID: 1,
-          CLIENT: String(item.CLIENT),
-          PERSONNEL_NUMBER: String(item.PERSONNEL_NUMBER),
-          FIRST_NAME: String(item.FIRST_NAME),
-          LAST_NAME: String(item.LAST_NAME),
-          DATE_OF_BIRTH: String(item.DATE_OF_BIRTH),
-          ID_NUMBER: String(item.ID_NUMBER),
-        };
-      });
-
-      console.log(insertData);
-
       const fileNameUpper = fileName.toUpperCase(); 
-
+      
       // batch insert into db
       if(fileNameUpper.includes('EMPLOYEE')) {
+
+        // Convert sheet to JSON object
+        const data: insertDataEmployee[] = xlsx.utils.sheet_to_json(sheet);
+
         // insert into sync_details
         const syncData = await INSERT.into('PCF_DB_SYNC_DETAILS').entries({
           SYNC_HEADER_ID: syncHdrId,
@@ -104,16 +122,55 @@ export class DataImportService {
           SYNC_STATUS: 'Initiated',
           CREATED_ON: `${new Date().toISOString()}`,
         });
+
+        // change employee data format
+        const insertData = data.map(item  => {
+          return {
+            SYNC_HEADER_ID: syncHdrId,
+            CUSTOMER_ID: 1,
+            CLIENT: String(item.CLIENT),
+            PERSONNEL_NUMBER: String(item.PERSONNEL_NUMBER),
+            FIRST_NAME: String(item.FIRST_NAME),
+            LAST_NAME: String(item.LAST_NAME),
+            DATE_OF_BIRTH: String(item.DATE_OF_BIRTH),
+            ID_NUMBER: String(item.ID_NUMBER),
+            CREATED_BY: String(item.CREATED_BY),
+            CREATED_ON: String(item.CREATED_ON),
+          };
+        });
+
         console.log('employee report');
+
         // insert into employee_master
         try {
           const insertRows = await INSERT(insertData).into('PA0002_EMPLOYEE_MASTER');
+
+          // update sync_details status
+          const updateStatus = await UPDATE('PCF_DB_SYNC_DETAILS').set({
+            SYNC_STATUS: 'Completed',
+            SYNC_ENDED_AT: `${new Date().toISOString()}`,
+          }).where({
+            SYNC_HEADER_ID: syncHdrId,
+            REPORT_ID: 1,
+          })
+
           // console.log('rows insert ', insertData);
         } catch(err) {
+          // update sync_details status
+          const updateStatus = await UPDATE('PCF_DB_SYNC_DETAILS').set({
+            SYNC_STATUS: 'Error',
+            SYNC_ENDED_AT: `${new Date().toISOString()}`,
+          }).where({
+            SYNC_HEADER_ID: syncHdrId,
+            REPORT_ID: 1,
+          });
           console.error('Can not insert rows! ', err)
         }
 
-      } else if (fileName.includes('BILLING')) {
+      } else if (fileNameUpper.includes('BILLING')) {
+        // Convert sheet to JSON object
+        const data: insertDataBillingInvoice[] = xlsx.utils.sheet_to_json(sheet);
+
         // insert into sync_details
         const syncData = await INSERT.into('PCF_DB_SYNC_DETAILS').entries({
           SYNC_HEADER_ID: syncHdrId,
@@ -124,8 +181,60 @@ export class DataImportService {
           SYNC_STATUS: 'Initiated',
           CREATED_ON: `${new Date().toISOString()}`,
         });
+
+        // change billing data format
+        const insertData = data.map(item  => {
+          return {
+            SYNC_HEADER_ID: syncHdrId,
+            CUSTOMER_ID: 1,
+            BILLING_DOCUMENT: String(item.BILLING_DOCUMENT),
+            SALES_DOCUMENT: String(item.SALES_DOCUMENT),
+            PAYER_DESCRIPTION: String(item.PAYER_DESCRIPTION),
+            ITEM_DESCRIPTION: String(item.ITEM_DESCRIPTION),
+            BILLING_DATE: String(item.BILLING_DATE),
+            NET_VALUE: String(item.NET_VALUE),
+            TAX_AMOUNT: String(item.TAX_AMOUNT),
+            COST: String(item.COST),
+            GRORSS_VALUE: String(item.GRORSS_VALUE),
+            SALES_DOCUMENT_ITEM: String(item.SALES_DOCUMENT_ITEM),
+            CREATED_BY: String(item.CREATED_BY),
+            CREATED_ON: String(item.CREATED_ON),
+            SUMOF_NET_GROSS_VALUE: String(item.SUMOF_NET_GROSS_VALUE),
+          };
+        });
+
+        console.log('billing report');
+
         // insert into billing_master
-      } else if (fileName.includes('SALES')) {
+        try {
+          const insertRows = await INSERT(insertData).into('ZSD0070_BILLING_REPORT');
+
+          // update sync_details status
+          const updateStatus = await UPDATE('PCF_DB_SYNC_DETAILS').set({
+            SYNC_STATUS: 'Completed',
+            SYNC_ENDED_AT: `${new Date().toISOString()}`,
+          }).where({
+            SYNC_HEADER_ID: syncHdrId,
+            REPORT_ID: 2,
+          })
+
+          // console.log('rows insert ', insertData);
+        } catch(err) {
+          // update sync_details status
+          const updateStatus = await UPDATE('PCF_DB_SYNC_DETAILS').set({
+            SYNC_STATUS: 'Error',
+            SYNC_ENDED_AT: `${new Date().toISOString()}`,
+          }).where({
+            SYNC_HEADER_ID: syncHdrId,
+            REPORT_ID: 2,
+          });
+          console.error('Can not insert rows! ', err)
+        }
+      } else if (fileNameUpper.includes('SALES')) {
+
+        // Convert sheet to JSON object
+        const data: insertDataSalesOrder[] = xlsx.utils.sheet_to_json(sheet);
+
         // insert into sync_details
         const syncData = await INSERT.into('PCF_DB_SYNC_DETAILS').entries({
           SYNC_HEADER_ID: syncHdrId,
@@ -136,7 +245,54 @@ export class DataImportService {
           SYNC_STATUS: 'Initiated',
           CREATED_ON: `${new Date().toISOString()}`,
         });
-        // insert into sales_order_master
+
+        // change sales data format
+        const insertData = data.map(item  => {
+          return {
+            SYNC_HEADER_ID: syncHdrId,
+            CUSTOMER_ID: 1,
+            SALES_DOCUMENT: String(item.SALES_DOCUMENT),
+            DOCUMENT_DATE: String(item.DOCUMENT_DATE),
+            CREATED_BY: String(item.CREATED_BY),
+            CREATED_ON: String(item.CREATED_ON),
+            TIME: String(item.TIME),
+            SOLD_TO_PARTY: String(item.SOLD_TO_PARTY),
+            NET_VALUE: String(item.NET_VALUE),
+            SOLD_TO_PARTY_NAME: String(item.SOLD_TO_PARTY_NAME),
+            SALES_DOCUMENT_ITEM: String(item.SALES_DOCUMENT_ITEM),
+            MATERIAL_DESCRIPTION: String(item.MATERIAL_DESCRIPTION),
+            PERSONNEL_NUMBER: String(item.PERSONNEL_NUMBER),
+            SCHEDULE_LINE_NUMBER: String(item.SCHEDULE_LINE_NUMBER),
+          };
+        });
+
+        
+        // console.log(insertData);
+        console.log('sales report');
+        // insert into sales_order
+        try {
+          const insertRows = await INSERT(insertData).into('VA05_SALES_ORDER');
+
+          // update sync_details status
+          const updateStatus = await UPDATE('PCF_DB_SYNC_DETAILS').set({
+            SYNC_STATUS: 'Completed',
+            SYNC_ENDED_AT: `${new Date().toISOString()}`,
+          }).where({
+            SYNC_HEADER_ID: syncHdrId,
+            REPORT_ID: 3,
+          });
+          // console.log('rows insert ', insertData);
+        } catch(err) {
+          // update sync_details status
+          const updateStatus = await UPDATE('PCF_DB_SYNC_DETAILS').set({
+            SYNC_STATUS: 'Error',
+            SYNC_ENDED_AT: `${new Date().toISOString()}`,
+          }).where({
+            SYNC_HEADER_ID: syncHdrId,
+            REPORT_ID: 3,
+          });
+          console.error('Can not insert rows! ', err)
+        }
       }
 
 
