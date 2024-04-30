@@ -181,7 +181,7 @@ export class DataService {
                       va05_sales_order where sync_header_id = ${hdrId}
               ) AS tbl_sales_order 
           ON tbl_billing.sales_document = tbl_sales_order.sales_document
-          INNER JOIN PA0002_EMPLOYEE_MASTER on PA0002_EMPLOYEE_MASTER.personnel_number = tbl_sales_order.sales_personnel_number
+          INNER JOIN PA0002_EMPLOYEE_MASTER on PA0002_EMPLOYEE_MASTER.personnel_number = tbl_sales_order.sales_personnel_number and sync_header_id = ${hdrId}
         ) tbl
         where billing_invoice_net_value != sales_order_net_value;
       `;
