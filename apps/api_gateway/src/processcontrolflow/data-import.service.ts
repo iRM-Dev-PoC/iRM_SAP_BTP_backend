@@ -136,6 +136,9 @@ export class DataImportService {
             ID_NUMBER: String(item.ID_NUMBER),
             CREATED_BY: String(item.CREATED_BY),
             CREATED_ON: String(item.CREATED_ON),
+            START_DATE: String(item.START_DATE),
+            END_DATE: String(item.END_DATE),
+            MIDDLE_NAME: String(item.MIDDLE_NAME),
           };
         });
 

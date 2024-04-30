@@ -171,4 +171,9 @@ export class DataLoadController {
     await this.dataService.processAndStoreTempTableData();
     return { message: 'Temporary table data processed and stored' };
   }
+
+  @Post('simulate-data')
+  async simulateData(@Req() req: Request, @Body() {id}) {
+    return await this.dataService.dataSimulation(id);
+  }
 }
