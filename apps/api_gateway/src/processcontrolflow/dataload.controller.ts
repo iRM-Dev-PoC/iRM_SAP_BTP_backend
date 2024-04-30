@@ -21,6 +21,7 @@ import * as xlsx from 'xlsx';
 import { Pool } from 'pg';
 import { DataImportService } from './data-import.service';
 import { DataService } from './data.service';
+import cds from '@sap/cds';
 
 @Controller('dataload')
 export class DataLoadController {
@@ -90,31 +91,62 @@ export class DataLoadController {
     try {
       const results = [];
 
-      for (const file of files) {
-        const extname = path.extname(file.originalname).toLowerCase();
+      const db = await cds.connect.to('db');
 
-        if (extname === '.csv') {
-          // Create temporary table and import CSV data
-          await this.dataImportService.importCSVToTempTable(file.path);
-          results.push({
-            message: `File ${file.originalname} data stored in temporary table`,
-          });
-        } else if (extname === '.xlsx' || extname === '.xls') {
-          // Convert Excel to CSV, create temporary table, and import data
-          const csvPath = await this.dataImportService.convertExcelToCSV(
-            file.path,
-          );
-          await this.dataImportService.importCSVToTempTable(csvPath);
-          fs.unlinkSync(csvPath); // Remove the temporary CSV file
-          results.push({
-            message: `File ${file.originalname} data stored in temporary table`,
-          });
-        } else {
-          results.push({
-            message: `Unsupported file format for ${file.originalname}`,
-          });
-        }
+      const query = `SELECT COUNT(ID) CNT FROM PCF_DB_SYNC_HEADER WHERE CUSTOMER_ID = ${req.body.CUST_ID}`;
+      const result = await db.run(query);
+
+      let syncId:String;
+
+      if(result.length > 0) {
+        syncId = `SYNC-${result[0].CNT+ 1}`;
+      } else {
+        syncId = `SYNC-1`;
       }
+
+
+      // insert into sync_hdr table
+      const hdrData = await INSERT.into('PCF_DB_SYNC_HEADER').entries({
+        SYNC_ID: `${syncId}`,
+        SYNC_STARTED_AT: `${new Date().toISOString()}`,
+        CREATED_BY: `1`,
+        CREATED_ON: `${new Date().toISOString()}`,
+        CUSTOMER_ID: `${req.body.CUST_ID}`,
+      });
+
+      if(hdrData) {
+        for (const file of files) {
+          const extname = path.extname(file.originalname).toLowerCase();
+  
+          if (extname === '.csv') {
+            // Create temporary table and import CSV data
+            await this.dataImportService.importCSVToTempTable(file.path, hdrData);
+            results.push({
+              message: `File ${file.originalname} data stored in temporary table`,
+            });
+          } else if (extname === '.xlsx' || extname === '.xls') {
+            // Convert Excel to CSV, create temporary table, and import data
+            const csvPath = file.path;
+  
+            // const csvPath = await this.dataImportService.convertExcelToCSV(
+            //   file.path,
+            // );
+  
+            await this.dataImportService.importCSVToTempTable(csvPath, syncId);
+            fs.unlinkSync(csvPath); // Remove the temporary CSV file
+            results.push({
+              message: `File ${file.originalname} data stored in temporary table`,
+            });
+          } else {
+            results.push({
+              message: `Unsupported file format for ${file.originalname}`,
+            });
+          }
+        }
+      } else {
+        throw new BadRequestException('Failed to intialize sync!');
+      }
+
 
       return { message: 'Files uploaded successfully', results };
     } catch (err) {

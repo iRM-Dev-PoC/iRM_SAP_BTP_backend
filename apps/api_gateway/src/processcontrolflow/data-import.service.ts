@@ -7,9 +7,11 @@ import * as csv from "csv-parser";
 import { join } from "path";
 import  cds  from "@sap/cds"; 
 
+
 @Injectable()
 export class DataImportService {
   constructor(private readonly pool: Pool) {}
+
 
   async handleFileUploads(files: Array<Express.Multer.File>) {
     for (const file of files) {
@@ -17,10 +19,10 @@ export class DataImportService {
       const tempFilePath = join(process.cwd(), file.path);
 
       if (fileExtension === "csv") {
-        await this.importCSVToTempTable(tempFilePath);
+        await this.importCSVToTempTable(tempFilePath, '');
       } else if (fileExtension === "xlsx" || fileExtension === "xls") {
         const csvPath = await this.convertExcelToCSV(tempFilePath);
-        await this.importCSVToTempTable(csvPath);
+        await this.importCSVToTempTable(csvPath, '');
         fs.unlinkSync(csvPath); // Remove the temporary CSV file
       } else {
         console.error(`Unsupported file format: ${fileExtension}`);
@@ -32,57 +34,87 @@ export class DataImportService {
     await this.batchInsertIntoHANA();
   }
 
-  async importCSVToTempTable(csvPath: string) {
+  async importCSVToTempTable(csvPath: string, syncID : String) {
     if (!fs.existsSync(csvPath) || !fs.lstatSync(csvPath).isFile()) {
       console.error(`File not found or not a regular file: ${csvPath}`);
       return;
     }
 
-    const client: Client = new Client(); // Create a new client instance
-    await client.connect(); // Connect to the PostgreSQL database
+    // connect to hana
+    const db = await cds.connect.to('db');
 
+    // get header id from sync_header table
+    const syncHdrData = await db.read('PCF_DB_SYNC_HEADER').where({ SYNC_ID: syncID });
+    
+    const syncHdrId = syncHdrData[0].ID;
+    console.log(`hdr ID : ${syncHdrId}`);
+
+    // insert into sync_details
+    const syncData = await INSERT.into('PCF_DB_SYNC_DETAILS').entries({
+      SYNC_HEADER_ID: syncHdrId,
+      CONTROL_ID: 1,
+      REPORT_ID: 1,
+      SYNC_STARTED_AT: `${new Date().toISOString()}`,
+      CREATED_BY: `1`,
+      CREATED_ON: `${new Date().toISOString()}`,
+    });
+  
     try {
-      await client.query("CREATE TEMPORARY TABLE temp_table (data TEXT)");
+      // const stream = fs.createReadStream(csvPath);
+      // const parser = stream.pipe(csv());
+      // const headers: string[] = await this.getCSVHeaders(csvPath);
+      
+      // Read the Excel file
+      const workbook = xlsx.readFile(csvPath);
 
-      const stream = fs.createReadStream(csvPath);
-      const headers: string[] = await this.getCSVHeaders(csvPath);
+      // Get the first sheet
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
 
-      const columnTypes = await this.getColumnTypes(csvPath, headers);
+      // Convert sheet to JSON object
+      const data = xlsx.utils.sheet_to_json(sheet);
+      
+      // for await (const record of parser) {
+      //   const values = headers.map((header) => record[header]);
+      //   console.log(values);
+      //   await client.query(insertQuery, values);
+      // }
 
-      const cdsColumnDefinitions = headers
-        .map((header, index) => `${header} ${columnTypes[index]}`)
-        .join(", ");
+      console.log(data);
 
-      // await cds.deploy(`
-      //   namespace your.namespace;
+      // const insertedRows = await INSERT.into()
 
-      //   entity YOUR_CDS_TABLE (
-      //     ${cdsColumnDefinitions}
-      //   );
-      // `);
+      // await client.query("CREATE TEMPORARY TABLE temp_table (data TEXT)");
 
-      const temporaryColumnDefinitions = headers
-        .map((header, index) => `col${index + 1} TEXT`)
-        .join(", ");
 
-      await client.query(
-        `CREATE TEMPORARY TABLE structured_table (${temporaryColumnDefinitions})`,
-      );
+      // const columnTypes = await this.getColumnTypes(csvPath, headers);
 
-      const insertQuery = `
-        INSERT INTO structured_table (${headers.map((_, index) => `col${index + 1}`).join(", ")})
-        VALUES (${headers.map((_, index) => `$${index + 1}`).join(", ")})
-      `;
+      // const cdsColumnDefinitions = headers
+      //   .map((header, index) => `${header} ${columnTypes[index]}`)
+      //   .join(", ");
 
-      const parser = stream.pipe(csv());
-      for await (const record of parser) {
-        const values = headers.map((header) => record[header]);
-        await client.query(insertQuery, values);
-      }
+      // const temporaryColumnDefinitions = headers
+      //   .map((header, index) => `col${index + 1} TEXT`)
+      //   .join(", ");
+
+      // await client.query(
+      //   `CREATE TEMPORARY TABLE structured_table (${temporaryColumnDefinitions})`,
+      // );
+
+      // const insertQuery = `
+      //   INSERT INTO structured_table (${headers.map((_, index) => `col${index + 1}`).join(", ")})
+      //   VALUES (${headers.map((_, index) => `$${index + 1}`).join(", ")})
+      // `;
+
+      // const parser = stream.pipe(csv());
+      // for await (const record of parser) {
+      //   const values = headers.map((header) => record[header]);
+      //   await client.query(insertQuery, values);
+      // }
     } catch (err) {
       console.error("Error importing CSV data:", err);
     } finally {
-      await client.end(); 
+      // await client.end(); 
     }
   }
 
