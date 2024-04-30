@@ -120,7 +120,7 @@ export class DataLoadController {
   
           if (extname === '.csv') {
             // Create temporary table and import CSV data
-            await this.dataImportService.importCSVToTempTable(file.path, hdrData);
+            await this.dataImportService.importCSVToTempTable(file.path, syncId, file.originalname);
             results.push({
               message: `File ${file.originalname} data stored in temporary table`,
             });
@@ -132,7 +132,7 @@ export class DataLoadController {
             //   file.path,
             // );
   
-            await this.dataImportService.importCSVToTempTable(csvPath, syncId);
+            await this.dataImportService.importCSVToTempTable(csvPath, syncId, file.originalname);
             fs.unlinkSync(csvPath); // Remove the temporary CSV file
             results.push({
               message: `File ${file.originalname} data stored in temporary table`,

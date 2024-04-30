@@ -6,7 +6,20 @@ import { Readable } from "stream";
 import * as csv from "csv-parser";
 import { join } from "path";
 import  cds  from "@sap/cds"; 
+import { Any } from "typeorm";
 
+
+type insertData = {
+  CLIENT:string;
+  PERSONNEL_NUMBER:string;
+  FIRST_NAME:string;
+  END_DATE: string;
+  START_DATE: string;
+  LAST_NAME: string;
+  DATE_OF_BIRTH:string;
+  MIDDLE_NAME?: string; 
+  ID_NUMBER:string;
+}
 
 @Injectable()
 export class DataImportService {
@@ -19,10 +32,10 @@ export class DataImportService {
       const tempFilePath = join(process.cwd(), file.path);
 
       if (fileExtension === "csv") {
-        await this.importCSVToTempTable(tempFilePath, '');
+        await this.importCSVToTempTable(tempFilePath, '', '');
       } else if (fileExtension === "xlsx" || fileExtension === "xls") {
         const csvPath = await this.convertExcelToCSV(tempFilePath);
-        await this.importCSVToTempTable(csvPath, '');
+        await this.importCSVToTempTable(csvPath, '', '');
         fs.unlinkSync(csvPath); // Remove the temporary CSV file
       } else {
         console.error(`Unsupported file format: ${fileExtension}`);
@@ -34,83 +47,113 @@ export class DataImportService {
     await this.batchInsertIntoHANA();
   }
 
-  async importCSVToTempTable(csvPath: string, syncID : String) {
+  async importCSVToTempTable(csvPath: string, syncID : String, fileName : String) {
     if (!fs.existsSync(csvPath) || !fs.lstatSync(csvPath).isFile()) {
       console.error(`File not found or not a regular file: ${csvPath}`);
       return;
     }
 
-    // connect to hana
-    const db = await cds.connect.to('db');
-
-    // get header id from sync_header table
-    const syncHdrData = await db.read('PCF_DB_SYNC_HEADER').where({ SYNC_ID: syncID });
-    
-    const syncHdrId = syncHdrData[0].ID;
-    console.log(`hdr ID : ${syncHdrId}`);
-
-    // insert into sync_details
-    const syncData = await INSERT.into('PCF_DB_SYNC_DETAILS').entries({
-      SYNC_HEADER_ID: syncHdrId,
-      CONTROL_ID: 1,
-      REPORT_ID: 1,
-      SYNC_STARTED_AT: `${new Date().toISOString()}`,
-      CREATED_BY: `1`,
-      CREATED_ON: `${new Date().toISOString()}`,
-    });
-  
     try {
-      // const stream = fs.createReadStream(csvPath);
-      // const parser = stream.pipe(csv());
-      // const headers: string[] = await this.getCSVHeaders(csvPath);
+
+      // connect to hana
+      const db = await cds.connect.to('db');
+
+      const whereClause = cds.parse.expr(`SYNC_ID = '${syncID}'`);
+  
+      // get header id from sync_header table
+      const syncHdrData = await db.read('PCF_DB_SYNC_HEADER').columns('ID').where(whereClause);
       
-      // Read the Excel file
-      const workbook = xlsx.readFile(csvPath);
+      const syncHdrId = syncHdrData[0].ID;
+      console.log(`hdr ID : ${syncHdrId}`);
+  
+      // insert into sync_details
+      const syncData = await INSERT.into('PCF_DB_SYNC_DETAILS').entries({
+        SYNC_HEADER_ID: syncHdrId,
+        CONTROL_ID: 1,
+        REPORT_ID: 1,
+        SYNC_STARTED_AT: `${new Date().toISOString()}`,
+        CREATED_BY: `1`,
+        SYNC_STATUS: 'Initiated',
+        CREATED_ON: `${new Date().toISOString()}`,
+      });
 
-      // Get the first sheet
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
 
-      // Convert sheet to JSON object
-      const data = xlsx.utils.sheet_to_json(sheet);
+        const workbook = xlsx.readFile(csvPath);
+        // Get the first sheet
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+
+
+        // Convert sheet to JSON object
+        const data: insertData[] = xlsx.utils.sheet_to_json(sheet);
+        
+        const insertData = data.map(item  => {
+          return {
+            SYNC_HEADER_ID: syncHdrId,
+            CUSTOMER_ID: 1,
+            CLIENT: String(item.CLIENT),
+            PERSONNEL_NUMBER: String(item.PERSONNEL_NUMBER),
+            FIRST_NAME: String(item.FIRST_NAME),
+            LAST_NAME: String(item.LAST_NAME),
+            DATE_OF_BIRTH: String(item.DATE_OF_BIRTH),
+            ID_NUMBER: String(item.ID_NUMBER),
+          };
+        });
+
+        console.log(insertData);
+
+        const fileNameUpper = fileName.toUpperCase(); 
+
+        // batch insert into db
+        if(fileNameUpper.includes('EMPLOYEE')) {
+          console.log('employee report');
+          // insert into employee_master
+          try {
+            const insertRows = await INSERT(insertData).into('PA0002_EMPLOYEE_MASTER');
+            // console.log('rows insert ', insertData);
+          } catch(err) {
+            console.error('Can not insert rows! ', err)
+          }
+
+        } else if (fileName.includes('BILLING')) {
+          // insert into billing_master
+        } else if (fileName.includes('SALES')) {
+          // insert into sales_order_master
+        }
+
+
+
+      /* Code commented, may required later */
+      // get all reports from report_master
+      // const query = `SELECT LOWER(REPORT_NAME) REPORT_NAME FROM PCF_DB_REPORT_MASTER`;
+      // const allReports = await db.run(query);
+
+      // let isReportPresent : Boolean = false;
+      // allReports.forEach(element => {
+      //   if(element.REPORT_NAME === fileName) {
+      //     isReportPresent = true;
+      //     return;
+      //   } 
+      // });
+
+
+      // if(isReportPresent) {
+      //   const workbook = xlsx.readFile(csvPath);
+      //   // Get the first sheet
+      //   const sheetName = workbook.SheetNames[0];
+      //   const sheet = workbook.Sheets[sheetName];
+
+      //   // Convert sheet to JSON object
+      //   const data = xlsx.utils.sheet_to_json(sheet);
+
+      //   console.log(data);
+      // } else {
+      //   console.log(`report not found`);
+      // }
+      /** Ended */
+
+
       
-      // for await (const record of parser) {
-      //   const values = headers.map((header) => record[header]);
-      //   console.log(values);
-      //   await client.query(insertQuery, values);
-      // }
-
-      console.log(data);
-
-      // const insertedRows = await INSERT.into()
-
-      // await client.query("CREATE TEMPORARY TABLE temp_table (data TEXT)");
-
-
-      // const columnTypes = await this.getColumnTypes(csvPath, headers);
-
-      // const cdsColumnDefinitions = headers
-      //   .map((header, index) => `${header} ${columnTypes[index]}`)
-      //   .join(", ");
-
-      // const temporaryColumnDefinitions = headers
-      //   .map((header, index) => `col${index + 1} TEXT`)
-      //   .join(", ");
-
-      // await client.query(
-      //   `CREATE TEMPORARY TABLE structured_table (${temporaryColumnDefinitions})`,
-      // );
-
-      // const insertQuery = `
-      //   INSERT INTO structured_table (${headers.map((_, index) => `col${index + 1}`).join(", ")})
-      //   VALUES (${headers.map((_, index) => `$${index + 1}`).join(", ")})
-      // `;
-
-      // const parser = stream.pipe(csv());
-      // for await (const record of parser) {
-      //   const values = headers.map((header) => record[header]);
-      //   await client.query(insertQuery, values);
-      // }
     } catch (err) {
       console.error("Error importing CSV data:", err);
     } finally {
