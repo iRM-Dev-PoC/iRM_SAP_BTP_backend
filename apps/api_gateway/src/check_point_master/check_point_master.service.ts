@@ -25,8 +25,6 @@ export class CheckPointMasterService {
 
       const tableName = "PCF_DB_CHECK_POINT_MASTER";
       checkpointMaster.created_by = 1;
-      checkpointMaster.check_point_name =
-        checkpointMaster.check_point_name.toUpperCase();
 
       if (checkpointMaster.check_point_name) {
         const whereClause = cds.parse.expr(
@@ -97,7 +95,7 @@ export class CheckPointMasterService {
       const updatedModule = await UPDATE("PCF_DB_CHECK_POINT_MASTER")
         .set({
           CHECK_POINT_NAME:
-            updateCheckPointMaster.check_point_name.toUpperCase(),
+            updateCheckPointMaster.check_point_name,
           CHECK_POINT_DESC: updateCheckPointMaster.check_point_desc,
           CHANGED_ON: updateCheckPointMaster.changed_on
             .toISOString()

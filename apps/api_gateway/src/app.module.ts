@@ -28,6 +28,8 @@ import { ReportMasterModule } from './report_master/report_master.module';
 import { ControlMasterModule } from './control_master/control_master.module';
 import { CheckPointMasterModule } from './check_point_master/check_point_master.module';
 import { ReportCheckPointMappingModule } from './report_check_point_mapping/report_check_point_mapping.module';
+import { DataSyncModule } from './data_sync/data_sync.module';
+import { ControlFamilyMasterModule } from './control_family_master/control_family_master.module';
 
 @Module({
   imports: [
@@ -48,6 +50,8 @@ import { ReportCheckPointMappingModule } from './report_check_point_mapping/repo
     ControlMasterModule,
     CheckPointMasterModule,
     ReportCheckPointMappingModule,
+    DataSyncModule,
+    ControlFamilyMasterModule,
   ],
   controllers: [AppController],
   providers: [AppService, LocalStrategy, JwtStrategy, DatabaseService],
