@@ -3,12 +3,19 @@ import {
   ForbiddenException,
   Get,
   Req,
+  Post,
+  Body,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwtAuth.guard';
 import { Request } from 'express';
 import { AuthService } from '../../auth/src';
 import { DashboardService } from './dashboard.service';
+
+type getControlDetailsDTO = {
+  id : number;
+  hdrId : number;
+}
 
 // @UseGuards(JwtAuthGuard)
 @Controller('dashboard')
@@ -32,5 +39,10 @@ export class DashboardController {
   @Get('control-checkpoints')
   async getControlCheckpoints() {
     return await this.dashboardService.getControlCheckPoints();
+  }
+
+  @Post('get-control-data')
+  async getControlData(@Body() controlDetails: getControlDetailsDTO) {
+    return await this.dashboardService.getControlData(controlDetails);
   }
 }
