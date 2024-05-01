@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Post,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -21,7 +22,7 @@ export class DataSyncController {
     return await this.controlMasterService.GetAllHeader();
   }
 
-  @Get("get-all-details")
+  @Post("get-all-details")
   async GetAllSyncDtls(@Body() syncDtlsDto: syncDtlsDTO) {
     return await this.controlMasterService.GetAllSyncDtls(syncDtlsDto);
   }
