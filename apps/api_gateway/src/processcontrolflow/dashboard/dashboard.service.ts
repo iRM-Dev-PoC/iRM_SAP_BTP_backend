@@ -77,6 +77,10 @@ export class DashboardService {
       const exceptionsCount = await db.run(exceptionsQuery); // exception counts
   
       const deviation = (exceptionsCount[0].EXCEPTION_COUNT / baseDataCount[0].BASE_DATA) * 100;
+
+      // violated data
+      const violatedQuery = `select * from PRICE_MISMATCH_OUT where sync_header_id = ${hdrId}`;
+      const violatedData = await db.run(violatedQuery);
   
       // console.log(controlDetails, baseDataCount, exceptionsCount);
   
@@ -88,7 +92,8 @@ export class DashboardService {
           base_data_count : baseDataCount[0].BASE_DATA,
           exception_count : exceptionsCount[0].EXCEPTION_COUNT,
           deviation_count : deviation,
-          risk_score : deviation * 100
+          risk_score : deviation * 100,
+          violatedData : violatedData
         }
       }
     } catch (error) {
