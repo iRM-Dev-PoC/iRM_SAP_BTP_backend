@@ -201,6 +201,15 @@ export class DataService {
 
       // insert into out table
       const insertRows = await INSERT(controlOutData).into('PRICE_MISMATCH_OUT');
+      
+      // update the simulation in sync_header table
+      const updateHeader = await UPDATE("PCF_DB_SYNC_HEADER")
+        .set({
+          IS_SIMULATED: true,
+        })
+        .where({
+          ID: hdrId,
+        });
 
       return {
         statuscode: HttpStatus.OK,

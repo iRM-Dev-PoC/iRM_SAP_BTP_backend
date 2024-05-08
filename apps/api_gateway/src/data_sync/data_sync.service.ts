@@ -16,6 +16,7 @@ export class DataSyncService {
 		      header.ID,
           header.SYNC_ID,
           header.SYNC_STARTED_AT,
+          header.IS_SIMULATED,
           loginuser.USER_NAME
         FROM
           "39131F99F8F44FB4A0F0F6D759497FF7"."PCF_DB_SYNC_HEADER"  AS header
