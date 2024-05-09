@@ -1,26 +1,23 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Patch,
   Post,
   Req,
-  UseGuards,
   UsePipes,
   ValidationPipe,
-} from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwtAuth.guard';
-import { RoleMasterService } from './role_master.service';
-import { AuthService } from '../auth/src';
+} from "@nestjs/common";
+import { Request } from "express";
+import { AuthService } from "../auth/src";
 import {
   CreateRoleMasterDto,
   DeleteRoleMasterDto,
   UpdateRoleMasterDto,
-} from './dto/roleMaster.dto';
-import { Request } from 'express';
+} from "./dto/roleMaster.dto";
+import { RoleMasterService } from "./role_master.service";
 
-@Controller('role-master')
+@Controller("role-master")
 // @UseGuards(JwtAuthGuard)
 @UsePipes(new ValidationPipe())
 export class RoleMasterController {
@@ -29,7 +26,7 @@ export class RoleMasterController {
     private authService: AuthService,
   ) {}
 
-  @Post('create-role')
+  @Post("create-role")
   async CreateRole(
     @Req() req: Request,
     @Body() createRole: CreateRoleMasterDto,
@@ -46,14 +43,14 @@ export class RoleMasterController {
     );
   }
 
-  @Get('get-role')
+  @Get("get-role")
   async GetRole(@Body() { id, customer_id }) {
-    console.log('id', id);
-    console.log('customer_id', customer_id);
+    console.log("id", id);
+    console.log("customer_id", customer_id);
     return await this.roleService.GetRoleMaster(id, customer_id);
   }
 
-  @Patch('update-role')
+  @Patch("update-role")
   async UpdateRole(
     @Req() req: Request,
     @Body() updateRole: UpdateRoleMasterDto,
@@ -64,7 +61,7 @@ export class RoleMasterController {
     );
   }
 
-  @Patch('delete-role')
+  @Patch("delete-role")
   async DeleteRole(
     @Req() req: Request,
     @Body() deleteRole: DeleteRoleMasterDto,
@@ -75,7 +72,7 @@ export class RoleMasterController {
     );
   }
 
-  @Get('get-all-Roles')
+  @Get("get-all-Roles")
   async GetAllUsers() {
     return await this.roleService.GetAllRolesMaster();
   }

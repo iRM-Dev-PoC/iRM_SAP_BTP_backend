@@ -1,31 +1,25 @@
-import { CurrentUserDto, ResponseDto } from '@app/share_lib/common.dto';
-import { HttpStatus, Injectable } from '@nestjs/common';
-import cds from '@sap/cds';
+import { ResponseDto } from "@app/share_lib/common.dto";
+import { HttpStatus, Injectable } from "@nestjs/common";
+import cds from "@sap/cds";
 import {
   CreatePrivilegeMasterDto,
   DeletePrivilegeMasterDto,
   UpdatePrivilegeMasterDto,
-} from './dto/privilegeMaster.dto';
-import { AppService } from '../app.service';
-import { DatabaseService } from '@app/share_lib/database/database.service';
+} from "./dto/privilegeMaster.dto";
 
 @Injectable()
 export class PrivilegeMasterService {
-  constructor(
-    private databaseService: DatabaseService,
-    private readonly appService: AppService,
-  ) {}
-
   async CreatePrivilege(
     // currentUser: CurrentUserDto,
     createPrivilegeDto: CreatePrivilegeMasterDto,
   ): Promise<ResponseDto> {
     try {
-      const db = await cds.connect.to('db');
+      const db = await cds.connect.to("db");
 
-      const tableName = 'PCF_DB_PRIVILEGE';
+      const tableName = "PCF_DB_PRIVILEGE";
       createPrivilegeDto.created_by = 1;
-      createPrivilegeDto.privilege_name = createPrivilegeDto.privilege_name.toUpperCase();
+      createPrivilegeDto.privilege_name =
+        createPrivilegeDto.privilege_name.toUpperCase();
 
       if (createPrivilegeDto.privilege_name) {
         const whereClause = cds.parse.expr(
@@ -37,7 +31,7 @@ export class PrivilegeMasterService {
         if (existingPrivilege && existingPrivilege.length > 0) {
           return {
             statuscode: HttpStatus.CONFLICT,
-            message: 'Privilege already exists',
+            message: "Privilege already exists",
             data: existingPrivilege,
           };
         }
@@ -52,7 +46,7 @@ export class PrivilegeMasterService {
 
       return {
         statuscode: HttpStatus.CREATED,
-        message: 'Privilege created successfully',
+        message: "Privilege created successfully",
         data: createPrivilegeDto,
       };
     } catch (error) {
@@ -69,7 +63,7 @@ export class PrivilegeMasterService {
     updatePrivilegeDto: UpdatePrivilegeMasterDto,
   ): Promise<ResponseDto> {
     try {
-      const db = await cds.connect.to('db');
+      const db = await cds.connect.to("db");
 
       updatePrivilegeDto.changed_on = new Date();
       updatePrivilegeDto.changed_by = 2;
@@ -82,13 +76,13 @@ export class PrivilegeMasterService {
         );
 
         const existingPrivilege = await db
-          .read('PCF_DB_PRIVILEGE')
+          .read("PCF_DB_PRIVILEGE")
           .where(whereClause);
 
         if (existingPrivilege && existingPrivilege.length > 0) {
           return {
             statuscode: HttpStatus.CONFLICT,
-            message: 'Privilege already exists',
+            message: "Privilege already exists",
             data: existingPrivilege,
           };
         }
@@ -109,7 +103,7 @@ export class PrivilegeMasterService {
 
       return {
         statuscode: HttpStatus.OK,
-        message: 'Privilege updated successfully',
+        message: "Privilege updated successfully",
         data: updatedPrivilege,
       };
     } catch (error) {
@@ -127,13 +121,13 @@ export class PrivilegeMasterService {
     customer_id,
   ): Promise<ResponseDto> {
     try {
-      const db = await cds.connect.to('db');
+      const db = await cds.connect.to("db");
 
       const whereClause = cds.parse.expr(
         `ID = '${Number(id)}'AND CUSTOMER_ID = '${Number(customer_id)}' AND IS_ACTIVE = 'Y'`,
       );
 
-      const privilege = await db.read('PCF_DB_PRIVILEGE').where(whereClause);
+      const privilege = await db.read("PCF_DB_PRIVILEGE").where(whereClause);
 
       if (!privilege || privilege.length === 0) {
         return {
@@ -162,7 +156,7 @@ export class PrivilegeMasterService {
     deletePrivilegeMaster: DeletePrivilegeMasterDto,
   ): Promise<ResponseDto> {
     try {
-      const db = await cds.connect.to('db');
+      const db = await cds.connect.to("db");
 
       deletePrivilegeMaster.changed_on = new Date();
       deletePrivilegeMaster.changed_by = 3;
@@ -182,14 +176,14 @@ export class PrivilegeMasterService {
       if (affectedRows === 0) {
         return {
           statuscode: HttpStatus.NOT_FOUND,
-          message: 'Privilege not found for deletion',
+          message: "Privilege not found for deletion",
           data: null,
         };
       }
 
       return {
         statuscode: HttpStatus.OK,
-        message: 'Privilege deleted successfully',
+        message: "Privilege deleted successfully",
         data: affectedRows,
       };
     } catch (error) {
@@ -204,25 +198,23 @@ export class PrivilegeMasterService {
   async GetAllPrivileges() // currentUser: CurrentUserDto,
   : Promise<ResponseDto> {
     try {
-      const db = await cds.connect.to('db');
+      const db = await cds.connect.to("db");
 
       const whereClause = cds.parse.expr(`IS_ACTIVE = 'Y'`);
 
-      const Privileges = await db
-        .read("PCF_DB_PRIVILEGE")
-        .where(whereClause);
+      const Privileges = await db.read("PCF_DB_PRIVILEGE").where(whereClause);
 
       if (!Privileges || Privileges.length === 0) {
         return {
           statuscode: HttpStatus.OK,
-          message: 'No Privileges found',
+          message: "No Privileges found",
           data: Privileges,
         };
       }
 
       return {
         statuscode: HttpStatus.OK,
-        message: 'Privileges fetched successfully',
+        message: "Privileges fetched successfully",
         data: Privileges,
       };
     } catch (error) {

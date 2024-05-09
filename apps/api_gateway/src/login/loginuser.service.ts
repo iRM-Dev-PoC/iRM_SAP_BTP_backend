@@ -5,18 +5,12 @@ import {
   DeleteLoginUserDto,
   UpdateLoginUserDto,
 } from "./dto/loginuser.dto";
-import { DatabaseService } from "@app/share_lib/database/database.service";
 import { CurrentUserDto, ResponseDto } from "@app/share_lib/common.dto";
-import { AppService } from "../app.service";
 import { generateHash, validateHash } from "../auth/utils/passwordValidation";
 
 @Injectable()
 export class LoginUserService {
-  constructor(
-    private databaseService: DatabaseService,
-    private readonly appService: AppService,
-    // private jwtservice: JwtService,
-  ) {}
+  constructor() {}
 
   async CreateUser(
     //currentUser: CurrentUserDto,
@@ -77,7 +71,6 @@ export class LoginUserService {
       };
     }
   }
-
 
   async UpdateUser(
     // currentUser: CurrentUserDto,

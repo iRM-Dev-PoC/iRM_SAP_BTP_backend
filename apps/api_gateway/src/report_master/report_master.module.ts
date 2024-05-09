@@ -1,14 +1,11 @@
-import { Module } from '@nestjs/common';
-import { ReportMasterService } from './report_master.service';
+import { Module } from "@nestjs/common";
+import { AuthModule } from "../auth/src";
 import { ReportMasterController } from "./report_master.controller";
-import { AuthModule } from '../auth/src';
-import { DatabaseModule } from '@app/share_lib/database/database.module';
-import { DatabaseService } from '@app/share_lib/database/database.service';
-import { AppService } from '../app.service';
+import { ReportMasterService } from "./report_master.service";
 
 @Module({
-  imports: [AuthModule, DatabaseModule],
-  providers: [ReportMasterService, DatabaseService, AppService],
+  imports: [AuthModule],
+  providers: [ReportMasterService],
   controllers: [ReportMasterController],
 })
 export class ReportMasterModule {}

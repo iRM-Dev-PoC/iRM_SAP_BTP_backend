@@ -1,14 +1,11 @@
-import { Module } from '@nestjs/common';
-import { DashboardController } from './dashboard.controller';
-import { DashboardService } from './dashboard.service';
-import { AuthModule } from '../../auth/src';
-import { DatabaseModule } from '@app/share_lib/database/database.module';
-import { DatabaseService } from '@app/share_lib/database/database.service';
-import { AppService } from '../../app.service';
+import { Module } from "@nestjs/common";
+import { AuthModule } from "../../auth/src";
+import { DashboardController } from "./dashboard.controller";
+import { DashboardService } from "./dashboard.service";
 
 @Module({
-  imports: [AuthModule, DatabaseModule],
+  imports: [AuthModule],
   controllers: [DashboardController],
-  providers: [DashboardService, DatabaseService, AppService]
+  providers: [DashboardService],
 })
 export class DashboardModule {}

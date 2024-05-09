@@ -1,14 +1,11 @@
-import { Module } from '@nestjs/common';
-import { CheckPointMasterService } from "./check_point_master.service";
+import { Module } from "@nestjs/common";
+import { AuthModule } from "../auth/src";
 import { CheckPointMasterController } from "./check_point_master.controller";
-import { AuthModule } from '../auth/src';
-import { DatabaseModule } from '@app/share_lib/database/database.module';
-import { DatabaseService } from '@app/share_lib/database/database.service';
-import { AppService } from '../app.service';
+import { CheckPointMasterService } from "./check_point_master.service";
 
 @Module({
-  imports: [AuthModule, DatabaseModule],
-  providers: [CheckPointMasterService, DatabaseService, AppService],
+  imports: [AuthModule],
+  providers: [CheckPointMasterService],
   controllers: [CheckPointMasterController],
 })
 export class CheckPointMasterModule {}

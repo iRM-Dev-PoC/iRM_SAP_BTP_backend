@@ -1,20 +1,15 @@
-import { CurrentUserDto, ResponseDto } from '@app/share_lib/common.dto';
-import { HttpStatus, Injectable } from '@nestjs/common';
-import cds from '@sap/cds';
+import { ResponseDto } from "@app/share_lib/common.dto";
+import { HttpStatus, Injectable } from "@nestjs/common";
+import cds from "@sap/cds";
 import {
   CreateControlFamilyMasterDto,
   DeleteControlFamilyMasterDto,
   UpdateControlFamilyMasterDto,
 } from "./dto/controlFamilyMaster.dto";
-import { AppService } from '../app.service';
-import { DatabaseService } from '@app/share_lib/database/database.service';
 
 @Injectable()
 export class ControlFamilyMasterService {
-  constructor(
-    private databaseService: DatabaseService,
-    private readonly appService: AppService,
-  ) {}
+  constructor() {}
 
   async CreateControl(
     // currentUser: CurrentUserDto,
@@ -130,7 +125,9 @@ export class ControlFamilyMasterService {
         `ID = '${Number(id)}' AND CUSTOMER_ID = '${Number(customer_id)}' AND IS_ACTIVE = 'Y'`,
       );
 
-      const control = await db.read("PCF_DB_CONTROL_FAMILY_MASTER").where(whereClause);
+      const control = await db
+        .read("PCF_DB_CONTROL_FAMILY_MASTER")
+        .where(whereClause);
 
       if (!control || control.length === 0) {
         return {
@@ -205,7 +202,9 @@ export class ControlFamilyMasterService {
 
       const whereClause = cds.parse.expr(`IS_ACTIVE = 'Y'`);
 
-      const controls = await db.read("PCF_DB_CONTROL_FAMILY_MASTER").where(whereClause);
+      const controls = await db
+        .read("PCF_DB_CONTROL_FAMILY_MASTER")
+        .where(whereClause);
 
       if (!controls || controls.length === 0) {
         return {

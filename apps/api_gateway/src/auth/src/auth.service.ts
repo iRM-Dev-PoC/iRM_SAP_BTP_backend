@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import cds from '@sap/cds';
-import { DatabaseService } from '@app/share_lib/database/database.service';
 import { AuthDto, LoginDto } from '../dto/auth.dto';
 import { Request } from 'express';
 import { CurrentUserDto } from '@app/share_lib/common.dto';
@@ -15,51 +14,50 @@ import { CurrentUserDto } from '@app/share_lib/common.dto';
 export class AuthService {
   constructor(
     private jwtservice: JwtService,
-    private databaseService: DatabaseService,
   ) {}
 
-  async ValidateUser(AuthPayload: LoginDto) {
-    try {
-      const hanaOptions = this.databaseService.getHanaOptions();
-      const user = await this.databaseService.executeQuery(
-        `SELECT * from ${hanaOptions.schema}.PCF_DB_LOGIN_USER`,
-        hanaOptions,
-        // user_email: AuthPayload.username,
-        //   is_active: 'Y',
-        // }),
-      );
-      if (!user || user.length === 0) {
-        throw new UnauthorizedException('Invalid credentials');
-      } else {
-        if (user[0].password === AuthPayload.password) {
-          let userid: string = user[0].id.toString();
+  // async ValidateUser(AuthPayload: LoginDto) {
+  //   try {
+  //     const hanaOptions = this.databaseService.getHanaOptions();
+  //     const user = await this.databaseService.executeQuery(
+  //       `SELECT * from ${hanaOptions.schema}.PCF_DB_LOGIN_USER`,
+  //       hanaOptions,
+  //       // user_email: AuthPayload.username,
+  //       //   is_active: 'Y',
+  //       // }),
+  //     );
+  //     if (!user || user.length === 0) {
+  //       throw new UnauthorizedException('Invalid credentials');
+  //     } else {
+  //       if (user[0].password === AuthPayload.password) {
+  //         let userid: string = user[0].id.toString();
 
-          let userprivileges = await cds.run(
-            `SELECT ROLE_ID,ROLE_NAME,MODULE_NAME,SUBMODULE_NAME,DISPLAY_MODULE_NAME,DISPLAY_SUBMODULE_NAME,PRIVILEGE,CUSTOMER_ID from GET_ALL_PRIVILEGES_BY_USER_ID('${userid}')`,
-          );
-          // console.log(userprivileges);
-          let payload: AuthDto = {
-            username: user[0].user_email,
-            user_id: user[0].id,
-            customer_id: userprivileges[0].customer_id,
-            privileges: userprivileges,
-          };
+  //         let userprivileges = await cds.run(
+  //           `SELECT ROLE_ID,ROLE_NAME,MODULE_NAME,SUBMODULE_NAME,DISPLAY_MODULE_NAME,DISPLAY_SUBMODULE_NAME,PRIVILEGE,CUSTOMER_ID from GET_ALL_PRIVILEGES_BY_USER_ID('${userid}')`,
+  //         );
+  //         // console.log(userprivileges);
+  //         let payload: AuthDto = {
+  //           username: user[0].user_email,
+  //           user_id: user[0].id,
+  //           customer_id: userprivileges[0].customer_id,
+  //           privileges: userprivileges,
+  //         };
 
-          return {
-            // payload: payload,
-            access_token: this.jwtservice.sign(payload),
-          };
-        } else {
-          throw new UnauthorizedException('Invalid credentials');
-        }
-      }
-    } catch (error) {
-      return {
-        status: error.status,
-        message: error.message,
-      };
-    }
-  }
+  //         return {
+  //           // payload: payload,
+  //           access_token: this.jwtservice.sign(payload),
+  //         };
+  //       } else {
+  //         throw new UnauthorizedException('Invalid credentials');
+  //       }
+  //     }
+  //   } catch (error) {
+  //     return {
+  //       status: error.status,
+  //       message: error.message,
+  //     };
+  //   }
+  // }
 
   GetPayloadFromToken(token: string) {
     try {
