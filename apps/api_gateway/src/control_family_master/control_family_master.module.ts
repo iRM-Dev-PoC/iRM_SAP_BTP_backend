@@ -1,14 +1,11 @@
-import { Module } from '@nestjs/common';
-import { ControlFamilyMasterService } from "./control_family_master.service";
+import { Module } from "@nestjs/common";
+import { AuthModule } from "../auth/src";
 import { ControlFamilyMasterController } from "./control_family_master.controller";
-import { AuthModule } from '../auth/src';
-import { DatabaseModule } from '@app/share_lib/database/database.module';
-import { DatabaseService } from '@app/share_lib/database/database.service';
-import { AppService } from '../app.service';
+import { ControlFamilyMasterService } from "./control_family_master.service";
 
 @Module({
-  imports: [AuthModule, DatabaseModule],
-  providers: [ControlFamilyMasterService, DatabaseService, AppService],
+  imports: [AuthModule],
+  providers: [ControlFamilyMasterService],
   controllers: [ControlFamilyMasterController],
 })
 export class ControlFamilyMasterModule {}

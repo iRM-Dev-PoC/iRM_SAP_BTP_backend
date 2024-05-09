@@ -17,7 +17,6 @@ import {
   UpdateRoleOfUserDto,
 } from './dto/assign_role_privilege.dto';
 import cds from '@sap/cds';
-import { get } from 'http';
 
 @Injectable()
 @UsePipes(new ValidationPipe())

@@ -21,7 +21,7 @@ export class LoginController {
   // @UseGuards(LocalGuard)
   @UsePipes(new ValidationPipe())
   async login(@Body() authPayload: LoginDto) {
-    return this.authService.ValidateUser(authPayload);
+    // return this.authService.ValidateUser(authPayload);
   }
 
   @Post('accessendpoints')

@@ -1,4 +1,4 @@
-import { CurrentUserDto, ResponseDto } from '@app/share_lib/common.dto';
+import { ResponseDto } from '@app/share_lib/common.dto';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import cds from '@sap/cds';
 import {
@@ -6,15 +6,10 @@ import {
   DeleteCheckPointMasterDto,
   UpdateCheckPointMasterDto,
 } from "./dto/checkpointMaster.dto";
-import { AppService } from '../app.service';
-import { DatabaseService } from '@app/share_lib/database/database.service';
 
 @Injectable()
 export class CheckPointMasterService {
-  constructor(
-    private databaseService: DatabaseService,
-    private readonly appService: AppService,
-  ) {}
+  constructor() {}
 
   async CreateCheckPoint(
     // currentUser: CurrentUserDto,
@@ -94,8 +89,7 @@ export class CheckPointMasterService {
 
       const updatedModule = await UPDATE("PCF_DB_CHECK_POINT_MASTER")
         .set({
-          CHECK_POINT_NAME:
-            updateCheckPointMaster.check_point_name,
+          CHECK_POINT_NAME: updateCheckPointMaster.check_point_name,
           CHECK_POINT_DESC: updateCheckPointMaster.check_point_desc,
           CHANGED_ON: updateCheckPointMaster.changed_on
             .toISOString()

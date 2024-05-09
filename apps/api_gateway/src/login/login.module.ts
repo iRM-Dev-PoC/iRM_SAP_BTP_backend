@@ -1,16 +1,12 @@
-import { Module } from '@nestjs/common';
-import { LoginController } from './login.controller';
-import { AuthModule } from '../auth/src';
-import { LoginUserController } from './loginuser.controller';
-import { LoginUserService } from './loginuser.service';
-import { DatabaseService } from '@app/share_lib/database/database.service';
-import { DatabaseModule } from '@app/share_lib/database/database.module';
-import { AppService } from '../app.service';
-
+import { Module } from "@nestjs/common";
+import { AuthModule } from "../auth/src";
+import { LoginController } from "./login.controller";
+import { LoginUserController } from "./loginuser.controller";
+import { LoginUserService } from "./loginuser.service";
 
 @Module({
-  imports: [AuthModule, DatabaseModule],
+  imports: [AuthModule],
   controllers: [LoginController, LoginUserController],
-  providers: [LoginUserService, DatabaseService, AppService ],
+  providers: [LoginUserService],
 })
 export class LoginModule {}

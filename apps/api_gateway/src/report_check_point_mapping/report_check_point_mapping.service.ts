@@ -1,4 +1,4 @@
-import { CurrentUserDto, ResponseDto } from "@app/share_lib/common.dto";
+import { ResponseDto } from "@app/share_lib/common.dto";
 import { HttpStatus, Injectable } from "@nestjs/common";
 import cds from "@sap/cds";
 import {
@@ -6,16 +6,9 @@ import {
   DeleteReportCheckPointMappingDto,
   UpdateReportCheckPointMappingDto,
 } from "./dto/report_check_point_mapping.dto";
-import { AppService } from "../app.service";
-import { DatabaseService } from "@app/share_lib/database/database.service";
 
 @Injectable()
 export class ReportCheckPointMappingService {
-  constructor(
-    private databaseService: DatabaseService,
-    private readonly appService: AppService,
-  ) {}
-
   async CreateReportCheckPointMapping(
     // currentUser: CurrentUserDto,
     createReportCheckPointMapping: CreateReportCheckPointMappingDto,

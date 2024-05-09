@@ -1,29 +1,24 @@
-import { CurrentUserDto, ResponseDto } from '@app/share_lib/common.dto';
-import { HttpStatus, Injectable } from '@nestjs/common';
-import cds from '@sap/cds';
+import { ResponseDto } from "@app/share_lib/common.dto";
+import { HttpStatus, Injectable } from "@nestjs/common";
+import cds from "@sap/cds";
 import {
   CreateModuleMasterDto,
   DeleteModuleMasterDto,
   UpdateModuleMasterDto,
-} from './dto/moduleMaster.dto';
-import { AppService } from '../app.service';
-import { DatabaseService } from '@app/share_lib/database/database.service';
+} from "./dto/moduleMaster.dto";
 
 @Injectable()
 export class ModuleMasterService {
-  constructor(
-    private databaseService: DatabaseService,
-    private readonly appService: AppService,
-  ) {}
-
+  constructor() { }
+  
   async CreateModule(
     // currentUser: CurrentUserDto,
     createModuleDto: CreateModuleMasterDto,
   ): Promise<ResponseDto> {
     try {
-      const db = await cds.connect.to('db');
+      const db = await cds.connect.to("db");
 
-      const tableName = 'PCF_DB_MODULE_MASTER';
+      const tableName = "PCF_DB_MODULE_MASTER";
       createModuleDto.created_by = 1;
       createModuleDto.module_name = createModuleDto.module_name.toUpperCase();
       createModuleDto.display_module_name =
@@ -39,7 +34,7 @@ export class ModuleMasterService {
         if (existingModule && existingModule.length > 0) {
           return {
             statuscode: HttpStatus.CONFLICT,
-            message: 'Module already exists',
+            message: "Module already exists",
             data: existingModule,
           };
         }
@@ -55,7 +50,7 @@ export class ModuleMasterService {
 
       return {
         statuscode: HttpStatus.CREATED,
-        message: 'Module created successfully',
+        message: "Module created successfully",
         data: createModuleDto,
       };
     } catch (error) {
@@ -72,7 +67,7 @@ export class ModuleMasterService {
     updateModuleDto: UpdateModuleMasterDto,
   ): Promise<ResponseDto> {
     try {
-      const db = await cds.connect.to('db');
+      const db = await cds.connect.to("db");
 
       updateModuleDto.changed_on = new Date();
       updateModuleDto.changed_by = 2;
@@ -83,19 +78,19 @@ export class ModuleMasterService {
         );
 
         const existingModule = await db
-          .read('PCF_DB_MODULE_MASTER')
+          .read("PCF_DB_MODULE_MASTER")
           .where(whereClause);
 
         if (existingModule && existingModule.length > 0) {
           return {
             statuscode: HttpStatus.CONFLICT,
-            message: 'Module already exists',
+            message: "Module already exists",
             data: existingModule,
           };
         }
       }
 
-      const updatedModule = await UPDATE('PCF_DB_MODULE_MASTER')
+      const updatedModule = await UPDATE("PCF_DB_MODULE_MASTER")
         .set({
           MODULE_NAME: updateModuleDto.module_name,
           MODULE_DESC: updateModuleDto.module_desc,
@@ -106,12 +101,12 @@ export class ModuleMasterService {
         .where({
           ID: updateModuleDto.id,
           CUSTOMER_ID: updateModuleDto.customer_id,
-          IS_ACTIVE: 'Y',
+          IS_ACTIVE: "Y",
         });
 
       return {
         statuscode: HttpStatus.OK,
-        message: 'Module updated successfully',
+        message: "Module updated successfully",
         data: updatedModule,
       };
     } catch (error) {
@@ -129,25 +124,25 @@ export class ModuleMasterService {
     customer_id,
   ): Promise<ResponseDto> {
     try {
-      const db = await cds.connect.to('db');
+      const db = await cds.connect.to("db");
 
       const whereClause = cds.parse.expr(
         `ID = '${Number(id)}' AND IS_ACTIVE = 'Y'`,
       );
 
-      const module = await db.read('PCF_DB_MODULE_MASTER').where(whereClause);
+      const module = await db.read("PCF_DB_MODULE_MASTER").where(whereClause);
 
       if (!module || module.length === 0) {
         return {
           statuscode: HttpStatus.NOT_FOUND,
-          message: 'Module not found',
+          message: "Module not found",
           data: module,
         };
       }
 
       return {
         statuscode: HttpStatus.OK,
-        message: 'Module fetched successfully',
+        message: "Module fetched successfully",
         data: module,
       };
     } catch (error) {
@@ -164,34 +159,34 @@ export class ModuleMasterService {
     deleteModuleMaster: DeleteModuleMasterDto,
   ): Promise<ResponseDto> {
     try {
-      const db = await cds.connect.to('db');
+      const db = await cds.connect.to("db");
 
       deleteModuleMaster.changed_on = new Date();
       deleteModuleMaster.changed_by = 3;
 
-      const affectedRows = await UPDATE('PCF_DB_MODULE_MASTER')
+      const affectedRows = await UPDATE("PCF_DB_MODULE_MASTER")
         .set({
-          IS_ACTIVE: 'N',
+          IS_ACTIVE: "N",
           CHANGED_ON: deleteModuleMaster.changed_on.toISOString(),
-          CHANGED_BY: deleteModuleMaster.changed_by
+          CHANGED_BY: deleteModuleMaster.changed_by,
         })
         .where({
           ID: deleteModuleMaster.id,
           CUSTOMER_ID: deleteModuleMaster.customer_id,
-          IS_ACTIVE: 'Y',
+          IS_ACTIVE: "Y",
         });
 
       if (affectedRows === 0) {
         return {
           statuscode: HttpStatus.NOT_FOUND,
-          message: 'Module not found for deletion',
+          message: "Module not found for deletion",
           data: null,
         };
       }
 
       return {
         statuscode: HttpStatus.OK,
-        message: 'Module deleted successfully',
+        message: "Module deleted successfully",
         data: affectedRows,
       };
     } catch (error) {
@@ -206,23 +201,23 @@ export class ModuleMasterService {
   async GetAllModules() // currentUser: CurrentUserDto,
   : Promise<ResponseDto> {
     try {
-      const db = await cds.connect.to('db');
+      const db = await cds.connect.to("db");
 
       const whereClause = cds.parse.expr(`IS_ACTIVE = 'Y'`);
 
-      const modules = await db.read('PCF_DB_MODULE_MASTER').where(whereClause);
+      const modules = await db.read("PCF_DB_MODULE_MASTER").where(whereClause);
 
       if (!modules || modules.length === 0) {
         return {
           statuscode: HttpStatus.OK,
-          message: 'No modules found',
+          message: "No modules found",
           data: modules,
         };
       }
 
       return {
         statuscode: HttpStatus.OK,
-        message: 'Modules fetched successfully',
+        message: "Modules fetched successfully",
         data: modules,
       };
     } catch (error) {

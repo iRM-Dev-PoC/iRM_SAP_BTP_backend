@@ -1,20 +1,15 @@
-import { CurrentUserDto, ResponseDto } from '@app/share_lib/common.dto';
-import { HttpStatus, Injectable } from '@nestjs/common';
-import cds from '@sap/cds';
+import { ResponseDto } from "@app/share_lib/common.dto";
+import { HttpStatus, Injectable } from "@nestjs/common";
+import cds from "@sap/cds";
 import {
   CreateControlMasterDto,
   DeleteControlMasterDto,
   UpdateControlMasterDto,
 } from "./dto/controlMaster.dto";
-import { AppService } from '../app.service';
-import { DatabaseService } from '@app/share_lib/database/database.service';
 
 @Injectable()
 export class ControlMasterService {
-  constructor(
-    private databaseService: DatabaseService,
-    private readonly appService: AppService,
-  ) {}
+  constructor() {}
 
   async CreateControl(
     // currentUser: CurrentUserDto,
@@ -206,7 +201,9 @@ export class ControlMasterService {
 
       const whereClause = cds.parse.expr(`IS_ACTIVE = 'Y'`);
 
-      const controls = await db.read("PCF_DB_CONTROL_MASTER").where(whereClause);
+      const controls = await db
+        .read("PCF_DB_CONTROL_MASTER")
+        .where(whereClause);
 
       if (!controls || controls.length === 0) {
         return {

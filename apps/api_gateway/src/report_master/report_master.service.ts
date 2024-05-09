@@ -6,15 +6,9 @@ import {
   DeleteReportMasterDto,
   UpdateReportMasterDto,
 } from './dto/reportMaster.dto';
-import { AppService } from '../app.service';
-import { DatabaseService } from '@app/share_lib/database/database.service';
 
 @Injectable()
 export class ReportMasterService {
-  constructor(
-    private databaseService: DatabaseService,
-    private readonly appService: AppService,
-  ) {}
 
   async CreateReport(
     // currentUser: CurrentUserDto,

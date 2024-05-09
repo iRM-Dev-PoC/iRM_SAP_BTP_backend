@@ -6,23 +6,17 @@ import {
   UpdateSubModuleMasterDto,
 } from './dto/submoduleMaster.dto';
 import cds from '@sap/cds';
-import { v4 as uuidv4 } from 'uuid';
-import { DatabaseService } from '@app/share_lib/database/database.service';
-import { AppService } from '../app.service';
 
 @Injectable()
 export class SubmoduleMasterService {
-  constructor(
-    private databaseService: DatabaseService,
-    private readonly appService: AppService,
-  ) {}
+  constructor() {}
 
   async CreateSubModule(
     // currentUser: CurrentUserDto,
     createSubModule: CreateSubModuleMasterDto,
   ): Promise<ResponseDto> {
     try {
-      const db = await cds.connect.to('db');
+      const db = await cds.connect.to("db");
 
       createSubModule.created_by = 1;
       createSubModule.submodule_name =
@@ -39,20 +33,20 @@ export class SubmoduleMasterService {
         );
 
         const existingSubModule = await db
-          .read('PCF_DB_SUBMODULE_MASTER')
+          .read("PCF_DB_SUBMODULE_MASTER")
           .where(whereClause);
 
         if (existingSubModule && existingSubModule.length > 0) {
           return {
             statuscode: HttpStatus.CONFLICT,
-            message: 'SubModule already exists',
+            message: "SubModule already exists",
             data: existingSubModule,
           };
         }
       }
 
       const createdSubModule = await INSERT.into(
-        'PCF_DB_SUBMODULE_MASTER',
+        "PCF_DB_SUBMODULE_MASTER",
       ).entries({
         SUBMODULE_NAME: `${createSubModule.submodule_name}`,
         DISPLAY_SUBMODULE_NAME: `${createSubModule.display_submodule_name}`,
@@ -65,20 +59,21 @@ export class SubmoduleMasterService {
       if (!createdSubModule || createdSubModule === 0) {
         return {
           statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: 'Submodule creation failed',
+          message: "Submodule creation failed",
           data: createdSubModule,
         };
       }
 
       return {
         statuscode: HttpStatus.CREATED,
-        message: 'Submodule created successfully',
+        message: "Submodule created successfully",
         data: createSubModule,
       };
     } catch (error) {
       return {
         statuscode: HttpStatus.BAD_REQUEST,
-        message: 'Error while creating submodule - Please fill all the required fields',
+        message:
+          "Error while creating submodule - Please fill all the required fields",
         data: error,
       };
     }
@@ -89,7 +84,7 @@ export class SubmoduleMasterService {
     updateSubModule: UpdateSubModuleMasterDto,
   ): Promise<ResponseDto> {
     try {
-      const db = await cds.connect.to('db');
+      const db = await cds.connect.to("db");
 
       updateSubModule.changed_on = new Date();
       updateSubModule.changed_by = 2;
@@ -100,19 +95,19 @@ export class SubmoduleMasterService {
         );
 
         const existingSubModule = await db
-          .read('PCF_DB_SUBMODULE_MASTER')
+          .read("PCF_DB_SUBMODULE_MASTER")
           .where(whereClause);
 
         if (existingSubModule && existingSubModule.length > 0) {
           return {
             statuscode: HttpStatus.CONFLICT,
-            message: 'SubModule already exists',
+            message: "SubModule already exists",
             data: existingSubModule,
           };
         }
       }
 
-      const updatedSubModule = await UPDATE('PCF_DB_SUBMODULE_MASTER')
+      const updatedSubModule = await UPDATE("PCF_DB_SUBMODULE_MASTER")
         .set({
           SUBMODULE_NAME: updateSubModule.submodule_name,
           SUBMODULE_DESC: updateSubModule.submodule_desc,
@@ -123,19 +118,18 @@ export class SubmoduleMasterService {
         .where({
           ID: updateSubModule.id,
           CUSTOMER_ID: updateSubModule.customer_id,
-          IS_ACTIVE: 'Y',
+          IS_ACTIVE: "Y",
         });
-
 
       return {
         statuscode: HttpStatus.OK,
-        message: 'Submodule updated successfully',
+        message: "Submodule updated successfully",
         data: updateSubModule,
       };
     } catch (error) {
       return {
         statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: 'Error while updating submodule',
+        message: "Error while updating submodule",
         data: error,
       };
     }
@@ -143,31 +137,33 @@ export class SubmoduleMasterService {
 
   async GetSubModule(id, customer_id): Promise<ResponseDto> {
     try {
-      const db = await cds.connect.to('db');
+      const db = await cds.connect.to("db");
 
       const whereClause = cds.parse.expr(
-        `ID = '${Number(id)}' AND IS_ACTIVE = 'Y'`,
+        `ID = '${Number(id)}' AND CUSTOMER_ID = '${Number(customer_id)}' AND IS_ACTIVE = 'Y'`,
       );
 
-      const result = await db.read('PCF_DB_SUBMODULE_MASTER').where(whereClause);
+      const result = await db
+        .read("PCF_DB_SUBMODULE_MASTER")
+        .where(whereClause);
 
       if (!result || result.length === 0) {
         return {
           statuscode: HttpStatus.NOT_FOUND,
-          message: 'Submodule not found',
+          message: "Submodule not found",
           data: result,
         };
       }
 
       return {
         statuscode: HttpStatus.OK,
-        message: 'Submodule fetched successfully',
+        message: "Submodule fetched successfully",
         data: result,
       };
     } catch (error) {
       return {
         statuscode: HttpStatus.BAD_REQUEST,
-        message: 'Error while fetching submodule',
+        message: "Error while fetching submodule",
         data: error,
       };
     }
@@ -178,7 +174,7 @@ export class SubmoduleMasterService {
     deleteSubModule: DeleteSubModuleMasterDto,
   ): Promise<ResponseDto> {
     try {
-      const db = await cds.connect.to('db');
+      const db = await cds.connect.to("db");
 
       deleteSubModule.changed_on = new Date();
       deleteSubModule.changed_by = 3;
@@ -187,7 +183,7 @@ export class SubmoduleMasterService {
         .set({
           IS_ACTIVE: "N",
           CHANGED_ON: deleteSubModule.changed_on.toISOString(),
-          CHANGED_BY: deleteSubModule.changed_by
+          CHANGED_BY: deleteSubModule.changed_by,
         })
         .where({
           ID: deleteSubModule.id,
@@ -198,20 +194,20 @@ export class SubmoduleMasterService {
       if (affectedRows === 0) {
         return {
           statuscode: HttpStatus.NOT_FOUND,
-          message: 'Submodule not found for deletion',
+          message: "Submodule not found for deletion",
           data: null,
         };
       }
 
       return {
         statuscode: HttpStatus.OK,
-        message: 'Submodule deleted successfully',
+        message: "Submodule deleted successfully",
         data: affectedRows,
       };
     } catch (error) {
       return {
         statuscode: HttpStatus.BAD_REQUEST,
-        message: 'Error while deleting submodule',
+        message: "Error while deleting submodule",
         data: error,
       };
     }
@@ -220,31 +216,31 @@ export class SubmoduleMasterService {
   async GetAllSubModules() // currentUser: CurrentUserDto,
   : Promise<ResponseDto> {
     try {
-      const db = await cds.connect.to('db');
+      const db = await cds.connect.to("db");
 
       const whereClause = cds.parse.expr(`IS_ACTIVE = 'Y'`);
 
       const submodules = await db
-        .read('PCF_DB_SUBMODULE_MASTER')
+        .read("PCF_DB_SUBMODULE_MASTER")
         .where(whereClause);
 
       if (!submodules || submodules.length === 0) {
         return {
           statuscode: HttpStatus.OK,
-          message: 'No submodules found',
+          message: "No submodules found",
           data: submodules,
         };
       }
 
       return {
         statuscode: HttpStatus.OK,
-        message: 'Submodules fetched successfully',
+        message: "Submodules fetched successfully",
         data: submodules,
       };
     } catch (error) {
       return {
-        statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: 'Failed to fetch submodules',
+        statuscode: error.status,
+        message: error.message,
         data: error,
       };
     }
