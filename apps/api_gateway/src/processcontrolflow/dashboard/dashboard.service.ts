@@ -79,10 +79,14 @@ export class DashboardService {
       const violatedQuery = `select * from PRICE_MISMATCH_OUT where sync_header_id = ${hdrId}`;
       const violatedData = await db.run(violatedQuery);
 
+      const getSyncHeaderQuery = `SELECT ID, SYNC_ID FROM PCF_DB_SYNC_HEADER`
+      const getSyncHeaderData = await db.run(getSyncHeaderQuery);
+
       return {
         statuscode: HttpStatus.OK,
         message: "Data Fetched successfully!",
         data: {
+          getSyncHeaderData: getSyncHeaderData,
           control_data: controlDetails[0],
           base_data_count: baseDataCount[0].BASE_DATA,
           exception_count: exceptionsCount[0].EXCEPTION_COUNT,
