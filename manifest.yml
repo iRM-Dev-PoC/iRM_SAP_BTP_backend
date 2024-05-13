@@ -3,7 +3,8 @@ applications:
     path: ./
     buildpacks:
       - https://github.com/cloudfoundry/nodejs-buildpack
-    memory: 2048M
+    memory: 512M
+    disk: 2048M
     instances: 1
     command: npm run start:prod
     random-route: true
