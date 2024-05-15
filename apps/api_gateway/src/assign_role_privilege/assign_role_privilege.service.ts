@@ -1,12 +1,11 @@
+import { CurrentUserDto, ResponseDto } from "@app/share_lib/common.dto";
 import {
   HttpStatus,
   Injectable,
-  UseGuards,
   UsePipes,
   ValidationPipe,
-} from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwtAuth.guard';
-import { CurrentUserDto, ResponseDto } from '@app/share_lib/common.dto';
+} from "@nestjs/common";
+import cds from "@sap/cds";
 import {
   CreateAssignRolePrivilegeDto,
   CreateAssignRoleToUserDto,
@@ -15,8 +14,7 @@ import {
   GetRoleOfUserDto,
   UpdateRoleModuleSubmodulePrivilegeMappingDto,
   UpdateRoleOfUserDto,
-} from './dto/assign_role_privilege.dto';
-import cds from '@sap/cds';
+} from "./dto/assign_role_privilege.dto";
 
 @Injectable()
 @UsePipes(new ValidationPipe())
@@ -273,7 +271,6 @@ export class AssignRolePrivilegeService {
       let result = await db.insert([
         { entity: "PCF_DB_USER_ROLE_MAPPING", ...createAssignRoleToUserDto },
       ]);
-
 
       // If insertion is successful, return success status
       if (result) {

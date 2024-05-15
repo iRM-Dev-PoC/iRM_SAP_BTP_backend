@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import cds from "@sap/cds";
+import { error } from "console";
 import * as fs from "fs";
 import { join } from "path";
 import * as xlsx from "xlsx";
@@ -293,6 +294,8 @@ export class DataImportService {
             });
           console.error("Can not insert rows! ", err);
         }
+      } else {
+        throw new Error("Unknown File Name");
       }
     } catch (err) {
       console.error("Error importing CSV data:", err);
