@@ -1,4 +1,4 @@
-import { CurrentUserDto, ResponseDto } from "@app/share_lib/common.dto";
+import { ResponseDto } from "@app/share_lib/common.dto";
 import { HttpStatus, Injectable } from "@nestjs/common";
 import cds from "@sap/cds";
 
@@ -57,9 +57,58 @@ export class DataSyncService {
       const db = await cds.connect.to("db");
       const hdrId = hdrData.id;
 
-      const alldtls = await db
-        .read("PCF_DB_SYNC_DETAILS")
-        .where({ SYNC_HEADER_ID: hdrId });
+      const sqlQuery = `SELECT
+          details.ID,
+          details.SYNC_HEADER_ID, 
+          report.REPORT_NAME,
+          details.SYNC_STARTED_AT,
+          details.SYNC_ENDED_AT,
+          details.SYNC_STATUS
+        FROM
+          "39131F99F8F44FB4A0F0F6D759497FF7"."PCF_DB_SYNC_DETAILS"  AS details
+        JOIN
+          "39131F99F8F44FB4A0F0F6D759497FF7"."PCF_DB_REPORT_MASTER" AS report ON details.REPORT_ID = report.ID
+          WHERE SYNC_HEADER_ID = '${hdrId}'
+      `;
+
+      const alldtls = await db.run(sqlQuery);
+
+      if (!alldtls || alldtls.length === 0) {
+        return {
+          statuscode: HttpStatus.OK,
+          message: "No sync details found",
+          data: alldtls,
+        };
+      }
+
+      return {
+        statuscode: HttpStatus.OK,
+        message: "sync details fetched successfully",
+        data: alldtls,
+      };
+    } catch (error) {
+      return {
+        statuscode: error.status,
+        message: error.message,
+        data: error,
+      };
+    }
+  }
+
+  async GetSyncDtlsReportTableValue(
+    hdrData, // currentUser: CurrentUserDto,
+  ): Promise<ResponseDto> {
+    try {
+      const db = await cds.connect.to("db");
+      const hdrName = hdrData.report_name;
+      const hdrSyncId = hdrData.sync_header_id;
+
+      const whereClause = cds.parse.expr(`SYNC_HEADER_ID = '${hdrSyncId}'`);
+
+      // const sqlQuery = `SELECT * FROM "${hdrName}" WHERE SYNC_HEADER_ID = '${hdrSyncId} AND CUSTOMER_ID = '${hdrCustId}'`;
+      
+      // const alldtls = await db.read(hdrName).where(whereClause);
+      const alldtls = await db.read(hdrName).where(whereClause);
 
       if (!alldtls || alldtls.length === 0) {
         return {
