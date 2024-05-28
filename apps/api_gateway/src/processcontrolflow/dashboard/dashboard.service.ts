@@ -52,15 +52,99 @@ export class DashboardService {
    * Get individual controls Data
    */
   async getControlData(controlDtls): Promise<any> {
-    const controId = controlDtls.id;
+    const controlId = controlDtls.id;
     const hdrId = controlDtls.hdrId;
 
     try {
       // get control details
       const db = await cds.connect.to("db");
       const whereClause = cds.parse.expr(
-        `IS_ACTIVE = 'Y' AND ID = ${controId}`,
+        `IS_ACTIVE = 'Y' AND ID = ${controlId}`,
       );
+
+      //TESTING START
+      const chartClause = `WHERE SYNC_HEADER_ID = ${hdrId}`;
+
+      let pieChartData;
+      let barChartData;
+      let lineChartData;
+
+      //Pie Chart
+      try {
+        const pieClause = cds.parse.expr(
+          `CONTROL_ID = ${controlId} AND CHART_ID = 1`,
+        );
+
+        const chartDetails = await db
+          .read("PCF_DB_DASHBOARD_DATA")
+          .columns("QUERY", "GROUP_CLAUSE")
+          .where(pieClause);
+
+        if (!chartDetails.length) {
+          throw new Error("No chart details found for the given control ID");
+        }
+
+        const queryData = chartDetails[0].QUERY;
+        const groupClauseData = chartDetails[0].GROUP_CLAUSE;
+        const combinedString = `${queryData} ${chartClause} ${groupClauseData}`;
+
+        pieChartData = await db.run(combinedString);
+      } catch (error) {
+        console.error("Error fetching pie chart data:", error.message);
+        throw error;
+      }
+
+      //Bar Chart
+      try {
+        const barClause = cds.parse.expr(
+          `CONTROL_ID = ${controlId} AND CHART_ID = 2`,
+        );
+
+        const chartDetails = await db
+          .read("PCF_DB_DASHBOARD_DATA")
+          .columns("QUERY", "GROUP_CLAUSE")
+          .where(barClause);
+
+        if (!chartDetails.length) {
+          throw new Error("No chart details found for the given control ID");
+        }
+
+        const queryData = chartDetails[0].QUERY;
+        const groupClauseData = chartDetails[0].GROUP_CLAUSE;
+        const combinedString = `${queryData} ${chartClause}`;
+
+        barChartData = await db.run(combinedString);
+      } catch (error) {
+        console.error("Error fetching line chart data:", error.message);
+        throw error;
+      }
+
+      //line Chart
+      try {
+        const lineClause = cds.parse.expr(
+          `CONTROL_ID = ${controlId} AND CHART_ID = 3`,
+        );
+
+        const chartDetails = await db
+          .read("PCF_DB_DASHBOARD_DATA")
+          .columns("QUERY", "GROUP_CLAUSE")
+          .where(lineClause);
+
+        if (!chartDetails.length) {
+          throw new Error("No chart details found for the given control ID");
+        }
+
+        const queryData = chartDetails[0].QUERY;
+        const groupClauseData = chartDetails[0].GROUP_CLAUSE;
+        const combinedString = `${queryData} ${chartClause}`;
+
+        lineChartData = await db.run(combinedString);
+      } catch (error) {
+        console.error("Error fetching line chart data:", error.message);
+        throw error;
+      }
+
+      //TESTING END
 
       const controlDetails = await db
         .read("PCF_DB_CHECK_POINT_MASTER")
@@ -92,6 +176,9 @@ export class DashboardService {
           deviation_count: deviation,
           risk_score: deviation * 100,
           violatedData: violatedData,
+          pie_Chart_Data: pieChartData,
+          line_Chart_Data: lineChartData,
+          bar_Chart_Data: barChartData,
         },
       };
     } catch (error) {
