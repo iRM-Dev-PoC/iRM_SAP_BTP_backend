@@ -50,6 +50,23 @@ type insertDataBillingInvoice = {
   SUMOF_NET_GROSS_VALUE: string;
 };
 
+type insertDataEKKO = {
+  PURCHASING_DOCUMENT: string;
+  CREATED_ON: string;
+  CREATED_BY: string;
+  DOCUMENT_DATE: string;
+}
+
+type insertDataEKPO = {
+  PURCHASING_DOCUMENT: string;
+  MATERIAL: string;
+  COMPANY_CODE: string;
+  PLANT: string;
+  STORAGE_LOCATION: string;
+  MATERIAL_GROUP: string;
+  PURCHASING_REQUISITION: string;
+}
+
 @Injectable()
 export class DataImportService {
   async handleFileUploads(files: Array<Express.Multer.File>) {
@@ -270,6 +287,116 @@ export class DataImportService {
         // insert into sales_order
         try {
           const insertRows = await INSERT(insertData).into("VA05_SALES_ORDER");
+
+          // update sync_details status
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Completed",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 3,
+            });
+        } catch (err) {
+          // update sync_details status
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Error",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 3,
+            });
+          console.error("Can not insert rows! ", err);
+        }
+      } else if (fileNameUpper.includes("EKKO")) {
+        // Convert sheet to JSON object
+        const data: insertDataEKKO[] = xlsx.utils.sheet_to_json(sheet);
+
+        // insert into sync_details
+        const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
+          SYNC_HEADER_ID: syncHdrId,
+          CONTROL_ID: 1,
+          REPORT_ID: 3,
+          SYNC_STARTED_AT: `${new Date().toISOString()}`,
+          CREATED_BY: `1`,
+          SYNC_STATUS: "Initiated",
+          CREATED_ON: `${new Date().toISOString()}`,
+        });
+
+        const insertData = data.map((item) => {
+          return {
+            SYNC_HEADER_ID: syncHdrId,
+            CUSTOMER_ID: 1,
+            PURCHSING_DOCUMENT: String(item.PURCHASING_DOCUMENT),
+            CREATED_ON: String(item.CREATED_ON),
+            CREATED_BY: String(item.CREATED_BY),
+            DOCUMENT_DATE: String(item.DOCUMENT_DATE),
+          };
+        });
+
+        // insert into EKKO
+        try {
+          const insertRows = await INSERT(insertData).into("EKKO");
+
+          // update sync_details status
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Completed",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 3,
+            });
+        } catch (err) {
+          // update sync_details status
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Error",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 3,
+            });
+          console.error("Can not insert rows! ", err);
+        }
+      } else if (fileNameUpper.includes("EKPO")) {
+        // Convert sheet to JSON object
+        const data: insertDataEKPO[] = xlsx.utils.sheet_to_json(sheet);
+
+        // insert into sync_details
+        const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
+          SYNC_HEADER_ID: syncHdrId,
+          CONTROL_ID: 1,
+          REPORT_ID: 3,
+          SYNC_STARTED_AT: `${new Date().toISOString()}`,
+          CREATED_BY: `1`,
+          SYNC_STATUS: "Initiated",
+          CREATED_ON: `${new Date().toISOString()}`,
+        });
+
+        // change EKPO data format
+        const insertData = data.map((item) => {
+          return {
+            SYNC_HEADER_ID: syncHdrId,
+            CUSTOMER_ID: 1,
+            PURSHASING_DOCUMENT: String(item.PURCHASING_DOCUMENT),
+            MATERIAL: String(item.MATERIAL),
+            COMPANY_CODE: String(item.COMPANY_CODE),
+            PLANT: String(item.PLANT),
+            STORAGE_LOCATION: String(item.STORAGE_LOCATION),
+            MATERIAL_GROUP: String(item.MATERIAL_GROUP),
+            PURCHASING_REQUISITON: String(item.PURCHASING_REQUISITION),
+          };
+        });
+
+        // insert into EKPO
+        try {
+          const insertRows = await INSERT(insertData).into("EKPO");
 
           // update sync_details status
           const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
