@@ -56,8 +56,31 @@ export class DataService {
         ) tbl
         where billing_invoice_net_value != sales_order_net_value;
       `;
+    
+    const simulationQuery2 = `
+      SELECT 
+          EKKO.PURCHASING_DOCUMENT,
+          EKPO.PURCHASE_REQUISITION,
+          EKKO.DOCUMENT_DATE,
+          EKKO.CREATED_ON,
+          EKKO.CREATED_BY,
+          EKPO.MATERIAL,
+          EKPO.COMPANY_CODE,
+          EKPO.PLANT,
+          EKPO.STORAGE_LOCATION,
+          EKPO.MATERIAL_GROUP
+      FROM 
+          "39131F99F8F44FB4A0F0F6D759497FF7"."EKKO" EKKO
+      JOIN 
+          "39131F99F8F44FB4A0F0F6D759497FF7"."EKPO" EKPO
+      ON 
+          EKKO.PURCHASING_DOCUMENT = EKPO.PURCHASING_DOCUMENT
+      WHERE 
+          EKPO.PURCHASE_REQUISITION = 'undefined' AND EKPO.SYNC_HEADER_ID = ${hdrId};
+      `;
 
     try {
+      //Price Mismatched 
       const result = await db.run(simulationQuery);
 
       const controlOutData = result.map((item) => {
@@ -74,6 +97,31 @@ export class DataService {
 
       // update the simulation in sync_header table
       const updateHeader = await UPDATE("PCF_DB_SYNC_HEADER")
+        .set({
+          IS_SIMULATED: true,
+        })
+        .where({
+          ID: hdrId,
+        });
+
+      //manual PO Without PR Requisition
+      const result2 = await db.run(simulationQuery2);
+
+      const controlOutData2 = result2.map((item) => {
+        return {
+          ...item,
+          SYNC_HEADER_ID: hdrId,
+          CUSTOMER_ID: 1,
+        };
+      });
+
+      // insert into out table
+      const insertRows2 = await INSERT(controlOutData2).into(
+        "MANUAL_PO_WITHOUT_PR_REFERENCE",
+      );
+
+      //update the simulation in sync_header table
+      const updateHeader2 = await UPDATE("PCF_DB_SYNC_HEADER")
         .set({
           IS_SIMULATED: true,
         })
