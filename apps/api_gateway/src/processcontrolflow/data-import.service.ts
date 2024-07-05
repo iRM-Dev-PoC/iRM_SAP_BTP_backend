@@ -64,8 +64,8 @@ type insertDataEKPO = {
   PLANT: string;
   STORAGE_LOCATION: string;
   MATERIAL_GROUP: string;
-  PURCHASING_REQUISITION: string;
-}
+  PURCHASE_REQUISITION: string;
+};
 
 @Injectable()
 export class DataImportService {
@@ -319,7 +319,7 @@ export class DataImportService {
         const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
           SYNC_HEADER_ID: syncHdrId,
           CONTROL_ID: 1,
-          REPORT_ID: 3,
+          REPORT_ID: 4,
           SYNC_STARTED_AT: `${new Date().toISOString()}`,
           CREATED_BY: `1`,
           SYNC_STATUS: "Initiated",
@@ -330,7 +330,7 @@ export class DataImportService {
           return {
             SYNC_HEADER_ID: syncHdrId,
             CUSTOMER_ID: 1,
-            PURCHSING_DOCUMENT: String(item.PURCHASING_DOCUMENT),
+            PURCHASING_DOCUMENT: String(item.PURCHASING_DOCUMENT),
             CREATED_ON: String(item.CREATED_ON),
             CREATED_BY: String(item.CREATED_BY),
             DOCUMENT_DATE: String(item.DOCUMENT_DATE),
@@ -349,7 +349,7 @@ export class DataImportService {
             })
             .where({
               SYNC_HEADER_ID: syncHdrId,
-              REPORT_ID: 3,
+              REPORT_ID: 4,
             });
         } catch (err) {
           // update sync_details status
@@ -360,7 +360,7 @@ export class DataImportService {
             })
             .where({
               SYNC_HEADER_ID: syncHdrId,
-              REPORT_ID: 3,
+              REPORT_ID: 4,
             });
           console.error("Can not insert rows! ", err);
         }
@@ -372,25 +372,25 @@ export class DataImportService {
         const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
           SYNC_HEADER_ID: syncHdrId,
           CONTROL_ID: 1,
-          REPORT_ID: 3,
+          REPORT_ID: 5,
           SYNC_STARTED_AT: `${new Date().toISOString()}`,
           CREATED_BY: `1`,
           SYNC_STATUS: "Initiated",
           CREATED_ON: `${new Date().toISOString()}`,
         });
-
         // change EKPO data format
+        
         const insertData = data.map((item) => {
           return {
             SYNC_HEADER_ID: syncHdrId,
             CUSTOMER_ID: 1,
-            PURSHASING_DOCUMENT: String(item.PURCHASING_DOCUMENT),
+            PURCHASING_DOCUMENT: String(item.PURCHASING_DOCUMENT),
             MATERIAL: String(item.MATERIAL),
             COMPANY_CODE: String(item.COMPANY_CODE),
             PLANT: String(item.PLANT),
             STORAGE_LOCATION: String(item.STORAGE_LOCATION),
             MATERIAL_GROUP: String(item.MATERIAL_GROUP),
-            PURCHASING_REQUISITON: String(item.PURCHASING_REQUISITION),
+            PURCHASE_REQUISITION: String(item.PURCHASE_REQUISITION),
           };
         });
 
@@ -406,7 +406,7 @@ export class DataImportService {
             })
             .where({
               SYNC_HEADER_ID: syncHdrId,
-              REPORT_ID: 3,
+              REPORT_ID: 5,
             });
         } catch (err) {
           // update sync_details status
@@ -417,14 +417,15 @@ export class DataImportService {
             })
             .where({
               SYNC_HEADER_ID: syncHdrId,
-              REPORT_ID: 3,
+              REPORT_ID: 5,
             });
           console.error("Can not insert rows! ", err);
         }
-      } else {
+      } 
+      else {
         throw new Error("Unknown File Name");
       }
-    } catch (err) {
+    } catch (err) { 
       console.error("Error importing CSV data:", err);
     }
   }
