@@ -191,9 +191,9 @@ export class DashboardService {
     } catch (error) {
       console.error("Error fetching control data:", error.message);
       return {
-        statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
+        statuscode: HttpStatus.BAD_REQUEST,
         message: "Can not fetch data!",
-        error: error,
+        data: [],
       };
     }
   }
