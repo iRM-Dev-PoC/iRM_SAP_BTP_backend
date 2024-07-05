@@ -16,7 +16,7 @@ export class DataService {
               tbl_billing.billing_cost,
               tbl_billing.net_value AS billing_invoice_net_value, 
               tbl_sales_order.net_value AS sales_order_net_value ,
-              tbl_sales_order.sales_personnel_number,
+              tbl_sales_order.sales_personal_number,
               tbl_sales_order.sold_to_party_name,
               tbl_billing.item_description,
               tbl_billing.payer_description,
@@ -46,13 +46,13 @@ export class DataService {
                       net_value, 
                       schedule_line_number,
                       sold_to_party_name,
-                      personnel_number as sales_personnel_number,
+                      personal_number as sales_personal_number,
                       created_on sales_order_created_on
                   FROM 
                       va05_sales_order where sync_header_id = ${hdrId}
               ) AS tbl_sales_order 
           ON tbl_billing.sales_document = tbl_sales_order.sales_document
-          INNER JOIN PA0002_EMPLOYEE_MASTER on PA0002_EMPLOYEE_MASTER.personnel_number = tbl_sales_order.sales_personnel_number and sync_header_id = ${hdrId}
+          INNER JOIN PA0002_EMPLOYEE_MASTER on PA0002_EMPLOYEE_MASTER.personal_number = tbl_sales_order.sales_personal_number and sync_header_id = ${hdrId}
         ) tbl
         where billing_invoice_net_value != sales_order_net_value;
       `;

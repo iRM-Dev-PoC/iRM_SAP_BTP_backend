@@ -51,7 +51,7 @@ entity Control_family_master  {
 //       EMP_ADDRESS      : String;
 //       CUSTOMER_ID      : Association to Customer_master; //CUSTOMER MASTER ID
 //       CLIENT           : String;
-//       PERSONNEL_NUMBER : String;
+//       PERSONAL_NUMBER : String;
 //       END_DATE         :  Timestamp;
 //       START_DATE       :  Timestamp;
 //       IS_ACTIVE        : String;
@@ -87,7 +87,7 @@ entity Control_family_master  {
 //       SOLD_TO_PARTY_NAME   : String;
 //       SALES_DOCUMENT_ITEM  : String;
 //       MATERIAL_DESCRIPTION : String;
-//       PERSONNEL_NUMBER     : String;
+//       PERSONAL_NUMBER     : String;
 //       IS_ACTIVE            : String;
 
 // }

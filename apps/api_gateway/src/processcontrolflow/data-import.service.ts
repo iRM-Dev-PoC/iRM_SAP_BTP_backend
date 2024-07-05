@@ -7,7 +7,7 @@ import * as xlsx from "xlsx";
 
 type insertDataEmployee = {
   CLIENT: string;
-  PERSONNEL_NUMBER: string;
+  PERSONAL_NUMBER: string;
   FIRST_NAME: string;
   END_DATE: string;
   START_DATE: string;
@@ -30,7 +30,7 @@ type insertDataSalesOrder = {
   SOLD_TO_PARTY_NAME: string;
   SALES_DOCUMENT_ITEM: string;
   MATERIAL_DESCRIPTION: string;
-  PERSONNEL_NUMBER: string;
+  PERSONAL_NUMBER: string;
   SCHEDULE_LINE_NUMBER: string;
 };
 
@@ -141,7 +141,7 @@ export class DataImportService {
             SYNC_HEADER_ID: syncHdrId,
             CUSTOMER_ID: 1,
             CLIENT: String(item.CLIENT),
-            PERSONNEL_NUMBER: String(item.PERSONNEL_NUMBER),
+            PERSONAL_NUMBER: String(item.PERSONAL_NUMBER),
             FIRST_NAME: String(item.FIRST_NAME),
             LAST_NAME: String(item.LAST_NAME),
             DATE_OF_BIRTH: String(item.DATE_OF_BIRTH),
@@ -279,7 +279,7 @@ export class DataImportService {
             SOLD_TO_PARTY_NAME: String(item.SOLD_TO_PARTY_NAME),
             SALES_DOCUMENT_ITEM: String(item.SALES_DOCUMENT_ITEM),
             MATERIAL_DESCRIPTION: String(item.MATERIAL_DESCRIPTION),
-            PERSONNEL_NUMBER: String(item.PERSONNEL_NUMBER),
+            PERSONAL_NUMBER: String(item.PERSONAL_NUMBER),
             SCHEDULE_LINE_NUMBER: String(item.SCHEDULE_LINE_NUMBER),
           };
         });
