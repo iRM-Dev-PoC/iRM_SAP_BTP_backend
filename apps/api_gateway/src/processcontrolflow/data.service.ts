@@ -56,7 +56,7 @@ export class DataService {
         ) tbl
         where billing_invoice_net_value != sales_order_net_value;
       `;
-    
+
     const simulationQuery2 = `
       SELECT 
           EKKO.PURCHASING_DOCUMENT,
@@ -76,69 +76,65 @@ export class DataService {
       ON 
           EKKO.PURCHASING_DOCUMENT = EKPO.PURCHASING_DOCUMENT
       WHERE 
-          EKPO.PURCHASE_REQUISITION = 'undefined' AND EKPO.SYNC_HEADER_ID = ${hdrId};
-      `;
+          EKPO.PURCHASE_REQUISITION = 'undefined' AND EKKO.SYNC_HEADER_ID = ${hdrId};
+    `;
 
     try {
-      //Price Mismatched 
+      // Price Mismatch
       const result = await db.run(simulationQuery);
+      console.log(result);
 
-      const controlOutData = result.map((item) => {
-        return {
-          ...item,
-          SYNC_HEADER_ID: hdrId,
-          CUSTOMER_ID: 1,
-        };
-      });
+      const controlOutData = result.map((item) => ({
+        ...item,
+        SYNC_HEADER_ID: hdrId,
+        CUSTOMER_ID: 1,
+      }));
 
-      // insert into out table
-      const insertRows =
-        await INSERT(controlOutData).into("PRICE_MISMATCH_OUT");
-
-      // update the simulation in sync_header table
-      const updateHeader = await UPDATE("PCF_DB_SYNC_HEADER")
-        .set({
-          IS_SIMULATED: true,
-        })
-        .where({
-          ID: hdrId,
-        });
-
-      //manual PO Without PR Requisition
-      const result2 = await db.run(simulationQuery2);
-
-      const controlOutData2 = result2.map((item) => {
-        return {
-          ...item,
-          SYNC_HEADER_ID: hdrId,
-          CUSTOMER_ID: 1,
-        };
-      });
-
-      // insert into out table
-      const insertRows2 = await INSERT(controlOutData2).into(
-        "MANUAL_PO_WITHOUT_PR_REFERENCE",
+      // Insert into out table
+      const insertRows = await cds.run(
+        INSERT.into("PRICE_MISMATCH_OUT").entries(controlOutData),
       );
 
-      //update the simulation in sync_header table
-      const updateHeader2 = await UPDATE("PCF_DB_SYNC_HEADER")
-        .set({
-          IS_SIMULATED: true,
-        })
-        .where({
-          ID: hdrId,
-        });
+      // Update the simulation in sync_header table
+      // await cds.run(
+      //   UPDATE("PCF_DB_SYNC_HEADER")
+      //     .set({ IS_SIMULATED: true })
+      //     .where({ ID: hdrId }),
+      // );
+
+      // Manual PO Without PR Requisition
+      const result2 = await db.run(simulationQuery2);
+      console.log(result2);
+
+      const controlOutData2 = result2.map((item) => ({
+        ...item,
+        SYNC_HEADER_ID: hdrId,
+        CUSTOMER_ID: 1,
+      }));
+
+      // Insert into out table
+      const insertRows2 = await cds.run(
+        INSERT.into("MANUAL_PO_WITHOUT_PR_REFERENCE").entries(controlOutData2),
+      );
+      console.log(insertRows, insertRows2);
+
+      // Update the simulation in sync_header table
+      await cds.run(
+        UPDATE("PCF_DB_SYNC_HEADER")
+          .set({ IS_SIMULATED: true })
+          .where({ ID: hdrId }),
+      );
 
       return {
-        statuscode: HttpStatus.OK,
+        statusCode: HttpStatus.OK,
         message: "Data Simulated Successfully!",
       };
     } catch (error) {
       console.error(error);
       return {
-        statuscode: HttpStatus.BAD_REQUEST,
+        statusCode: HttpStatus.BAD_REQUEST,
         message:
-          "Error in Data Simulation! - Please fill all the required field",
+          "Error in Data Simulation! - Please fill all the required fields",
       };
     }
   }
