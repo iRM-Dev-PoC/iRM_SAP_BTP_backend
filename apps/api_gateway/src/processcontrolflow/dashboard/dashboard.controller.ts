@@ -17,6 +17,20 @@ type getControlDetailsDTO = {
   hdrId : number;
 }
 
+type getExceptionDataDTO = {
+  id : number;
+  hdrId : number;
+  flag : String;
+}
+
+type getControlCheckpointsDTO = {
+  syncId : number;
+  controlFamilyId : number;
+  startDate : String;
+  endDate : String;
+  typeOfControlId : number;
+}
+
 // @UseGuards(JwtAuthGuard)
 @Controller('dashboard')
 // Add metadata
@@ -36,13 +50,24 @@ export class DashboardController {
     return 'Hello from dashboard controller!';
   }
 
-  @Get('control-checkpoints')
-  async getControlCheckpoints() {
-    return await this.dashboardService.getControlCheckPoints();
+  /** 
+   * Changed API Method to Post
+   * by Racktim Guin
+   */
+  
+  @Post('control-checkpoints')
+  async getControlCheckpoints(@Body() filterData: getControlCheckpointsDTO) {
+    return await this.dashboardService.getControlCheckPoints(filterData);
   }
 
   @Post('get-control-data')
   async getControlData(@Body() controlDetails: getControlDetailsDTO) {
     return await this.dashboardService.getControlData(controlDetails);
+  }
+
+  /** Get Exception data against Control Checkpoint */
+  @Post('get-exception-data')
+  async getExceptionBaseData(@Body() controlDetails: getExceptionDataDTO) {
+    return await this.dashboardService.getExceptionBaseData(controlDetails);
   }
 }

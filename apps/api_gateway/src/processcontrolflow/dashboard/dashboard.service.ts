@@ -7,11 +7,28 @@ export class DashboardService {
   /** Get all control check points api
    * by Racktim Guin
    */
-  async getControlCheckPoints(): Promise<any> {
+  async getControlCheckPoints(filterDtls): Promise<any> {
     try {
+      /** get filter data from the request body */
+      const syncId = filterDtls.syncId;
+      const controlFamilyId = filterDtls.controlFamilyId;
+      const startDate = filterDtls.startDate;
+      const endDate = filterDtls.endDate;
+      const typeOfControlId = filterDtls.typeOfControlId;
+
       const db = await cds.connect.to("db");
 
-      const whereClause = cds.parse.expr(`IS_ACTIVE = 'Y'`);
+      let dynmcWhereClause = `IS_ACTIVE = 'Y'`;
+
+      if(controlFamilyId) {
+        dynmcWhereClause = `${dynmcWhereClause} AND CONTROL_ID = ${controlFamilyId}`;
+      }
+
+      // if(typeOfControlId) {
+      //   whereClause = `${whereClause} AND CONTROL_ID = ${controlFamilyId}`;
+      // }
+
+      const whereClause = cds.parse.expr(dynmcWhereClause);
 
       let allControlCheckpoints = await db
         .read("PCF_DB_CHECK_POINT_MASTER")
@@ -196,5 +213,19 @@ export class DashboardService {
         data: [],
       };
     }
+  }
+
+
+  /**
+   * Get Control's Base and Exception data
+   * based on Header Id, Control check point id
+   */
+  async getExceptionBaseData(controlDtls) : Promise<any> {
+    const controlId = controlDtls.id;
+    const hdrId = controlDtls.hdrId;
+    const flag = controlDtls.flag;
+
+    
+
   }
 }
