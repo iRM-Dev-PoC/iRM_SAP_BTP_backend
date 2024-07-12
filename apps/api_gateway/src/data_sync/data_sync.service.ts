@@ -24,7 +24,9 @@ export class DataSyncService {
           "39131F99F8F44FB4A0F0F6D759497FF7"."PCF_DB_LOGIN_USER" AS loginuser ON header.CREATED_BY = loginuser.ID
         WHERE
           loginuser.IS_ACTIVE = 'Y'
-          ;`;
+        ORDER BY
+    	    header.ID DESC;
+          `;
 
       const syncHeaderDetails = await db.run(sqlQuery);
 

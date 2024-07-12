@@ -24,11 +24,7 @@ type getExceptionDataDTO = {
 }
 
 type getControlCheckpointsDTO = {
-  syncId : number;
-  controlFamilyId : number;
-  startDate : String;
-  endDate : String;
-  typeOfControlId : number;
+  typeOfControlsId : number;
 }
 
 // @UseGuards(JwtAuthGuard)

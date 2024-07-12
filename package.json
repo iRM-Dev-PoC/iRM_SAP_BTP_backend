@@ -21,10 +21,10 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./apps/process_control_flow/test/jest-e2e.json",
     "deploy": "npm run build && sap-cloud-sdk package && cf push",
-    "ci-build": "npm run build",
-    "ci-package": "sap-cloud-sdk package --ci",
-    "ci-integration-test": "jest --ci --config ./test/jest-e2e.json",
-    "ci-backend-unit-test": "jest --ci"
+    "docker:build": "docker build -t imtrpdevsuman/pcf_backend:latest .",
+    "docker:run": "docker run -p 8080:8080 imtrpdevsuman/pcf_backend:latest",
+    "docker:push": "docker build -t imtrpdevsuman/pcf_backend:latest . && docker push imtrpdevsuman/pcf_backend:latest",
+    "cf:push": "docker build -t imtrpdevsuman/pcf_backend:latest . && docker push imtrpdevsuman/pcf_backend:latest && cf push -f manifest.yml"
   },
   "dependencies": {
     "@cap-js/postgres": "^1.5.0",
@@ -57,7 +57,6 @@
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
-    "pg": "^8.11.3",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
     "typeorm": "^0.3.20",

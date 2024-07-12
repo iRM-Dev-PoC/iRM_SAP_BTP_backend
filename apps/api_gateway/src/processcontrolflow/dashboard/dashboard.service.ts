@@ -10,27 +10,20 @@ export class DashboardService {
   async getControlCheckPoints(filterDtls): Promise<any> {
     try {
       /** get filter data from the request body */
-      const syncId = filterDtls.syncId;
-      const controlFamilyId = filterDtls.controlFamilyId;
-      const startDate = filterDtls.startDate;
-      const endDate = filterDtls.endDate;
-      const typeOfControlId = filterDtls.typeOfControlId;
+      const typeOfControlsId = filterDtls.typeOfControlsId;
 
       const db = await cds.connect.to("db");
 
       let dynmcWhereClause = `IS_ACTIVE = 'Y'`;
 
-      if(controlFamilyId) {
-        dynmcWhereClause = `${dynmcWhereClause} AND CONTROL_ID = ${controlFamilyId}`;
+      if (typeOfControlsId) {
+        dynmcWhereClause += ` AND CONTROL_ID = ${typeOfControlsId}`;
       }
 
-      // if(typeOfControlId) {
-      //   whereClause = `${whereClause} AND CONTROL_ID = ${controlFamilyId}`;
-      // }
+      let whereClause = cds.parse.expr(dynmcWhereClause);
 
-      const whereClause = cds.parse.expr(dynmcWhereClause);
-
-      let allControlCheckpoints = await db
+      // Read from PCF_DB_CHECK_POINT_MASTER
+      const allControlCheckpoints = await db
         .read("PCF_DB_CHECK_POINT_MASTER")
         .where(whereClause);
 
@@ -44,7 +37,7 @@ export class DashboardService {
 
       /** Modify RISK_SCORE as of now hard coded */
       allControlCheckpoints.forEach((item) => {
-        if (item.ID == 3) {
+        if (item.ID === 3) {
           item.RISK_SCORE = 0.02157380939539399 * 100;
         } else {
           item.RISK_SCORE = 0;
@@ -57,6 +50,7 @@ export class DashboardService {
         data: allControlCheckpoints,
       };
     } catch (error) {
+      console.error("Error fetching control checkpoints:", error);
       return {
         statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
         message: "Failed to fetch check points",
@@ -80,7 +74,7 @@ export class DashboardService {
         `IS_ACTIVE = 'Y' AND ID = ${controlId}`,
       );
 
-      //chart clause based on sync header
+      // Chart clause based on sync header
       const chartClause = `WHERE SYNC_HEADER_ID = ${hdrId}`;
 
       let donutChartData = [];
@@ -139,9 +133,13 @@ export class DashboardService {
         console.error("Error fetching donut chart data:", error.message);
       }
 
-      // Fetch column Chart Data
+      // Fetch Column Chart Data
       try {
-        const rawColumnChartData = await fetchChartData(controlId, 2, chartClause);
+        const rawColumnChartData = await fetchChartData(
+          controlId,
+          2,
+          chartClause,
+        );
         columnChartData = convertStringsToNumbers(
           rawColumnChartData,
           columnChartFieldsToConvert,
@@ -170,21 +168,89 @@ export class DashboardService {
         .read("PCF_DB_CHECK_POINT_MASTER")
         .where(whereClause);
 
-      // Base data query
-      const baseDataQuery = `SELECT COUNT(ID) BASE_DATA FROM ZSD0070_BILLING_REPORT WHERE SYNC_HEADER_ID = ${hdrId}`;
-      const baseDataCount = await db.run(baseDataQuery);
+      if (!controlDetails.length) {
+        throw new Error("No control details found for the given control ID");
+      }
 
-      // Exceptions count query
-      const exceptionsQuery = `SELECT COUNT(ID) EXCEPTION_COUNT FROM PRICE_MISMATCH_OUT WHERE SYNC_HEADER_ID = ${hdrId}`;
-      const exceptionsCount = await db.run(exceptionsQuery);
+      let baseCount = [];
+      let baseAllData = [];
+      let exceptionCount = [];
+      let exceptionAllData = [];
 
-      // Calculate deviation
-      const deviation =
-        (exceptionsCount[0].EXCEPTION_COUNT / baseDataCount[0].BASE_DATA) * 100;
+      const fetchControlLogicData = async (controlId, hdrId) => {
+        const controlLogicClause = `ID = ${controlId}`;
+        const syncHeaderClause = `WHERE SYNC_HEADER_ID = ${hdrId}`;
 
-      // Violated data query
-      const violatedQuery = `SELECT * FROM PRICE_MISMATCH_OUT WHERE SYNC_HEADER_ID = ${hdrId}`;
-      const violatedData = await db.run(violatedQuery);
+        try {
+          const controlLogicData = await db
+            .read("PCF_DB_CHECK_POINT_MASTER")
+            .columns(
+              "BASE_COUNT",
+              "BASE_QUERY",
+              "EXCEPTION_COUNT",
+              "EXCEPTION_QUERY",
+            )
+            .where(controlLogicClause);
+
+          if (!controlLogicData.length) {
+            throw new Error(
+              "No control logic data found for the given control ID",
+            );
+          }
+
+          // BASE DATA COUNT
+          const baseCountDataQuery = controlLogicData[0].BASE_COUNT;
+          const wholeBaseCountQuery = `${baseCountDataQuery} ${syncHeaderClause}`;
+          const baseDataCount = await db.run(wholeBaseCountQuery);
+
+          // ALL BASE DATA
+          const baseAllDataQuery = controlLogicData[0].BASE_QUERY;
+          const wholeBaseAllDataQuery = `${baseAllDataQuery} ${syncHeaderClause}`;
+          const baseAllDataResult = await db.run(wholeBaseAllDataQuery);
+
+          // EXCEPTION DATA COUNT
+          const exceptionCountDataQuery = controlLogicData[0].EXCEPTION_COUNT;
+          const wholeExceptionCountQuery = `${exceptionCountDataQuery} ${syncHeaderClause}`;
+          const exceptionDataCount = await db.run(wholeExceptionCountQuery);
+
+          // ALL EXCEPTION DATA
+          const exceptionAllDataQuery = controlLogicData[0].EXCEPTION_QUERY;
+          const wholeExceptionAllDataQuery = `${exceptionAllDataQuery} ${syncHeaderClause}`;
+          const exceptionAllDataResult = await db.run(
+            wholeExceptionAllDataQuery,
+          );
+
+          return {
+            baseDataCount,
+            baseAllData: baseAllDataResult,
+            exceptionDataCount,
+            exceptionAllData: exceptionAllDataResult,
+          };
+        } catch (error) {
+          console.error("Error fetching control logic data:", error);
+          throw error; // Re-throw the error to be handled by the caller
+        }
+      };
+
+      let baseDataCount, exceptionDataCount, deviation, violatedData;
+      try {
+        const result = await fetchControlLogicData(controlId, hdrId);
+        baseDataCount = result.baseDataCount;
+        baseAllData = result.baseAllData;
+        exceptionDataCount = result.exceptionDataCount;
+        exceptionAllData = result.exceptionAllData;
+
+        // Calculate deviation
+        deviation =
+          (exceptionDataCount[0].EXCEPTION_COUNT / baseDataCount[0].BASE_DATA) *
+          100;
+
+        // Assuming violatedData is fetched from some query based on your logic
+        violatedData = exceptionAllData;
+
+      } catch (error) {
+        console.error("Error fetching base count:", error.message);
+      }
 
       // Sync header query
       const getSyncHeaderQuery = `SELECT ID, SYNC_ID FROM PCF_DB_SYNC_HEADER`;
@@ -196,36 +262,34 @@ export class DashboardService {
         data: {
           control_data: controlDetails[0],
           base_data_count: baseDataCount[0].BASE_DATA,
-          exception_count: exceptionsCount[0].EXCEPTION_COUNT,
+          exception_count: exceptionDataCount[0].EXCEPTION_COUNT,
           deviation_count: deviation,
           risk_score: deviation * 100,
           violatedData,
           donutChartData,
           lineChartData,
           columnChartData,
+          baseAllData,
+          exceptionAllData
         },
       };
     } catch (error) {
       console.error("Error fetching control data:", error.message);
       return {
         statuscode: HttpStatus.BAD_REQUEST,
-        message: "Can not fetch data!",
+        message: "Cannot fetch data!",
         data: [],
       };
     }
   }
 
-
   /**
    * Get Control's Base and Exception data
    * based on Header Id, Control check point id
    */
-  async getExceptionBaseData(controlDtls) : Promise<any> {
+  async getExceptionBaseData(controlDtls): Promise<any> {
     const controlId = controlDtls.id;
     const hdrId = controlDtls.hdrId;
     const flag = controlDtls.flag;
-
-    
-
   }
 }
