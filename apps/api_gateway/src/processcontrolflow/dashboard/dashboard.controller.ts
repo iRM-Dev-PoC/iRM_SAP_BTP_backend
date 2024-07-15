@@ -24,8 +24,9 @@ type getExceptionDataDTO = {
 }
 
 type getControlCheckpointsDTO = {
-  typeOfControlsId : number;
-}
+  typeOfControlsId: number;
+  hdrId: number;
+};
 
 // @UseGuards(JwtAuthGuard)
 @Controller('dashboard')
