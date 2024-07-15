@@ -67,6 +67,38 @@ type insertDataEKPO = {
   PURCHASE_REQUISITION: string;
 };
 
+type insertDataVBAK = {
+  SALES_DOCUMENT: string;
+  CREATED_ON: string;
+  TIME: string;
+  CREATED_BY: string;
+  DOCUMENT_DATE: string;
+  NET_VALUE: string;
+  PURCHASE_ORDER_NO: string;
+  PURCHASE_ORDER_DATE: string;
+  TELEPHONE: string;
+  SOLD_TO_PARTY: string;
+};
+
+type insertDataME2L = {
+  PURCHASING_DOCUMENT: string;
+  COMPANY_CODE: string;
+  CREATED_ON: string;
+  CREATED_BY: string;
+  VENDOR: string;
+  TERMS_OF_PAYMENT: string;
+  DOCUMENT_DATE: string;
+};
+
+type insertDataMKVZ = {
+  NAME_OF_VENDOR: string;
+  STREET: string;
+  CITY: string;
+  ACCOUNT_GROUP: string;
+  TERMS_OF_PAYMENT: string;
+  VENDOR: string;
+};
+
 @Injectable()
 export class DataImportService {
   async handleFileUploads(files: Array<Express.Multer.File>) {
@@ -379,7 +411,7 @@ export class DataImportService {
           CREATED_ON: `${new Date().toISOString()}`,
         });
         // change EKPO data format
-        
+
         const insertData = data.map((item) => {
           return {
             SYNC_HEADER_ID: syncHdrId,
@@ -421,8 +453,180 @@ export class DataImportService {
             });
           console.error("Can not insert rows! ", err);
         }
-      } 
-      else {
+      } else if (fileNameUpper.includes("VBAK")) {
+        // Convert sheet to JSON object
+        const data: insertDataVBAK[] = xlsx.utils.sheet_to_json(sheet);
+
+        // insert into sync_details
+        const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
+          SYNC_HEADER_ID: syncHdrId,
+          CONTROL_ID: 1,
+          REPORT_ID: 6,
+          SYNC_STARTED_AT: `${new Date().toISOString()}`,
+          CREATED_BY: `1`,
+          SYNC_STATUS: "Initiated",
+          CREATED_ON: `${new Date().toISOString()}`,
+        });
+        // change VBAK data format
+
+        const insertData = data.map((item) => {
+          return {
+            SYNC_HEADER_ID: syncHdrId,
+            CUSTOMER_ID: 1,
+            SALES_DOCUMENT: String(item.SALES_DOCUMENT),
+            CREATED_ON: String(item.CREATED_ON),
+            TIME: String(item.TIME),
+            CREATED_BY: String(item.CREATED_BY),
+            DOCUMENT_DATE: String(item.DOCUMENT_DATE),
+            NET_VALUE: String(item.NET_VALUE),
+            PURCHASE_ORDER_NO: String(item.PURCHASE_ORDER_NO),
+            PURCHASE_ORDER_DATE: String(item.PURCHASE_ORDER_DATE),
+            TELEPHONE: String(item.TELEPHONE),
+            SOLD_TO_PARTY: String(item.SOLD_TO_PARTY),
+          };
+        });
+
+        // insert into VBAK
+        try {
+          const insertRows = await INSERT(insertData).into("VBAK");
+
+          // update sync_details status
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Completed",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 6,
+            });
+        } catch (err) {
+          // update sync_details status
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Error",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 6,
+            });
+          console.error("Can not insert rows! ", err);
+        }
+      } else if (fileNameUpper.includes("ME2L")) {
+        // Convert sheet to JSON object
+        const data: insertDataME2L[] = xlsx.utils.sheet_to_json(sheet);
+
+        // insert into sync_details
+        const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
+          SYNC_HEADER_ID: syncHdrId,
+          CONTROL_ID: 1,
+          REPORT_ID: 7,
+          SYNC_STARTED_AT: `${new Date().toISOString()}`,
+          CREATED_BY: `1`,
+          SYNC_STATUS: "Initiated",
+          CREATED_ON: `${new Date().toISOString()}`,
+        });
+        // change EKPO data format
+
+        const insertData = data.map((item) => {
+          return {
+            SYNC_HEADER_ID: syncHdrId,
+            CUSTOMER_ID: 1,
+            PURCHASING_DOCUMENT: String(item.PURCHASING_DOCUMENT),
+            COMPANY_CODE: String(item.COMPANY_CODE),
+            CREATED_ON: String(item.CREATED_ON),
+            CREATED_BY: String(item.CREATED_BY),
+            VENDOR: String(item.VENDOR),
+            TERMS_OF_PAYMENT: String(item.TERMS_OF_PAYMENT),
+            DOCUMENT_DATE: String(item.DOCUMENT_DATE),
+          };
+        });
+
+        // insert into EKPO
+        try {
+          const insertRows = await INSERT(insertData).into("ME2L");
+
+          // update sync_details status
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Completed",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 7,
+            });
+        } catch (err) {
+          // update sync_details status
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Error",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 7,
+            });
+          console.error("Can not insert rows! ", err);
+        }
+      } else if (fileNameUpper.includes("MKVZ")) {
+        // Convert sheet to JSON object
+        const data: insertDataMKVZ[] = xlsx.utils.sheet_to_json(sheet);
+
+        // insert into sync_details
+        const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
+          SYNC_HEADER_ID: syncHdrId,
+          CONTROL_ID: 1,
+          REPORT_ID: 8,
+          SYNC_STARTED_AT: `${new Date().toISOString()}`,
+          CREATED_BY: `1`,
+          SYNC_STATUS: "Initiated",
+          CREATED_ON: `${new Date().toISOString()}`,
+        });
+        // change EKPO data format
+
+        const insertData = data.map((item) => {
+          return {
+            SYNC_HEADER_ID: syncHdrId,
+            CUSTOMER_ID: 1,
+            NAME_OF_VENDOR: String(item.NAME_OF_VENDOR),
+            STREET: String(item.STREET),
+            CITY: String(item.CITY),
+            ACCOUNT_GROUP: String(item.ACCOUNT_GROUP),
+            TERMS_OF_PAYMENT: String(item.TERMS_OF_PAYMENT),
+            VENDOR: String(item.VENDOR),
+          };
+        });
+
+        // insert into EKPO
+        try {
+          const insertRows = await INSERT(insertData).into("MKVZ");
+
+          // update sync_details status
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Completed",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 8,
+            });
+        } catch (err) {
+          // update sync_details status
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Error",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 8,
+            });
+          console.error("Can not insert rows! ", err);
+        }
+      } else {
         throw new Error("Unknown File Name");
       }
     } catch (err) { 

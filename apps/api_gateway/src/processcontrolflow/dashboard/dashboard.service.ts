@@ -4,23 +4,20 @@ import { HttpStatus, Injectable } from "@nestjs/common";
 
 @Injectable()
 export class DashboardService {
-  /** Get all control check points api
-   * by Racktim Guin
-   */
   async getControlCheckPoints(filterDtls): Promise<any> {
     try {
-      /** get filter data from the request body */
-      const typeOfControlsId = filterDtls.typeOfControlsId;
+      const { typeOfControlsId, hdrId } = filterDtls; 
 
       const db = await cds.connect.to("db");
 
+      // Construct dynamic where clause
       let dynmcWhereClause = `IS_ACTIVE = 'Y'`;
 
       if (typeOfControlsId) {
         dynmcWhereClause += ` AND CONTROL_ID = ${typeOfControlsId}`;
       }
 
-      let whereClause = cds.parse.expr(dynmcWhereClause);
+      const whereClause = cds.parse.expr(dynmcWhereClause);
 
       // Read from PCF_DB_CHECK_POINT_MASTER
       const allControlCheckpoints = await db
@@ -35,22 +32,74 @@ export class DashboardService {
         };
       }
 
-      /** Modify RISK_SCORE as of now hard coded */
-      allControlCheckpoints.forEach((item) => {
-        if (item.ID === 3) {
-          item.RISK_SCORE = 0.02157380939539399 * 100;
-        } else {
-          item.RISK_SCORE = 0;
+      // Function to fetch necessary data for calculating deviation
+      const fetchControlLogicData = async (controlId, hdrId) => {
+        const controlLogicClause = { ID: controlId };
+        const syncHeaderClause = `WHERE SYNC_HEADER_ID = ${hdrId}`;
+
+        try {
+          const controlLogicData = await db
+            .read("PCF_DB_CHECK_POINT_MASTER")
+            .columns(
+              "BASE_COUNT",
+              "EXCEPTION_COUNT",
+            )
+            .where(controlLogicClause);
+
+          if (!controlLogicData.length) {
+            throw new Error(
+              "No control logic data found for the given control ID",
+            );
+          }
+
+          const baseCountDataQuery = controlLogicData[0].BASE_COUNT;
+          const exceptionCountDataQuery = controlLogicData[0].EXCEPTION_COUNT;
+
+          const wholeBaseCountQuery = `${baseCountDataQuery} ${syncHeaderClause}`;
+          const wholeExceptionCountQuery = `${exceptionCountDataQuery} ${syncHeaderClause}`;
+
+          const baseDataCount = await db.run(wholeBaseCountQuery);
+          const exceptionDataCount = await db.run(wholeExceptionCountQuery);
+
+          return { baseDataCount, exceptionDataCount };
+        } catch (error) {
+          console.error("Error fetching control logic data:", error.message);
+          throw error;
         }
-      });
+      };
+
+      // Modify RISK_SCORE based on calculated deviation
+      const modifiedControlCheckpoints = await Promise.all(
+        allControlCheckpoints.map(async (item) => {
+          try {
+            const { baseDataCount, exceptionDataCount } =
+              await fetchControlLogicData(item.ID, hdrId);
+
+            // Calculate deviation and risk score
+            const deviation =
+              (exceptionDataCount[0].EXCEPTION_COUNT /
+                baseDataCount[0].BASE_DATA) *
+              100;
+            const riskScore = deviation;
+
+            return { ...item, RISK_SCORE: riskScore };
+          } catch (error) {
+            console.error(
+              `Error calculating risk score for checkpoint ID ${item.ID}:`,
+              error.message,
+            );
+            return { ...item, RISK_SCORE: 0 }; 
+          }
+        }),
+      );
 
       return {
         statuscode: HttpStatus.OK,
         message: "Data fetched successfully",
-        data: allControlCheckpoints,
+        data: modifiedControlCheckpoints,
       };
     } catch (error) {
-      console.error("Error fetching control checkpoints:", error);
+      console.error("Error fetching control checkpoints:", error.message);
       return {
         statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
         message: "Failed to fetch check points",
@@ -247,7 +296,6 @@ export class DashboardService {
 
         // Assuming violatedData is fetched from some query based on your logic
         violatedData = exceptionAllData;
-
       } catch (error) {
         console.error("Error fetching base count:", error.message);
       }
@@ -264,13 +312,12 @@ export class DashboardService {
           base_data_count: baseDataCount[0].BASE_DATA,
           exception_count: exceptionDataCount[0].EXCEPTION_COUNT,
           deviation_count: deviation,
-          risk_score: deviation * 100,
+          risk_score: deviation,
           violatedData,
           donutChartData,
           lineChartData,
           columnChartData,
           baseAllData,
-          exceptionAllData
         },
       };
     } catch (error) {

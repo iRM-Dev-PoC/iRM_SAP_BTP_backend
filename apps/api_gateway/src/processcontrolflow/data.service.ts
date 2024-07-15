@@ -79,6 +79,47 @@ export class DataService {
           EKPO.PURCHASE_REQUISITION = 'undefined' AND EKKO.SYNC_HEADER_ID = ${hdrId};
     `;
 
+    const simulationQuery3 = `
+      WITH DUPLICATE_SALES_ORDERS AS (
+        SELECT SALES_DOCUMENT
+        FROM "39131F99F8F44FB4A0F0F6D759497FF7"."VBAK"
+        WHERE SYNC_HEADER_ID = 6
+        GROUP BY SALES_DOCUMENT
+        HAVING COUNT(*) > 1
+      )
+      SELECT V.*
+      FROM "39131F99F8F44FB4A0F0F6D759497FF7"."VBAK" V 
+      INNER JOIN DUPLICATE_SALES_ORDERS DSO ON V.SALES_DOCUMENT = DSO.SALES_DOCUMENT
+      WHERE V.SYNC_HEADER_ID = ${hdrId}
+      ORDER BY V.SALES_DOCUMENT;
+    `;
+
+    const simulationQuery4 = `
+      SELECT
+        P.SYNC_HEADER_ID,
+        P.CUSTOMER_ID,
+        P.PURCHASING_DOCUMENT, 
+        P.COMPANY_CODE, 
+        P.CREATED_ON AS PO_CREATED_ON, 
+        P.CREATED_BY AS PO_CREATED_BY, 
+        P.VENDOR, 
+        P.TERMS_OF_PAYMENT AS PO_PAYMENT_TERM, 
+        V.NAME_OF_VENDOR, 
+        V.STREET, 
+        V.CITY, 
+        V.ACCOUNT_GROUP, 
+        V.TERMS_OF_PAYMENT AS VENDOR_PAYMENT_TERM
+      FROM 
+          "39131F99F8F44FB4A0F0F6D759497FF7"."ME2L" P
+      INNER JOIN 
+          "39131F99F8F44FB4A0F0F6D759497FF7"."MKVZ" V 
+      ON 
+          P.VENDOR = V.VENDOR
+          AND V.SYNC_HEADER_ID = ${hdrId}
+      WHERE 
+          P.TERMS_OF_PAYMENT <> V.TERMS_OF_PAYMENT 
+    `;
+
     try {
       // Price Mismatch
       const result = await db.run(simulationQuery);
@@ -94,13 +135,6 @@ export class DataService {
       const insertRows = await cds.run(
         INSERT.into("PRICE_MISMATCH_OUT").entries(controlOutData),
       );
-
-      // Update the simulation in sync_header table
-      // await cds.run(
-      //   UPDATE("PCF_DB_SYNC_HEADER")
-      //     .set({ IS_SIMULATED: true })
-      //     .where({ ID: hdrId }),
-      // );
 
       // Manual PO Without PR Requisition
       const result2 = await db.run(simulationQuery2);
