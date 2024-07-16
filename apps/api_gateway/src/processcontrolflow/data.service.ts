@@ -83,7 +83,7 @@ export class DataService {
       WITH DUPLICATE_SALES_ORDERS AS (
         SELECT SALES_DOCUMENT
         FROM "39131F99F8F44FB4A0F0F6D759497FF7"."VBAK"
-        WHERE SYNC_HEADER_ID = 6
+        WHERE SYNC_HEADER_ID = ${hdrId}
         GROUP BY SALES_DOCUMENT
         HAVING COUNT(*) > 1
       )
@@ -91,7 +91,7 @@ export class DataService {
       FROM "39131F99F8F44FB4A0F0F6D759497FF7"."VBAK" V 
       INNER JOIN DUPLICATE_SALES_ORDERS DSO ON V.SALES_DOCUMENT = DSO.SALES_DOCUMENT
       WHERE V.SYNC_HEADER_ID = ${hdrId}
-      ORDER BY V.SALES_DOCUMENT;
+      ORDER BY V.SALES_DOCUMENT
     `;
 
     const simulationQuery4 = `
@@ -123,7 +123,6 @@ export class DataService {
     try {
       // Price Mismatch
       const result = await db.run(simulationQuery);
-      console.log(result);
 
       const controlOutData = result.map((item) => ({
         ...item,
@@ -138,7 +137,6 @@ export class DataService {
 
       // Manual PO Without PR Requisition
       const result2 = await db.run(simulationQuery2);
-      console.log(result2);
 
       const controlOutData2 = result2.map((item) => ({
         ...item,
@@ -150,7 +148,38 @@ export class DataService {
       const insertRows2 = await cds.run(
         INSERT.into("MANUAL_PO_WITHOUT_PR_REFERENCE").entries(controlOutData2),
       );
-      console.log(insertRows, insertRows2);
+
+      // Duplicate Sales Order
+      const result3 = await db.run(simulationQuery3);
+
+      const controlOutData3 = result3.map((item) => {
+        const { ID, ...rest } = item; // Exclude the ID column
+        return {
+          ...rest,
+          SYNC_HEADER_ID: hdrId,
+          CUSTOMER_ID: 1,
+        };
+      });
+
+
+      // Insert into out table
+      const insertRows3 = await cds.run(
+        INSERT.into("DUPLICATE_SALES_ORDER").entries(controlOutData3),
+      );
+
+      // Mismatch in Payment Terms
+      const result4 = await db.run(simulationQuery4);
+
+      const controlOutData4 = result4.map((item) => ({
+        ...item,
+        SYNC_HEADER_ID: hdrId,
+        CUSTOMER_ID: 1,
+      }));
+
+      // Insert into out table
+      const insertRows4 = await cds.run(
+        INSERT.into("MISMATCH_IN_PAYMENT_TERMS").entries(controlOutData4),
+      );
 
       // Update the simulation in sync_header table
       await cds.run(
