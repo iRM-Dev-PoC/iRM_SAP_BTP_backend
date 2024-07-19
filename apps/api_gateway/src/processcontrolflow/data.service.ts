@@ -75,8 +75,9 @@ export class DataService {
           "39131F99F8F44FB4A0F0F6D759497FF7"."EKPO" EKPO
       ON 
           EKKO.PURCHASING_DOCUMENT = EKPO.PURCHASING_DOCUMENT
+          AND EKKO.SYNC_HEADER_ID = ${hdrId}
       WHERE 
-          EKPO.PURCHASE_REQUISITION = 'undefined' AND EKKO.SYNC_HEADER_ID = ${hdrId};
+          EKPO.PURCHASE_REQUISITION = 'undefined';
     `;
 
     const simulationQuery3 = `
@@ -90,7 +91,7 @@ export class DataService {
       SELECT V.*
       FROM "39131F99F8F44FB4A0F0F6D759497FF7"."VBAK" V 
       INNER JOIN DUPLICATE_SALES_ORDERS DSO ON V.SALES_DOCUMENT = DSO.SALES_DOCUMENT
-      WHERE V.SYNC_HEADER_ID = ${hdrId}
+      AND V.SYNC_HEADER_ID = ${hdrId}
       ORDER BY V.SALES_DOCUMENT
     `;
 
@@ -118,6 +119,38 @@ export class DataService {
           AND V.SYNC_HEADER_ID = ${hdrId}
       WHERE 
           P.TERMS_OF_PAYMENT <> V.TERMS_OF_PAYMENT 
+    `;
+
+    const simulationQuery5 = `
+      WITH DuplicateCustomers AS (
+        SELECT 
+            CUSTOMER
+        FROM 
+            KNB1
+        WHERE KNB1.SYNC_HEADER_ID = ${hdrId}
+        GROUP BY 
+            CUSTOMER
+        HAVING 
+            COUNT(*) > 1
+      )
+      SELECT 
+          KNB1.CUSTOMER, 
+          KNB1.COMPANY_CODE, 
+          KNB1.CREATED_ON, 
+          KNB1.CREATED_BY,
+          KNA1.COUNTRY, 
+          KNA1.NAME1, 
+          KNA1.CITY, 
+          KNA1.POSTAL_CODE, 
+          KNA1.REGION, 
+          KNA1.STREET, 
+          KNA1.TELEPHONE1
+      FROM 
+          KNB1
+      JOIN 
+          KNA1 ON KNB1.CUSTOMER = KNA1.CUSTOMER AND KNB1.SYNC_HEADER_ID = ${hdrId}
+      WHERE 
+          KNB1.CUSTOMER IN (SELECT CUSTOMER FROM DuplicateCustomers); 
     `;
 
     try {
@@ -161,7 +194,6 @@ export class DataService {
         };
       });
 
-
       // Insert into out table
       const insertRows3 = await cds.run(
         INSERT.into("DUPLICATE_SALES_ORDER").entries(controlOutData3),
@@ -179,6 +211,20 @@ export class DataService {
       // Insert into out table
       const insertRows4 = await cds.run(
         INSERT.into("MISMATCH_IN_PAYMENT_TERMS").entries(controlOutData4),
+      );
+
+      // DUPLICATE_CREDIT_CUSTOMER_CODES
+      const result5 = await db.run(simulationQuery5);
+
+      const controlOutData5 = result5.map((item) => ({
+        ...item,
+        SYNC_HEADER_ID: hdrId,
+        CUSTOMER_ID: 1,
+      }));
+
+      // Insert into out table
+      const insertRows5 = await cds.run(
+        INSERT.into("DUPLICATE_CREDIT_CUSTOMER_CODES").entries(controlOutData5),
       );
 
       // Update the simulation in sync_header table
