@@ -133,7 +133,7 @@ export class DashboardService {
       // Function to fetch chart data
       const fetchChartData = async (controlId, chartId, chartClause) => {
         const chartClauseExpr = cds.parse.expr(
-          `CONTROL_ID = ${controlId} AND CHART_ID = ${chartId}`,
+          `CHECK_POINT_ID = ${controlId} AND CHART_ID = ${chartId}`,
         );
 
         const chartDetails = await db

@@ -99,6 +99,24 @@ type insertDataMKVZ = {
   VENDOR: string;
 };
 
+type insertDataKNA1 = {
+  CUSTOMER: string;
+  COUNTRY: string;
+  NAME1: string;
+  CITY: string;
+  POSTAL_CODE: string;
+  REGION: string;
+  STREET: string;
+  TELEPHONE1: string;
+};
+
+type insertDataKNB1 = {
+  CUSTOMER: string;
+  COMPANY_CODE: string;
+  CREATED_ON: string;
+  CREATED_BY: string;
+};
+
 @Injectable()
 export class DataImportService {
   async handleFileUploads(files: Array<Express.Multer.File>) {
@@ -623,6 +641,118 @@ export class DataImportService {
             .where({
               SYNC_HEADER_ID: syncHdrId,
               REPORT_ID: 8,
+            });
+          console.error("Can not insert rows! ", err);
+        }
+      } else if (fileNameUpper.includes("KNA1")) {
+        // Convert sheet to JSON object
+        const data: insertDataKNA1[] = xlsx.utils.sheet_to_json(sheet);
+
+        // insert into sync_details
+        const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
+          SYNC_HEADER_ID: syncHdrId,
+          CONTROL_ID: 1,
+          REPORT_ID: 9,
+          SYNC_STARTED_AT: `${new Date().toISOString()}`,
+          CREATED_BY: `1`,
+          SYNC_STATUS: "Initiated",
+          CREATED_ON: `${new Date().toISOString()}`,
+        });
+        // change KNA1 data format
+
+        const insertData = data.map((item) => {
+          return {
+            SYNC_HEADER_ID: syncHdrId,
+            CUSTOMER_ID: 1,
+            CUSTOMER: String(item.CUSTOMER),
+            COUNTRY: String(item.COUNTRY),
+            NAME1: String(item.NAME1),
+            CITY: String(item.CITY),
+            POSTAL_CODE: String(item.POSTAL_CODE),
+            REGION: String(item.REGION),
+            STREET: String(item.STREET),
+            TELEPHONE1: String(item.TELEPHONE1),
+          };
+        });
+
+        // insert into KNA1
+        try {
+          const insertRows = await INSERT(insertData).into("KNA1");
+
+          // update sync_details status
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Completed",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 9,
+            });
+        } catch (err) {
+          // update sync_details status
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Error",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 9,
+            });
+          console.error("Can not insert rows! ", err);
+        }
+      } else if (fileNameUpper.includes("KNB1")) {
+        // Convert sheet to JSON object
+        const data: insertDataKNB1[] = xlsx.utils.sheet_to_json(sheet);
+
+        // insert into sync_details
+        const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
+          SYNC_HEADER_ID: syncHdrId,
+          CONTROL_ID: 1,
+          REPORT_ID: 10,
+          SYNC_STARTED_AT: `${new Date().toISOString()}`,
+          CREATED_BY: `1`,
+          SYNC_STATUS: "Initiated",
+          CREATED_ON: `${new Date().toISOString()}`,
+        });
+        // change KNB1 data format
+
+        const insertData = data.map((item) => {
+          return {
+            SYNC_HEADER_ID: syncHdrId,
+            CUSTOMER_ID: 1,
+            CUSTOMER: String(item.CUSTOMER),
+            COMPANY_CODE: String(item.COMPANY_CODE),
+            CREATED_ON: String(item.CREATED_ON),
+            CREATED_BY: String(item.CREATED_BY),
+          };
+        });
+
+        // insert into KNB1
+        try {
+          const insertRows = await INSERT(insertData).into("KNB1");
+
+          // update sync_details status
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Completed",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 10,
+            });
+        } catch (err) {
+          // update sync_details status
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Error",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 10,
             });
           console.error("Can not insert rows! ", err);
         }
