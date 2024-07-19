@@ -75,6 +75,7 @@ export class DataService {
           "39131F99F8F44FB4A0F0F6D759497FF7"."EKPO" EKPO
       ON 
           EKKO.PURCHASING_DOCUMENT = EKPO.PURCHASING_DOCUMENT
+          AND EKPO.SYNC_HEADER_ID = ${hdrId}
           AND EKKO.SYNC_HEADER_ID = ${hdrId}
       WHERE 
           EKPO.PURCHASE_REQUISITION = 'undefined';
@@ -117,6 +118,7 @@ export class DataService {
       ON 
           P.VENDOR = V.VENDOR
           AND V.SYNC_HEADER_ID = ${hdrId}
+          AND P.SYNC_HEADER_ID = ${hdrId}
       WHERE 
           P.TERMS_OF_PAYMENT <> V.TERMS_OF_PAYMENT 
     `;
