@@ -215,15 +215,22 @@ export class DashboardService {
       // Fetch control details
       const controlDetails = await db
         .read("PCF_DB_CHECK_POINT_MASTER")
+        .columns(
+          "ID",
+          "CHECK_POINT_NAME",
+          "CHECK_POINT_DESC",
+          "CONTROL_ID",
+          "CUSTOMER_ID",
+        )
         .where(whereClause);
 
       if (!controlDetails.length) {
         throw new Error("No control details found for the given control ID");
       }
 
-      let baseCount = [];
       let baseAllData = [];
-      let exceptionCount = [];
+      let baseAllData1 = [];
+      let baseAllData2 = [];
       let exceptionAllData = [];
 
       const fetchControlLogicData = async (controlId, hdrId) => {
@@ -238,35 +245,57 @@ export class DashboardService {
               "BASE_QUERY",
               "EXCEPTION_COUNT",
               "EXCEPTION_QUERY",
+              "BASE_QUERY1",
+              "BASE_QUERY2",
             )
             .where(controlLogicClause);
 
           if (!controlLogicData.length) {
             throw new Error(
-              "No control logic data found for the given control ID",
+              "No control logic data found for the given control ID", 
             );
           }
 
           // BASE DATA COUNT
           const baseCountDataQuery = controlLogicData[0].BASE_COUNT;
-          const wholeBaseCountQuery = `${baseCountDataQuery} ${syncHeaderClause}`;
-          const baseDataCount = await db.run(wholeBaseCountQuery);
+          // const wholeBaseCountQuery = `${baseCountDataQuery} ${syncHeaderClause}`;
+          const baseDataCount = await db.run(
+            `${baseCountDataQuery} ${syncHeaderClause}`,
+          );
 
-          // ALL BASE DATA
+          // ALL BASE DATA 0
           const baseAllDataQuery = controlLogicData[0].BASE_QUERY;
-          const wholeBaseAllDataQuery = `${baseAllDataQuery} ${syncHeaderClause}`;
-          const baseAllDataResult = await db.run(wholeBaseAllDataQuery);
+          // const wholeBaseAllDataQuery = `${baseAllDataQuery} ${syncHeaderClause}`;
+          const baseAllDataResult = await db.run(
+            `${baseAllDataQuery} ${syncHeaderClause}`,
+          );
+
+          // ALL BASE DATA 1
+          const baseAllDataQuery1 = controlLogicData[0].BASE_QUERY1;
+          // const wholeBaseAllDataQuery1 = `${baseAllDataQuery1} ${syncHeaderClause}`;
+          const baseAllDataResult1 = baseAllDataQuery1
+            ? await db.run(`${baseAllDataQuery1} ${syncHeaderClause}`)
+            : [];
+
+          // ALL BASE DATA 2
+          const baseAllDataQuery2 = controlLogicData[0].BASE_QUERY2;
+          // const wholeBaseAllDataQuery2 = `${baseAllDataQuery2} ${syncHeaderClause}`;
+          const baseAllDataResult2 = baseAllDataQuery2
+            ? await db.run(`${baseAllDataQuery2} ${syncHeaderClause}`)
+            : [];
 
           // EXCEPTION DATA COUNT
           const exceptionCountDataQuery = controlLogicData[0].EXCEPTION_COUNT;
-          const wholeExceptionCountQuery = `${exceptionCountDataQuery} ${syncHeaderClause}`;
-          const exceptionDataCount = await db.run(wholeExceptionCountQuery);
+          // const wholeExceptionCountQuery = `${exceptionCountDataQuery} ${syncHeaderClause}`;
+          const exceptionDataCount = await db.run(
+            `${exceptionCountDataQuery} ${syncHeaderClause}`,
+          );
 
           // ALL EXCEPTION DATA
           const exceptionAllDataQuery = controlLogicData[0].EXCEPTION_QUERY;
-          const wholeExceptionAllDataQuery = `${exceptionAllDataQuery} ${syncHeaderClause}`;
+          // const wholeExceptionAllDataQuery = `${exceptionAllDataQuery} ${syncHeaderClause}`;
           const exceptionAllDataResult = await db.run(
-            wholeExceptionAllDataQuery,
+            `${exceptionAllDataQuery} ${syncHeaderClause}`,
           );
 
           return {
@@ -274,6 +303,8 @@ export class DashboardService {
             baseAllData: baseAllDataResult,
             exceptionDataCount,
             exceptionAllData: exceptionAllDataResult,
+            baseAllData1: baseAllDataResult1,
+            baseAllData2: baseAllDataResult2,
           };
         } catch (error) {
           console.error("Error fetching control logic data:", error);
@@ -286,6 +317,8 @@ export class DashboardService {
         const result = await fetchControlLogicData(controlId, hdrId);
         baseDataCount = result.baseDataCount;
         baseAllData = result.baseAllData;
+        baseAllData1 = result.baseAllData1;
+        baseAllData2 = result.baseAllData2;
         exceptionDataCount = result.exceptionDataCount;
         exceptionAllData = result.exceptionAllData;
 
@@ -318,6 +351,8 @@ export class DashboardService {
           lineChartData,
           columnChartData,
           baseAllData,
+          baseAllData1,
+          baseAllData2,
         },
       };
     } catch (error) {
