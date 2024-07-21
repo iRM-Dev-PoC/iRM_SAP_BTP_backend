@@ -155,6 +155,77 @@ export class DataService {
           KNB1.CUSTOMER IN (SELECT CUSTOMER FROM DuplicateCustomers); 
     `;
 
+    const simulationQuery6 = `
+      WITH VendorMultipleBankAccounts AS (
+        SELECT Vendor
+        FROM LFBK
+        WHERE SYNC_HEADER_ID = ${hdrId}
+        GROUP BY Vendor
+        HAVING COUNT(DISTINCT Bank_Account) > 1
+      )
+      SELECT lbk.Vendor,
+      lbk.country,
+      lbk.bank_key,
+      lbk.bank_account,
+      lbk.ACCOUNT_HOLDER
+      FROM LFBK lbk
+      INNER JOIN VendorMultipleBankAccounts vmba ON lbk.Vendor = vmba.Vendor AND lbk.SYNC_HEADER_ID = ${hdrId}; 
+    `;
+
+    const simulationQuery7 = `
+      SELECT 
+        COALESCE(lfa1.Vendor, lfbk.Vendor) AS Vendor,
+        lfa1.Country AS Country_LFA1,
+        lfbk.Country AS Country_LFBK,
+        lfa1.Name1 AS Name1_LFA1,
+        lfbk.Account_Holder AS Account_Holder_LFBK,
+        lfa1.City AS City_LFA1,
+        lfa1.Telephone1 AS Telephone1_LFA1,
+        lfbk.Bank_Account AS Bank_Account_LFBK,
+        CASE 
+            WHEN lfa1.Vendor IS NULL THEN 'Missing in LFBK'
+            WHEN lfbk.Vendor IS NULL THEN 'Missing in LFA1'
+            WHEN lfa1.Country <> lfbk.Country 
+                OR lfa1.Name1 <> lfbk.Account_Holder 
+                OR lfa1.City <> lfbk.Bank_Account THEN 'Discrepancy'
+            ELSE 'Match'
+        END AS Issue_Type
+      FROM 
+          LFA1 lfa1
+      FULL OUTER JOIN 
+          LFBK lfbk 
+      ON 
+          lfa1.Vendor = lfbk.Vendor
+          AND lfa1.SYNC_HEADER_ID = ${hdrId} AND lfbk.SYNC_HEADER_ID = ${hdrId};
+    `;
+
+    /*
+    -- Step 1: Identify customers without credit limits
+WITH CustomersWithoutCreditLimits AS (
+    SELECT kna1.CUSTOMER
+    FROM KNA1 kna1
+    LEFT JOIN KNKK knkk ON kna1.CUSTOMER = knkk.Customer
+    WHERE knkk.Customer IS NULL
+)
+
+-- Step 2: Fetch additional details
+SELECT
+    kna1.CUSTOMER,
+    kna1.COUNTRY,
+    kna1.NAME1,
+    kna1.CITY,
+    kna1.POSTAL_CODE,
+    kna1.REGION,
+    kna1.STREET,
+    kna1.TELEPHONE1,
+    knb1.COMPANY_CODE,
+    knb1.CREATED_ON,
+    knb1.CREATED_BY
+FROM CustomersWithoutCreditLimits cwc
+JOIN KNA1 kna1 ON cwc.CUSTOMER = kna1.CUSTOMER
+LEFT JOIN KNB1 knb1 ON cwc.CUSTOMER = knb1.CUSTOMER;
+*/
+
     try {
       // Price Mismatch
       const result = await db.run(simulationQuery);
@@ -227,6 +298,34 @@ export class DataService {
       // Insert into out table
       const insertRows5 = await cds.run(
         INSERT.into("DUPLICATE_CREDIT_CUSTOMER_CODES").entries(controlOutData5),
+      );
+
+      // MULTIPLE BANK ACCOUNT AGAINST SAME VENDOR CODE
+      const result6 = await db.run(simulationQuery6);
+
+      const controlOutData6 = result6.map((item) => ({
+        ...item,
+        SYNC_HEADER_ID: hdrId,
+        CUSTOMER_ID: 1,
+      }));
+
+      // Insert into out table
+      const insertRows6 = await cds.run(
+        INSERT.into("MULTIPLE_BANK_ACCOUNTS_VENDOR").entries(controlOutData6),
+      );
+
+      // INCOMPLETE VENDOR MASTER
+      const result7 = await db.run(simulationQuery7);
+
+      const controlOutData7 = result7.map((item) => ({
+        ...item,
+        SYNC_HEADER_ID: hdrId,
+        CUSTOMER_ID: 1,
+      }));
+
+      // Insert into out table
+      const insertRows7 = await cds.run(
+        INSERT.into("INCOMPLETE_VENDOR_MASTER").entries(controlOutData7),
       );
 
       // Update the simulation in sync_header table
