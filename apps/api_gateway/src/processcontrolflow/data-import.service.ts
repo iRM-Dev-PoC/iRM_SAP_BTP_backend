@@ -117,6 +117,24 @@ type insertDataKNB1 = {
   CREATED_BY: string;
 };
 
+type insertDataLFBK = {
+  VENDOR: string;
+  COUNTRY: string;
+  BANK_KEY: string;
+  BANK_ACCOUNT: string;
+  ACCOUNT_HOLDER: string;
+};
+
+type insertDataLFA1 = {
+  VENDOR: string;
+  COUNTRY: string;
+  NAME1: string;
+  CITY: string;
+  POSTAL_CODE: string;
+  REGION: string;
+  TELEPHONE1: string;
+};
+
 @Injectable()
 export class DataImportService {
   async handleFileUploads(files: Array<Express.Multer.File>) {
@@ -368,7 +386,7 @@ export class DataImportService {
         // insert into sync_details
         const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
           SYNC_HEADER_ID: syncHdrId,
-          CONTROL_ID: 1,
+          CONTROL_ID: 2,
           REPORT_ID: 4,
           SYNC_STARTED_AT: `${new Date().toISOString()}`,
           CREATED_BY: `1`,
@@ -421,7 +439,7 @@ export class DataImportService {
         // insert into sync_details
         const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
           SYNC_HEADER_ID: syncHdrId,
-          CONTROL_ID: 1,
+          CONTROL_ID: 2,
           REPORT_ID: 5,
           SYNC_STARTED_AT: `${new Date().toISOString()}`,
           CREATED_BY: `1`,
@@ -538,7 +556,7 @@ export class DataImportService {
         // insert into sync_details
         const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
           SYNC_HEADER_ID: syncHdrId,
-          CONTROL_ID: 1,
+          CONTROL_ID: 2,
           REPORT_ID: 7,
           SYNC_STARTED_AT: `${new Date().toISOString()}`,
           CREATED_BY: `1`,
@@ -595,7 +613,7 @@ export class DataImportService {
         // insert into sync_details
         const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
           SYNC_HEADER_ID: syncHdrId,
-          CONTROL_ID: 1,
+          CONTROL_ID: 2,
           REPORT_ID: 8,
           SYNC_STARTED_AT: `${new Date().toISOString()}`,
           CREATED_BY: `1`,
@@ -753,6 +771,118 @@ export class DataImportService {
             .where({
               SYNC_HEADER_ID: syncHdrId,
               REPORT_ID: 10,
+            });
+          console.error("Can not insert rows! ", err);
+        }
+      } else if (fileNameUpper.includes("LFBK")) {
+        // Convert sheet to JSON object
+        const data: insertDataLFBK[] = xlsx.utils.sheet_to_json(sheet);
+
+        // insert into sync_details
+        const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
+          SYNC_HEADER_ID: syncHdrId,
+          CONTROL_ID: 2,
+          REPORT_ID: 11,
+          SYNC_STARTED_AT: `${new Date().toISOString()}`,
+          CREATED_BY: `1`,
+          SYNC_STATUS: "Initiated",
+          CREATED_ON: `${new Date().toISOString()}`,
+        });
+        // change KNB1 data format
+
+        const insertData = data.map((item) => {
+          return {
+            SYNC_HEADER_ID: syncHdrId,
+            CUSTOMER_ID: 1,
+            VENDOR: String(item.VENDOR),
+            COUNTRY: String(item.COUNTRY),
+            BANK_KEY: String(item.BANK_KEY),
+            BANK_ACCOUNT: String(item.BANK_ACCOUNT),
+            ACCOUNT_HOLDER: String(item.ACCOUNT_HOLDER),
+          };
+        });
+
+        // insert into KNB1
+        try {
+          const insertRows = await INSERT(insertData).into("LFBK");
+
+          // update sync_details status
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Completed",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 11,
+            });
+        } catch (err) {
+          // update sync_details status
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Error",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 11,
+            });
+          console.error("Can not insert rows! ", err);
+        }
+      } else if (fileNameUpper.includes("LFA1")) {
+        // Convert sheet to JSON object
+        const data: insertDataLFA1[] = xlsx.utils.sheet_to_json(sheet);
+
+        // insert into sync_details
+        const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
+          SYNC_HEADER_ID: syncHdrId,
+          CONTROL_ID: 2,
+          REPORT_ID: 12,
+          SYNC_STARTED_AT: `${new Date().toISOString()}`,
+          CREATED_BY: `1`,
+          SYNC_STATUS: "Initiated",
+          CREATED_ON: `${new Date().toISOString()}`,
+        });
+        // change LFA1 data format
+
+        const insertData = data.map((item) => {
+          return {
+            SYNC_HEADER_ID: syncHdrId,
+            CUSTOMER_ID: 1,
+            VENDOR: String(item.VENDOR),
+            COUNTRY: String(item.COUNTRY),
+            NAME1: String(item.NAME1),
+            CITY: String(item.CITY),
+            POSTAL_CODE: String(item.POSTAL_CODE),
+            REGION: String(item.REGION),
+            TELEPHONE1: String(item.TELEPHONE1),
+          };
+        });
+
+        // insert into LFA1
+        try {
+          const insertRows = await INSERT(insertData).into("LFA1");
+
+          // update sync_details status
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Completed",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 12,
+            });
+        } catch (err) {
+          // update sync_details status
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Error",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 12,
             });
           console.error("Can not insert rows! ", err);
         }
