@@ -115,6 +115,7 @@ type insertDataKNB1 = {
   COMPANY_CODE: string;
   CREATED_ON: string;
   CREATED_BY: string;
+  TERMS_OF_PAYMENT: string;
 };
 
 type insertDataLFBK = {
@@ -744,6 +745,7 @@ export class DataImportService {
             COMPANY_CODE: String(item.COMPANY_CODE),
             CREATED_ON: String(item.CREATED_ON),
             CREATED_BY: String(item.CREATED_BY),
+            TERMS_OF_PAYMENT: String(item.TERMS_OF_PAYMENT),
           };
         });
 

@@ -258,42 +258,36 @@ export class DashboardService {
 
           // BASE DATA COUNT
           const baseCountDataQuery = controlLogicData[0].BASE_COUNT;
-          // const wholeBaseCountQuery = `${baseCountDataQuery} ${syncHeaderClause}`;
           const baseDataCount = await db.run(
             `${baseCountDataQuery} ${syncHeaderClause}`,
           );
 
           // ALL BASE DATA 0
           const baseAllDataQuery = controlLogicData[0].BASE_QUERY;
-          // const wholeBaseAllDataQuery = `${baseAllDataQuery} ${syncHeaderClause}`;
           const baseAllDataResult = await db.run(
             `${baseAllDataQuery} ${syncHeaderClause}`,
           );
 
           // ALL BASE DATA 1
           const baseAllDataQuery1 = controlLogicData[0].BASE_QUERY1;
-          // const wholeBaseAllDataQuery1 = `${baseAllDataQuery1} ${syncHeaderClause}`;
           const baseAllDataResult1 = baseAllDataQuery1
             ? await db.run(`${baseAllDataQuery1} ${syncHeaderClause}`)
             : [];
 
           // ALL BASE DATA 2
           const baseAllDataQuery2 = controlLogicData[0].BASE_QUERY2;
-          // const wholeBaseAllDataQuery2 = `${baseAllDataQuery2} ${syncHeaderClause}`;
           const baseAllDataResult2 = baseAllDataQuery2
             ? await db.run(`${baseAllDataQuery2} ${syncHeaderClause}`)
             : [];
 
           // EXCEPTION DATA COUNT
           const exceptionCountDataQuery = controlLogicData[0].EXCEPTION_COUNT;
-          // const wholeExceptionCountQuery = `${exceptionCountDataQuery} ${syncHeaderClause}`;
           const exceptionDataCount = await db.run(
             `${exceptionCountDataQuery} ${syncHeaderClause}`,
           );
 
           // ALL EXCEPTION DATA
           const exceptionAllDataQuery = controlLogicData[0].EXCEPTION_QUERY;
-          // const wholeExceptionAllDataQuery = `${exceptionAllDataQuery} ${syncHeaderClause}`;
           const exceptionAllDataResult = await db.run(
             `${exceptionAllDataQuery} ${syncHeaderClause}`,
           );
@@ -332,10 +326,6 @@ export class DashboardService {
       } catch (error) {
         console.error("Error fetching base count:", error.message);
       }
-
-      // Sync header query
-      const getSyncHeaderQuery = `SELECT ID, SYNC_ID FROM PCF_DB_SYNC_HEADER`;
-      const getSyncHeaderData = await db.run(getSyncHeaderQuery);
 
       return {
         statuscode: HttpStatus.OK,

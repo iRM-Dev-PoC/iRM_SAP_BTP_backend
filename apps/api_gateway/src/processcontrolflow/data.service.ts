@@ -183,12 +183,12 @@ export class DataService {
         lfa1.Telephone1 AS Telephone1_LFA1,
         lfbk.Bank_Account AS Bank_Account_LFBK,
         CASE 
-            WHEN lfa1.Vendor IS NULL THEN 'Missing in LFBK'
-            WHEN lfbk.Vendor IS NULL THEN 'Missing in LFA1'
+            WHEN lfa1.Vendor IS NULL THEN 'Missing in LFA1'
+            WHEN lfbk.Vendor IS NULL THEN 'Missing in LFBK'
             WHEN lfa1.Country <> lfbk.Country 
                 OR lfa1.Name1 <> lfbk.Account_Holder 
-                OR lfa1.City <> lfbk.Bank_Account THEN 'Discrepancy'
-            ELSE 'Match'
+                THEN 'Discrepancy'
+            ELSE NULL -- NULL to indicate no discrepancy
         END AS Issue_Type
       FROM 
           LFA1 lfa1
@@ -196,7 +196,9 @@ export class DataService {
           LFBK lfbk 
       ON 
           lfa1.Vendor = lfbk.Vendor
-          AND lfa1.SYNC_HEADER_ID = ${hdrId} AND lfbk.SYNC_HEADER_ID = ${hdrId};
+      WHERE 
+          lfa1.SYNC_HEADER_ID = ${hdrId}
+          AND lfbk.SYNC_HEADER_ID = ${hdrId};
     `;
 
     /*
