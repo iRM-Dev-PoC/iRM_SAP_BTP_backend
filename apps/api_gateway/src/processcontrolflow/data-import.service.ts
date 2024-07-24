@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
 import cds from "@sap/cds";
-import { error } from "console";
 import * as fs from "fs";
 import { join } from "path";
 import * as xlsx from "xlsx";
@@ -55,7 +54,7 @@ type insertDataEKKO = {
   CREATED_ON: string;
   CREATED_BY: string;
   DOCUMENT_DATE: string;
-}
+};
 
 type insertDataEKPO = {
   PURCHASING_DOCUMENT: string;
@@ -891,7 +890,7 @@ export class DataImportService {
       } else {
         throw new Error("Unknown File Name");
       }
-    } catch (err) { 
+    } catch (err) {
       console.error("Error importing CSV data:", err);
     }
   }

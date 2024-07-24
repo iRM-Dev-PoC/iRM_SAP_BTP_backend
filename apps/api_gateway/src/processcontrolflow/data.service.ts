@@ -98,7 +98,6 @@ export class DataService {
 
     const simulationQuery4 = `
       SELECT
-        P.SYNC_HEADER_ID,
         P.CUSTOMER_ID,
         P.PURCHASING_DOCUMENT, 
         P.COMPANY_CODE, 
@@ -150,9 +149,13 @@ export class DataService {
       FROM 
           KNB1
       JOIN 
-          KNA1 ON KNB1.CUSTOMER = KNA1.CUSTOMER AND KNB1.SYNC_HEADER_ID = ${hdrId}
+          KNA1 ON KNB1.CUSTOMER = KNA1.CUSTOMER
+          AND KNB1.SYNC_HEADER_ID = ${hdrId} 
+          AND KNA1.SYNC_HEADER_ID = ${hdrId}
       WHERE 
-          KNB1.CUSTOMER IN (SELECT CUSTOMER FROM DuplicateCustomers); 
+          KNB1.CUSTOMER IN (SELECT CUSTOMER FROM DuplicateCustomers)
+          AND KNB1.SYNC_HEADER_ID = ${hdrId} 
+          AND KNA1.SYNC_HEADER_ID = ${hdrId}; 
     `;
 
     const simulationQuery6 = `
@@ -173,7 +176,7 @@ export class DataService {
     `;
 
     const simulationQuery7 = `
-      SELECT 
+      SELECT * FROM (SELECT 
         COALESCE(lfa1.Vendor, lfbk.Vendor) AS Vendor,
         lfa1.Country AS Country_LFA1,
         lfbk.Country AS Country_LFBK,
@@ -198,7 +201,36 @@ export class DataService {
           lfa1.Vendor = lfbk.Vendor
       WHERE 
           lfa1.SYNC_HEADER_ID = ${hdrId}
-          AND lfbk.SYNC_HEADER_ID = ${hdrId};
+          AND lfbk.SYNC_HEADER_ID = ${hdrId}
+      ) TBL WHERE TBL.Issue_Type IS NOT NULL;
+    `;
+
+    const simulationQuery8 = `
+      SELECT
+        kna1.CUSTOMER,
+        kna1.COUNTRY,
+        kna1.NAME1,
+        kna1.CITY,
+        kna1.POSTAL_CODE,
+        kna1.REGION,
+        kna1.STREET,
+        kna1.TELEPHONE1,
+        knb1.COMPANY_CODE,
+        knb1.CREATED_ON,
+        knb1.CREATED_BY,
+        knb1.TERMS_OF_PAYMENT
+      FROM
+          KNA1 kna1
+      LEFT JOIN
+          KNB1 knb1
+      ON
+          kna1.CUSTOMER = knb1.CUSTOMER
+          AND kna1.SYNC_HEADER_ID = ${hdrId}
+          AND knb1.SYNC_HEADER_ID = ${hdrId}
+      WHERE
+          knb1.TERMS_OF_PAYMENT = 'undefined'  
+          AND kna1.SYNC_HEADER_ID = ${hdrId}
+          AND knb1.SYNC_HEADER_ID = ${hdrId};
     `;
 
     /*
@@ -328,6 +360,22 @@ LEFT JOIN KNB1 knb1 ON cwc.CUSTOMER = knb1.CUSTOMER;
       // Insert into out table
       const insertRows7 = await cds.run(
         INSERT.into("INCOMPLETE_VENDOR_MASTER").entries(controlOutData7),
+      );
+
+      // Payment Terms Not Updated On Customer Master
+      const result8 = await db.run(simulationQuery8);
+
+      const controlOutData8 = result8.map((item) => ({
+        ...item,
+        SYNC_HEADER_ID: hdrId,
+        CUSTOMER_ID: 1,
+      }));
+
+      // Insert into out table
+      const insertRows8 = await cds.run(
+        INSERT.into("PAYMENT_TERMS_NOT_UPDATED_ON_CUSTOMER_MASTER").entries(
+          controlOutData8,
+        ),
       );
 
       // Update the simulation in sync_header table
