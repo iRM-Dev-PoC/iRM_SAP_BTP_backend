@@ -6,7 +6,7 @@ import { HttpStatus, Injectable } from "@nestjs/common";
 export class DashboardService {
   async getControlCheckPoints(filterDtls): Promise<any> {
     try {
-      const { typeOfControlsId, hdrId } = filterDtls; 
+      const { typeOfControlsId, hdrId } = filterDtls;
 
       const db = await cds.connect.to("db");
 
@@ -40,10 +40,7 @@ export class DashboardService {
         try {
           const controlLogicData = await db
             .read("PCF_DB_CHECK_POINT_MASTER")
-            .columns(
-              "BASE_COUNT",
-              "EXCEPTION_COUNT",
-            )
+            .columns("BASE_COUNT", "EXCEPTION_COUNT")
             .where(controlLogicClause);
 
           if (!controlLogicData.length) {
@@ -88,7 +85,7 @@ export class DashboardService {
               `Error calculating risk score for checkpoint ID ${item.ID}:`,
               error.message,
             );
-            return { ...item, RISK_SCORE: 0 }; 
+            return { ...item, RISK_SCORE: 0 };
           }
         }),
       );
@@ -328,54 +325,55 @@ export class DashboardService {
       }
 
       // BOX PLOT - TESTING PURPOSE ONLY
-      let boxPloting = [];
-      if(controlId === 3 && hdrId){
-      // Function to calculate quartiles
-      function calculateQuartiles(values) {
-        values.sort((a, b) => a - b);
+      let boxPloting = {};
+      if (controlId === 3 && hdrId) {
+        // Function to calculate quartiles
+        function calculateQuartiles(values) {
+          values.sort((a, b) => a - b);
 
-        const min = values[0];
-        const max = values[values.length - 1];
-        const median = calculateMedian(values);
-        const q1 = calculateMedian(
-          values.slice(0, Math.floor(values.length / 2)),
+          const min = values[0];
+          const max = values[values.length - 1];
+          const median = calculateMedian(values);
+          const q1 = calculateMedian(
+            values.slice(0, Math.floor(values.length / 2)),
+          );
+          const q3 = calculateMedian(
+            values.slice(Math.ceil(values.length / 2)),
+          );
+
+          return [min, q1, median, q3, max];
+        }
+
+        // Function to calculate median
+        function calculateMedian(values) {
+          const mid = Math.floor(values.length / 2);
+          return values.length % 2 !== 0
+            ? values[mid]
+            : (values[mid - 1] + values[mid]) / 2;
+        }
+
+        // Fetch data
+        const boxPlotingQuery = await db.run(
+          `SELECT NET_VALUE, TAX_AMOUNT, COST FROM ZSD0070_BILLING_REPORT WHERE SYNC_HEADER_ID = ${hdrId}`,
         );
-        const q3 = calculateMedian(values.slice(Math.ceil(values.length / 2)));
 
-        return [min, q1, median, q3, max];
-      }
+        // Convert to numbers and separate into arrays
+        const netValues = boxPlotingQuery.map((row) => Number(row.NET_VALUE));
+        const taxAmounts = boxPlotingQuery.map((row) => Number(row.TAX_AMOUNT));
+        const costs = boxPlotingQuery.map((row) => Number(row.COST));
 
-      // Function to calculate median
-      function calculateMedian(values) {
-        const mid = Math.floor(values.length / 2);
-        return values.length % 2 !== 0
-          ? values[mid]
-          : (values[mid - 1] + values[mid]) / 2;
-      }
+        // Calculate quartiles for each array
+        const netValueQuartiles = calculateQuartiles(netValues);
+        const taxAmountQuartiles = calculateQuartiles(taxAmounts);
+        const costQuartiles = calculateQuartiles(costs);
 
-      // Fetch data
-      const boxPlotingQuery = await db.run(
-        `SELECT NET_VALUE, TAX_AMOUNT, COST FROM ZSD0070_BILLING_REPORT WHERE SYNC_HEADER_ID = ${hdrId}`,
-      );
-
-      // Convert to numbers and separate into arrays
-      const netValues = boxPlotingQuery.map((row) => Number(row.NET_VALUE));
-      const taxAmounts = boxPlotingQuery.map((row) => Number(row.TAX_AMOUNT));
-      const costs = boxPlotingQuery.map((row) => Number(row.COST));
-
-      // Calculate quartiles for each array
-      const netValueQuartiles = calculateQuartiles(netValues);
-      const taxAmountQuartiles = calculateQuartiles(taxAmounts);
-      const costQuartiles = calculateQuartiles(costs);
-
-      // Format the output
-      boxPloting = [
-        { name: "NET VALUE", y: netValueQuartiles },
-        { name: "TAX AMOUNT", y: taxAmountQuartiles },
-        { name: "COST", y: costQuartiles },
-        ];
+        // Format the output
+        boxPloting = {
+          categories: ["NET VALUE", "TAX AMOUNT", "COST"],
+          data: [netValueQuartiles, taxAmountQuartiles, costQuartiles],
+        };
       } else {
-        boxPloting = [];
+        boxPloting = {};
       }
 
       return {
