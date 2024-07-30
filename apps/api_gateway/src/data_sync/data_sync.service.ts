@@ -19,9 +19,9 @@ export class DataSyncService {
           header.IS_SIMULATED,
           loginuser.USER_NAME
         FROM
-          "39131F99F8F44FB4A0F0F6D759497FF7"."PCF_DB_SYNC_HEADER"  AS header
+          "FF9F2C685CB64B89B27EDD22961BD341"."PCF_DB_SYNC_HEADER"  AS header
         JOIN
-          "39131F99F8F44FB4A0F0F6D759497FF7"."PCF_DB_LOGIN_USER" AS loginuser ON header.CREATED_BY = loginuser.ID
+          "FF9F2C685CB64B89B27EDD22961BD341"."PCF_DB_LOGIN_USER" AS loginuser ON header.CREATED_BY = loginuser.ID
         WHERE
           loginuser.IS_ACTIVE = 'Y'
         ORDER BY
@@ -67,9 +67,9 @@ export class DataSyncService {
           details.SYNC_ENDED_AT,
           details.SYNC_STATUS
         FROM
-          "39131F99F8F44FB4A0F0F6D759497FF7"."PCF_DB_SYNC_DETAILS"  AS details
+          "FF9F2C685CB64B89B27EDD22961BD341"."PCF_DB_SYNC_DETAILS"  AS details
         JOIN
-          "39131F99F8F44FB4A0F0F6D759497FF7"."PCF_DB_REPORT_MASTER" AS report ON details.REPORT_ID = report.ID
+          "FF9F2C685CB64B89B27EDD22961BD341"."PCF_DB_REPORT_MASTER" AS report ON details.REPORT_ID = report.ID
           WHERE SYNC_HEADER_ID = '${hdrId}'
       `;
 
@@ -108,7 +108,7 @@ export class DataSyncService {
       const whereClause = cds.parse.expr(`SYNC_HEADER_ID = '${hdrSyncId}'`);
 
       // const sqlQuery = `SELECT * FROM "${hdrName}" WHERE SYNC_HEADER_ID = '${hdrSyncId} AND CUSTOMER_ID = '${hdrCustId}'`;
-      
+
       // const alldtls = await db.read(hdrName).where(whereClause);
       const alldtls = await db.read(hdrName).where(whereClause);
 
