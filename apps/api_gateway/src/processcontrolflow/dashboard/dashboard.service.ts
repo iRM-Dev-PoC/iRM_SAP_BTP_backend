@@ -324,10 +324,11 @@ export class DashboardService {
         console.error("Error fetching base count:", error.message);
       }
 
-      // BOX PLOT - TESTING PURPOSE ONLY
+      // BOX PLOT
       let boxPloting = {};
-      if (controlId === 3 && hdrId) {
-        // Function to calculate quartiles
+
+      if (controlId && hdrId) {
+        // calculate quartiles
         function calculateQuartiles(values) {
           values.sort((a, b) => a - b);
 
@@ -353,28 +354,51 @@ export class DashboardService {
         }
 
         // Fetch data
-        const boxPlotingQuery = await db.run(
-          `SELECT NET_VALUE, TAX_AMOUNT, COST FROM ZSD0070_BILLING_REPORT WHERE SYNC_HEADER_ID = ${hdrId}`,
-        );
+        const controlLogicClause = `ID = ${controlId}`;
+        const syncHeaderClause = `WHERE SYNC_HEADER_ID = ${hdrId}`;
+        const boxPlotingDetails = await db
+          .read("PCF_DB_CHECK_POINT_MASTER")
+          .columns("BOX_PLOT")
+          .where(controlLogicClause);
 
-        // Convert to numbers and separate into arrays
-        const netValues = boxPlotingQuery.map((row) => Number(row.NET_VALUE));
-        const taxAmounts = boxPlotingQuery.map((row) => Number(row.TAX_AMOUNT));
-        const costs = boxPlotingQuery.map((row) => Number(row.COST));
+        if (
+          !boxPlotingDetails ||
+          boxPlotingDetails.length === 0 ||
+          !boxPlotingDetails[0].BOX_PLOT
+        ) {
+          console.log("No box plotting details found.");
+          boxPloting = {}; 
+        } else {
+          const boxPlotingQuery = await db.run(
+            `${boxPlotingDetails[0].BOX_PLOT} ${syncHeaderClause}`,
+          );
+          console.log(boxPlotingQuery);
 
-        // Calculate quartiles for each array
-        const netValueQuartiles = calculateQuartiles(netValues);
-        const taxAmountQuartiles = calculateQuartiles(taxAmounts);
-        const costQuartiles = calculateQuartiles(costs);
+          if (boxPlotingQuery.length === 0) {
+            console.log("No data found for the given query.");
+            boxPloting = {}; 
+          } else {
+            // Extract column names dynamically from the first row
+            const columns = Object.keys(boxPlotingQuery[0]);
 
-        // Format the output
-        boxPloting = {
-          categories: ["NET VALUE", "TAX AMOUNT", "COST"],
-          data: [netValueQuartiles, taxAmountQuartiles, costQuartiles],
-        };
+            // Convert to numbers and calculate quartiles for each column
+            const quartilesArray = columns.map((column) => {
+              const values = boxPlotingQuery.map((row) => Number(row[column]));
+              return calculateQuartiles(values);
+            });
+
+            // Format the output
+            boxPloting = {
+              categories: columns.map((col) => col.replace(/_/g, " ")), // Format category names
+              data: quartilesArray,
+            };
+          }
+        }
       } else {
         boxPloting = {};
       }
+
+      console.log(boxPloting);
 
       return {
         statuscode: HttpStatus.OK,
