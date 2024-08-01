@@ -10,16 +10,12 @@ export class DashboardService {
 
       const db = await cds.connect.to("db");
 
-      // Construct dynamic where clause
       let dynmcWhereClause = `IS_ACTIVE = 'Y'`;
 
-      if (typeOfControlsId) {
-        dynmcWhereClause += ` AND CONTROL_ID = ${typeOfControlsId}`;
-      }
+      if (typeOfControlsId) { dynmcWhereClause += ` AND CONTROL_ID = ${typeOfControlsId}`; }
 
       const whereClause = cds.parse.expr(dynmcWhereClause);
 
-      // Read from PCF_DB_CHECK_POINT_MASTER
       const allControlCheckpoints = await db
         .read("PCF_DB_CHECK_POINT_MASTER")
         .where(whereClause);
@@ -49,14 +45,12 @@ export class DashboardService {
             );
           }
 
-          const baseCountDataQuery = controlLogicData[0].BASE_COUNT;
-          const exceptionCountDataQuery = controlLogicData[0].EXCEPTION_COUNT;
-
-          const wholeBaseCountQuery = `${baseCountDataQuery} ${syncHeaderClause}`;
-          const wholeExceptionCountQuery = `${exceptionCountDataQuery} ${syncHeaderClause}`;
-
-          const baseDataCount = await db.run(wholeBaseCountQuery);
-          const exceptionDataCount = await db.run(wholeExceptionCountQuery);
+          const baseDataCount = await db.run(
+            `${controlLogicData[0].BASE_COUNT} ${syncHeaderClause}`,
+          );
+          const exceptionDataCount = await db.run(
+            `${controlLogicData[0].EXCEPTION_COUNT} ${syncHeaderClause}`,
+          );
 
           return { baseDataCount, exceptionDataCount };
         } catch (error) {
@@ -120,95 +114,6 @@ export class DashboardService {
         `IS_ACTIVE = 'Y' AND ID = ${controlId}`,
       );
 
-      // Chart clause based on sync header
-      const chartClause = `WHERE SYNC_HEADER_ID = ${hdrId}`;
-
-      let donutChartData = [];
-      let columnChartData = [];
-      let lineChartData = [];
-
-      // Function to fetch chart data
-      const fetchChartData = async (controlId, chartId, chartClause) => {
-        const chartClauseExpr = cds.parse.expr(
-          `CHECK_POINT_ID = ${controlId} AND CHART_ID = ${chartId}`,
-        );
-
-        const chartDetails = await db
-          .read("PCF_DB_DASHBOARD_DATA")
-          .columns("QUERY", "GROUP_CLAUSE")
-          .where(chartClauseExpr);
-
-        if (!chartDetails.length) {
-          throw new Error("No chart details found for the given control ID");
-        }
-
-        const queryData = chartDetails[0].QUERY;
-        const groupClauseData = chartDetails[0].GROUP_CLAUSE;
-        const combinedString = `${queryData} ${chartClause} ${groupClauseData}`;
-
-        const data = await db.run(combinedString);
-        return data;
-      };
-
-      // Function to convert specified string fields to numbers in chart data
-      const convertStringsToNumbers = (data, fields) => {
-        return data.map((row) => {
-          const convertedRow = { ...row };
-          fields.forEach((field) => {
-            if (
-              convertedRow[field] !== undefined &&
-              !isNaN(convertedRow[field])
-            ) {
-              convertedRow[field] = Number(convertedRow[field]);
-            }
-          });
-          return convertedRow;
-        });
-      };
-
-      // Fields to convert from string to number for line chart
-      const lineChartFieldsToConvert = ["NET_VALUE", "TAX_AMOUNT", "COST"];
-
-      // Fields to convert from string to number for column chart
-      const columnChartFieldsToConvert = ["NET_VALUE", "TAX_AMOUNT", "COST"];
-
-      // Fetch Donut Chart Data
-      try {
-        donutChartData = await fetchChartData(controlId, 1, chartClause);
-      } catch (error) {
-        console.error("Error fetching donut chart data:", error.message);
-      }
-
-      // Fetch Column Chart Data
-      try {
-        const rawColumnChartData = await fetchChartData(
-          controlId,
-          2,
-          chartClause,
-        );
-        columnChartData = convertStringsToNumbers(
-          rawColumnChartData,
-          columnChartFieldsToConvert,
-        );
-      } catch (error) {
-        console.error("Error fetching column chart data:", error.message);
-      }
-
-      // Fetch Line Chart Data
-      try {
-        const rawLineChartData = await fetchChartData(
-          controlId,
-          3,
-          chartClause,
-        );
-        lineChartData = convertStringsToNumbers(
-          rawLineChartData,
-          lineChartFieldsToConvert,
-        );
-      } catch (error) {
-        console.error("Error fetching line chart data:", error.message);
-      }
-
       // Fetch control details
       const controlDetails = await db
         .read("PCF_DB_CHECK_POINT_MASTER")
@@ -254,15 +159,13 @@ export class DashboardService {
           }
 
           // BASE DATA COUNT
-          const baseCountDataQuery = controlLogicData[0].BASE_COUNT;
           const baseDataCount = await db.run(
-            `${baseCountDataQuery} ${syncHeaderClause}`,
+            `${controlLogicData[0].BASE_COUNT} ${syncHeaderClause}`,
           );
 
           // ALL BASE DATA 0
-          const baseAllDataQuery = controlLogicData[0].BASE_QUERY;
           const baseAllDataResult = await db.run(
-            `${baseAllDataQuery} ${syncHeaderClause}`,
+            `${controlLogicData[0].BASE_QUERY} ${syncHeaderClause}`,
           );
 
           // ALL BASE DATA 1
@@ -278,15 +181,13 @@ export class DashboardService {
             : [];
 
           // EXCEPTION DATA COUNT
-          const exceptionCountDataQuery = controlLogicData[0].EXCEPTION_COUNT;
           const exceptionDataCount = await db.run(
-            `${exceptionCountDataQuery} ${syncHeaderClause}`,
+            `${controlLogicData[0].EXCEPTION_COUNT} ${syncHeaderClause}`,
           );
 
           // ALL EXCEPTION DATA
-          const exceptionAllDataQuery = controlLogicData[0].EXCEPTION_QUERY;
           const exceptionAllDataResult = await db.run(
-            `${exceptionAllDataQuery} ${syncHeaderClause}`,
+            `${controlLogicData[0].EXCEPTION_QUERY} ${syncHeaderClause}`,
           );
 
           return {
@@ -299,7 +200,7 @@ export class DashboardService {
           };
         } catch (error) {
           console.error("Error fetching control logic data:", error);
-          throw error; // Re-throw the error to be handled by the caller
+          throw error; 
         }
       };
 
@@ -313,12 +214,10 @@ export class DashboardService {
         exceptionDataCount = result.exceptionDataCount;
         exceptionAllData = result.exceptionAllData;
 
-        // Calculate deviation
         deviation =
           (exceptionDataCount[0].EXCEPTION_COUNT / baseDataCount[0].BASE_DATA) *
           100;
 
-        // Assuming violatedData is fetched from some query based on your logic
         violatedData = exceptionAllData;
       } catch (error) {
         console.error("Error fetching base count:", error.message);
@@ -398,8 +297,6 @@ export class DashboardService {
         boxPloting = {};
       }
 
-      console.log(boxPloting);
-
       return {
         statuscode: HttpStatus.OK,
         message: "Data Fetched successfully!",
@@ -410,9 +307,6 @@ export class DashboardService {
           deviation_count: deviation,
           risk_score: deviation,
           violatedData,
-          donutChartData,
-          lineChartData,
-          columnChartData,
           baseAllData,
           baseAllData1,
           baseAllData2,
