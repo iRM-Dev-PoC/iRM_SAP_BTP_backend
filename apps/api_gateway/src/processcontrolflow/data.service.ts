@@ -284,7 +284,6 @@ LEFT JOIN KNB1 knb1 ON cwc.CUSTOMER = knb1.CUSTOMER;
         CUSTOMER_ID: 1,
       }));
 
-      // Insert into out table
       const insertRows2 = await cds.run(
         INSERT.into("MANUAL_PO_WITHOUT_PR_REFERENCE").entries(controlOutData2),
       );
@@ -301,7 +300,6 @@ LEFT JOIN KNB1 knb1 ON cwc.CUSTOMER = knb1.CUSTOMER;
         };
       });
 
-      // Insert into out table
       const insertRows3 = await cds.run(
         INSERT.into("DUPLICATE_SALES_ORDER").entries(controlOutData3),
       );
@@ -315,7 +313,6 @@ LEFT JOIN KNB1 knb1 ON cwc.CUSTOMER = knb1.CUSTOMER;
         CUSTOMER_ID: 1,
       }));
 
-      // Insert into out table
       const insertRows4 = await cds.run(
         INSERT.into("MISMATCH_IN_PAYMENT_TERMS").entries(controlOutData4),
       );
@@ -329,7 +326,6 @@ LEFT JOIN KNB1 knb1 ON cwc.CUSTOMER = knb1.CUSTOMER;
         CUSTOMER_ID: 1,
       }));
 
-      // Insert into out table
       const insertRows5 = await cds.run(
         INSERT.into("DUPLICATE_CREDIT_CUSTOMER_CODES").entries(controlOutData5),
       );
@@ -343,7 +339,6 @@ LEFT JOIN KNB1 knb1 ON cwc.CUSTOMER = knb1.CUSTOMER;
         CUSTOMER_ID: 1,
       }));
 
-      // Insert into out table
       const insertRows6 = await cds.run(
         INSERT.into("MULTIPLE_BANK_ACCOUNTS_VENDOR").entries(controlOutData6),
       );
@@ -357,7 +352,6 @@ LEFT JOIN KNB1 knb1 ON cwc.CUSTOMER = knb1.CUSTOMER;
         CUSTOMER_ID: 1,
       }));
 
-      // Insert into out table
       const insertRows7 = await cds.run(
         INSERT.into("INCOMPLETE_VENDOR_MASTER").entries(controlOutData7),
       );
@@ -371,7 +365,6 @@ LEFT JOIN KNB1 knb1 ON cwc.CUSTOMER = knb1.CUSTOMER;
         CUSTOMER_ID: 1,
       }));
 
-      // Insert into out table
       const insertRows8 = await cds.run(
         INSERT.into("PAYMENT_TERMS_NOT_UPDATED_ON_CUSTOMER_MASTER").entries(
           controlOutData8,
