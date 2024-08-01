@@ -200,7 +200,7 @@ export class DashboardService {
           };
         } catch (error) {
           console.error("Error fetching control logic data:", error);
-          throw error; 
+          throw error;
         }
       };
 
@@ -223,11 +223,10 @@ export class DashboardService {
         console.error("Error fetching base count:", error.message);
       }
 
-      // BOX PLOT
+      //------------------------------------------BOX PLOT START------------------------------------
       let boxPloting = {};
 
       if (controlId && hdrId) {
-        // calculate quartiles
         function calculateQuartiles(values) {
           values.sort((a, b) => a - b);
 
@@ -244,7 +243,6 @@ export class DashboardService {
           return [min, q1, median, q3, max];
         }
 
-        // Function to calculate median
         function calculateMedian(values) {
           const mid = Math.floor(values.length / 2);
           return values.length % 2 !== 0
@@ -252,7 +250,6 @@ export class DashboardService {
             : (values[mid - 1] + values[mid]) / 2;
         }
 
-        // Fetch data
         const controlLogicClause = `ID = ${controlId}`;
         const syncHeaderClause = `WHERE SYNC_HEADER_ID = ${hdrId}`;
         const boxPlotingDetails = await db
@@ -266,29 +263,28 @@ export class DashboardService {
           !boxPlotingDetails[0].BOX_PLOT
         ) {
           console.log("No box plotting details found.");
-          boxPloting = {}; 
+          boxPloting = {};
         } else {
           const boxPlotingQuery = await db.run(
             `${boxPlotingDetails[0].BOX_PLOT} ${syncHeaderClause}`,
           );
-          console.log(boxPlotingQuery);
 
           if (boxPlotingQuery.length === 0) {
             console.log("No data found for the given query.");
-            boxPloting = {}; 
+            boxPloting = {};
           } else {
-            // Extract column names dynamically from the first row
+            // Extract column names from 1st row
             const columns = Object.keys(boxPlotingQuery[0]);
 
-            // Convert to numbers and calculate quartiles for each column
+            // Convert to Number
             const quartilesArray = columns.map((column) => {
               const values = boxPlotingQuery.map((row) => Number(row[column]));
               return calculateQuartiles(values);
             });
 
-            // Format the output
+            // Formatting
             boxPloting = {
-              categories: columns.map((col) => col.replace(/_/g, " ")), // Format category names
+              categories: columns.map((col) => col.replace(/_/g, " ")),
               data: quartilesArray,
             };
           }
@@ -296,6 +292,54 @@ export class DashboardService {
       } else {
         boxPloting = {};
       }
+      //------------------------------------------BOX PLOT END------------------------------------
+
+      //------------------------------------------PIVOT TABLE START------------------------------------
+      let pivotData = [];
+      if (controlId && hdrId) {
+        const controlLogicClause = `ID = ${controlId}`;
+        const syncHeaderClause = `WHERE SYNC_HEADER_ID = ${hdrId}`;
+        const pivotDetails = await db
+          .read("PCF_DB_CHECK_POINT_MASTER")
+          .columns("PIVOT_QUERY")
+          .where(controlLogicClause);
+
+        if (
+          !pivotDetails ||
+          pivotDetails.length === 0 ||
+          !pivotDetails[0].PIVOT_QUERY
+        ) {
+          console.log("No pivot query details found.");
+          pivotData = [];
+        } else {
+          const pivotDataQuery = await db.run(
+            `${pivotDetails[0].PIVOT_QUERY} ${syncHeaderClause}`,
+          );
+
+          if (pivotDataQuery.length === 0) {
+            console.log("No data found for the given query.");
+            pivotData = [];
+          } else {
+            const columns = Object.keys(pivotDataQuery[0]);
+
+            // Dynamically format the output
+            pivotData = pivotDataQuery.map((row) => {
+              let formattedRow = {};
+              columns.forEach((column) => {
+                // Attempt to convert value to number, if not possible keep it as string
+                const value = isNaN(Number(row[column]))
+                  ? row[column]
+                  : Number(row[column]);
+                formattedRow[column] = value;
+              });
+              return formattedRow;
+            });
+          }
+        }
+      } else {
+        pivotData = [];
+      }
+      //------------------------------------------PIVOT TABLE END------------------------------------
 
       return {
         statuscode: HttpStatus.OK,
@@ -311,6 +355,7 @@ export class DashboardService {
           baseAllData1,
           baseAllData2,
           boxPloting,
+          pivotData,
         },
       };
     } catch (error) {
