@@ -295,7 +295,8 @@ export class DashboardService {
       //------------------------------------------BOX PLOT END------------------------------------
 
       //------------------------------------------PIVOT TABLE START------------------------------------
-      let pivotData = [];
+      // PIVOT TABLE
+      let pivotData = { headers: [], data: [] };
       if (controlId && hdrId) {
         const controlLogicClause = `ID = ${controlId}`;
         const syncHeaderClause = `WHERE SYNC_HEADER_ID = ${hdrId}`;
@@ -310,20 +311,31 @@ export class DashboardService {
           !pivotDetails[0].PIVOT_QUERY
         ) {
           console.log("No pivot query details found.");
-          pivotData = [];
+          pivotData = { headers: [], data: [] };
         } else {
           const pivotDataQuery = await db.run(
             `${pivotDetails[0].PIVOT_QUERY} ${syncHeaderClause}`,
           );
+          console.log(pivotDataQuery);
 
           if (pivotDataQuery.length === 0) {
             console.log("No data found for the given query.");
-            pivotData = [];
+            pivotData = { headers: [], data: [] };
           } else {
+            // Extract column names dynamically from the first row
             const columns = Object.keys(pivotDataQuery[0]);
 
-            // Dynamically format the output
-            pivotData = pivotDataQuery.map((row) => {
+            // Generate headers with type information
+            pivotData.headers = columns.map((column) => {
+              const sampleValue = pivotDataQuery[0][column];
+              return {
+                name: column,
+                type: isNaN(Number(sampleValue)) ? "string" : "number",
+              };
+            });
+
+            // Format the data dynamically
+            pivotData.data = pivotDataQuery.map((row) => {
               let formattedRow = {};
               columns.forEach((column) => {
                 // Attempt to convert value to number, if not possible keep it as string
@@ -337,8 +349,10 @@ export class DashboardService {
           }
         }
       } else {
-        pivotData = [];
+        pivotData = { headers: [], data: [] };
       }
+
+      console.log(pivotData);
       //------------------------------------------PIVOT TABLE END------------------------------------
 
       return {
