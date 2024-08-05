@@ -233,32 +233,80 @@ export class DataService {
           AND knb1.SYNC_HEADER_ID = ${hdrId};
     `;
 
-    /*
-    -- Step 1: Identify customers without credit limits
-WITH CustomersWithoutCreditLimits AS (
-    SELECT kna1.CUSTOMER
-    FROM KNA1 kna1
-    LEFT JOIN KNKK knkk ON kna1.CUSTOMER = knkk.Customer
-    WHERE knkk.Customer IS NULL
-)
+    const simulationQuery9 = `
+      WITH CustomersWithoutCreditLimits AS (
+      SELECT kna1.CUSTOMER,
+      knkk.CREDIT_LIMIT
+      FROM KNA1 kna1
+      LEFT JOIN KNKK knkk ON kna1.CUSTOMER = knkk.Customer
+      WHERE TO_DECIMAL(knkk.CREDIT_LIMIT) = 0
+      AND knkk.SYNC_HEADER_ID = ${hdrId}
+      )
+      SELECT
+          kna1.CUSTOMER,
+          cwc.CREDIT_LIMIT,
+          kna1.COUNTRY,
+          kna1.NAME1,
+          kna1.CITY,
+          kna1.POSTAL_CODE,
+          kna1.REGION,
+          kna1.STREET,
+          kna1.TELEPHONE1,
+          knb1.COMPANY_CODE,
+          knb1.CREATED_ON,
+          knb1.CREATED_BY
+      FROM CustomersWithoutCreditLimits cwc
+      JOIN KNA1 kna1 ON cwc.CUSTOMER = kna1.CUSTOMER
+      LEFT JOIN KNB1 knb1 ON cwc.CUSTOMER = knb1.CUSTOMER
+      WHERE kna1.SYNC_HEADER_ID = ${hdrId}
+      AND knb1.SYNC_HEADER_ID = ${hdrId}; 
+    `;
 
--- Step 2: Fetch additional details
-SELECT
-    kna1.CUSTOMER,
-    kna1.COUNTRY,
-    kna1.NAME1,
-    kna1.CITY,
-    kna1.POSTAL_CODE,
-    kna1.REGION,
-    kna1.STREET,
-    kna1.TELEPHONE1,
-    knb1.COMPANY_CODE,
-    knb1.CREATED_ON,
-    knb1.CREATED_BY
-FROM CustomersWithoutCreditLimits cwc
-JOIN KNA1 kna1 ON cwc.CUSTOMER = kna1.CUSTOMER
-LEFT JOIN KNB1 knb1 ON cwc.CUSTOMER = knb1.CUSTOMER;
-*/
+    const simulationQuery10 = `
+      SELECT * FROM (
+        WITH MultipleEANs AS (
+            SELECT 
+                EAN_UPC,
+                COUNT(*) AS EANCount
+            FROM 
+                MARA
+            WHERE MARA.SYNC_HEADER_ID = ${hdrId}
+            GROUP BY 
+                EAN_UPC
+            HAVING 
+                COUNT(*) > 1
+        ),
+        MaterialDetails AS (
+            SELECT 
+                mara.Material,
+                mara.EAN_UPC,
+                makt.Material_Description,
+                mara.CREATED_ON,
+                mara.CREATED_BY,
+                mara.MATERIAL_TYPE,
+                mara.MATERIAL_GROUP
+            FROM 
+                MARA mara
+            JOIN 
+                MAKT makt ON mara.Material = makt.Material
+            WHERE makt.SYNC_HEADER_ID = ${hdrId} AND mara.SYNC_HEADER_ID = ${hdrId}
+        )
+        SELECT 
+            md.Material,
+            md.EAN_UPC,
+            md.Material_Description,
+            md.CREATED_ON,
+            md.CREATED_BY,
+            md.MATERIAL_TYPE,
+            md.MATERIAL_GROUP
+        FROM 
+            MaterialDetails md
+        JOIN 
+            MultipleEANs me ON md.EAN_UPC = me.EAN_UPC
+      ) TBL WHERE TBL.EAN_UPC <> ''
+      ORDER BY 
+          TBL.EAN_UPC;
+    `;
 
     try {
       // Price Mismatch
@@ -371,7 +419,34 @@ LEFT JOIN KNB1 knb1 ON cwc.CUSTOMER = knb1.CUSTOMER;
         ),
       );
 
-      // Update the simulation in sync_header table
+      // CUSTOMERS WITHOUT CREDIT LIMITS
+      const result9 = await db.run(simulationQuery9);
+
+      const controlOutData9 = result9.map((item) => ({
+        ...item,
+        SYNC_HEADER_ID: hdrId,
+        CUSTOMER_ID: 1,
+      }));
+
+      const insertRows9 = await cds.run(
+        INSERT.into("CUSTOMERS_WITHOUT_CREDIT_LIMITS").entries(controlOutData9),
+      );
+
+      // MULTIPLE_ITEM_CODES_ASSIGNED_TO_SAME_MATERIAL
+      const result10 = await db.run(simulationQuery10);
+
+      const controlOutData10 = result10.map((item) => ({
+        ...item,
+        SYNC_HEADER_ID: hdrId,
+        CUSTOMER_ID: 1,
+      }));
+
+      const insertRows10 = await cds.run(
+        INSERT.into("MULTIPLE_ITEM_CODES_ASSIGNED_TO_SAME_MATERIAL").entries(
+          controlOutData10,
+        ),
+      );
+
       await cds.run(
         UPDATE("PCF_DB_SYNC_HEADER")
           .set({ IS_SIMULATED: true })
