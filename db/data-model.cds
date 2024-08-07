@@ -43,7 +43,7 @@ entity Control_family_master  {
 
 
 
-// entity PA0002_Employee_Master  {
+// entity PA0002  {
 //   key ID               : Integer ;
 //       SYNC_ID          : String; //SYNC ID OF SYNC HEADER
 //       EMP_ID           : UUID    @cds.UUID;
@@ -66,7 +66,7 @@ entity Control_family_master  {
 //       CHANGED_BY       : String;
 // }
 
-// entity VA05_Sales_Order  {
+// entity VA05  {
 //   key ID                   : Integer ;
 //       SALES_ORDER_ID       : UUID    @cds.UUID;
 //       SALES_ORDER_DATE     :  Timestamp;
@@ -92,7 +92,7 @@ entity Control_family_master  {
 
 // }
 
-// entity ZSD0070_Billing_Report  {
+// entity ZSD0070  {
 //   key ID                    : Integer ;
 //       BILLING_REPORT_ID     : UUID    @cds.UUID;
 //       BILLING_DOCUMENT      : String;
@@ -195,9 +195,9 @@ entity Report_checkpoint_mapping  {
 // entity Price_mismatch_output  {
 //   key ID           : Integer ;
 //       SYNC_ID      : Association to sync_header;
-//       EMP_ID       : Association to PA0002_Employee_Master;
-//       INVOICE_ID   : Association to ZSD0070_Billing_Report;
-//       ORDER_ID     : Association to VA05_Sales_Order;
+//       EMP_ID       : Association to PA0002;
+//       INVOICE_ID   : Association to ZSD0070;
+//       ORDER_ID     : Association to VA05;
 //       CONTROL_ID   : Association to Control_master;
 //       CUSTOMER_ID  : Association to Customer_master;
 //       SIMULATED_AT :  Timestamp;

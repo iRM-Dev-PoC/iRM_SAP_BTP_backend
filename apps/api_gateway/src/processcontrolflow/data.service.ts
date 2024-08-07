@@ -5,6 +5,8 @@ import cds from "@sap/cds";
 export class DataService {
   async dataSimulation(hdrId: number): Promise<any> {
     const db = await cds.connect.to("db");
+    const sync_id = hdrId
+    console.log(`up ${sync_id}`)
 
     const simulationQuery = `
       SELECT tbl.*
@@ -20,7 +22,7 @@ export class DataService {
               tbl_sales_order.sold_to_party_name,
               tbl_billing.item_description,
               tbl_billing.payer_description,
-              CONCAT(CONCAT(CONCAT(CONCAT(PA0002_EMPLOYEE_MASTER.first_name, ' '), PA0002_EMPLOYEE_MASTER.middle_name), ' '), PA0002_EMPLOYEE_MASTER.last_name) employee_name,
+              CONCAT(CONCAT(CONCAT(CONCAT(PA0002.first_name, ' '), PA0002.middle_name), ' '), PA0002.last_name) employee_name,
               tbl_sales_order.sales_order_created_on,
               tbl_billing.billing_created_on
           FROM (
@@ -36,7 +38,7 @@ export class DataService {
                   payer_description,
                   created_on billing_created_on
               FROM 
-                  zsd0070_billing_report where sync_header_id = ${hdrId}
+                  ZSD0070 where sync_header_id = ${hdrId}
             ) AS tbl_billing 
           INNER JOIN (
                   SELECT 
@@ -49,10 +51,10 @@ export class DataService {
                       personal_number as sales_personal_number,
                       created_on sales_order_created_on
                   FROM 
-                      va05_sales_order where sync_header_id = ${hdrId}
+                      VA05 where sync_header_id = ${hdrId}
               ) AS tbl_sales_order 
           ON tbl_billing.sales_document = tbl_sales_order.sales_document
-          INNER JOIN PA0002_EMPLOYEE_MASTER on PA0002_EMPLOYEE_MASTER.personal_number = tbl_sales_order.sales_personal_number and sync_header_id = ${hdrId}
+          INNER JOIN PA0002 on PA0002.personal_number = tbl_sales_order.sales_personal_number and sync_header_id = ${hdrId}
         ) tbl
         where billing_invoice_net_value != sales_order_net_value;
       `;
@@ -308,162 +310,182 @@ export class DataService {
           TBL.EAN_UPC;
     `;
 
-    try {
-      // Price Mismatch
-      const result = await db.run(simulationQuery);
+    const simulations = await db
+      .read("PCF_DB_CHECK_POINT_MASTER")
+      .columns("SIMULATION")
+      .where("IS_ACTIVE = 'Y'");
 
-      const controlOutData = result.map((item) => ({
-        ...item,
-        SYNC_HEADER_ID: hdrId,
-        CUSTOMER_ID: 1,
-      }));
+    const queries = simulations.map((simulation) => {
+      return simulation.SIMULATION.replace(/\${hdrId}/g, hdrId);
+    });
 
-      // Insert into out table
-      const insertRows = await cds.run(
-        INSERT.into("PRICE_MISMATCH_OUT").entries(controlOutData),
-      );
+    for (const query of queries) {
+      try {
+        const result = await db.run(query);
+        console.log(`Query executed successfully: ${query}`);
+        // console.log("Result:", result);
+      } catch (error) {
+        console.error(`Error executing query: ${query}`);
+        console.error("Error:", error);
+      }
+    }  
 
-      // Manual PO Without PR Requisition
-      const result2 = await db.run(simulationQuery2);
+    // try {
+    //   // Price Mismatch
+    //   const result = await db.run(simulationQuery);
 
-      const controlOutData2 = result2.map((item) => ({
-        ...item,
-        SYNC_HEADER_ID: hdrId,
-        CUSTOMER_ID: 1,
-      }));
+    //   const controlOutData = result.map((item) => ({
+    //     ...item,
+    //     SYNC_HEADER_ID: hdrId,
+    //     CUSTOMER_ID: 1,
+    //   }));
 
-      const insertRows2 = await cds.run(
-        INSERT.into("MANUAL_PO_WITHOUT_PR_REFERENCE").entries(controlOutData2),
-      );
+    //   // Insert into out table
+    //   const insertRows = await cds.run(
+    //     INSERT.into("PRICE_MISMATCH_OUT").entries(controlOutData),
+    //   );
 
-      // Duplicate Sales Order
-      const result3 = await db.run(simulationQuery3);
+    //   // Manual PO Without PR Requisition
+    //   const result2 = await db.run(simulationQuery2);
 
-      const controlOutData3 = result3.map((item) => {
-        const { ID, ...rest } = item; // Exclude the ID column
-        return {
-          ...rest,
-          SYNC_HEADER_ID: hdrId,
-          CUSTOMER_ID: 1,
-        };
-      });
+    //   const controlOutData2 = result2.map((item) => ({
+    //     ...item,
+    //     SYNC_HEADER_ID: hdrId,
+    //     CUSTOMER_ID: 1,
+    //   }));
 
-      const insertRows3 = await cds.run(
-        INSERT.into("DUPLICATE_SALES_ORDER").entries(controlOutData3),
-      );
+    //   const insertRows2 = await cds.run(
+    //     INSERT.into("MANUAL_PO_WITHOUT_PR_REFERENCE").entries(controlOutData2),
+    //   );
 
-      // Mismatch in Payment Terms
-      const result4 = await db.run(simulationQuery4);
+    //   // Duplicate Sales Order
+    //   const result3 = await db.run(simulationQuery3);
 
-      const controlOutData4 = result4.map((item) => ({
-        ...item,
-        SYNC_HEADER_ID: hdrId,
-        CUSTOMER_ID: 1,
-      }));
+    //   const controlOutData3 = result3.map((item) => {
+    //     const { ID, ...rest } = item; // Exclude the ID column
+    //     return {
+    //       ...rest,
+    //       SYNC_HEADER_ID: hdrId,
+    //       CUSTOMER_ID: 1,
+    //     };
+    //   });
 
-      const insertRows4 = await cds.run(
-        INSERT.into("MISMATCH_IN_PAYMENT_TERMS").entries(controlOutData4),
-      );
+    //   const insertRows3 = await cds.run(
+    //     INSERT.into("DUPLICATE_SALES_ORDER").entries(controlOutData3),
+    //   );
 
-      // DUPLICATE_CREDIT_CUSTOMER_CODES
-      const result5 = await db.run(simulationQuery5);
+    //   // Mismatch in Payment Terms
+    //   const result4 = await db.run(simulationQuery4);
 
-      const controlOutData5 = result5.map((item) => ({
-        ...item,
-        SYNC_HEADER_ID: hdrId,
-        CUSTOMER_ID: 1,
-      }));
+    //   const controlOutData4 = result4.map((item) => ({
+    //     ...item,
+    //     SYNC_HEADER_ID: hdrId,
+    //     CUSTOMER_ID: 1,
+    //   }));
 
-      const insertRows5 = await cds.run(
-        INSERT.into("DUPLICATE_CREDIT_CUSTOMER_CODES").entries(controlOutData5),
-      );
+    //   const insertRows4 = await cds.run(
+    //     INSERT.into("MISMATCH_IN_PAYMENT_TERMS").entries(controlOutData4),
+    //   );
 
-      // MULTIPLE BANK ACCOUNT AGAINST SAME VENDOR CODE
-      const result6 = await db.run(simulationQuery6);
+    //   // DUPLICATE_CREDIT_CUSTOMER_CODES
+    //   const result5 = await db.run(simulationQuery5);
 
-      const controlOutData6 = result6.map((item) => ({
-        ...item,
-        SYNC_HEADER_ID: hdrId,
-        CUSTOMER_ID: 1,
-      }));
+    //   const controlOutData5 = result5.map((item) => ({
+    //     ...item,
+    //     SYNC_HEADER_ID: hdrId,
+    //     CUSTOMER_ID: 1,
+    //   }));
 
-      const insertRows6 = await cds.run(
-        INSERT.into("MULTIPLE_BANK_ACCOUNTS_VENDOR").entries(controlOutData6),
-      );
+    //   const insertRows5 = await cds.run(
+    //     INSERT.into("DUPLICATE_CREDIT_CUSTOMER_CODES").entries(controlOutData5),
+    //   );
 
-      // INCOMPLETE VENDOR MASTER
-      const result7 = await db.run(simulationQuery7);
+    //   // MULTIPLE BANK ACCOUNT AGAINST SAME VENDOR CODE
+    //   const result6 = await db.run(simulationQuery6);
 
-      const controlOutData7 = result7.map((item) => ({
-        ...item,
-        SYNC_HEADER_ID: hdrId,
-        CUSTOMER_ID: 1,
-      }));
+    //   const controlOutData6 = result6.map((item) => ({
+    //     ...item,
+    //     SYNC_HEADER_ID: hdrId,
+    //     CUSTOMER_ID: 1,
+    //   }));
 
-      const insertRows7 = await cds.run(
-        INSERT.into("INCOMPLETE_VENDOR_MASTER").entries(controlOutData7),
-      );
+    //   const insertRows6 = await cds.run(
+    //     INSERT.into("MULTIPLE_BANK_ACCOUNTS_VENDOR").entries(controlOutData6),
+    //   );
 
-      // Payment Terms Not Updated On Customer Master
-      const result8 = await db.run(simulationQuery8);
+    //   // INCOMPLETE VENDOR MASTER
+    //   const result7 = await db.run(simulationQuery7);
 
-      const controlOutData8 = result8.map((item) => ({
-        ...item,
-        SYNC_HEADER_ID: hdrId,
-        CUSTOMER_ID: 1,
-      }));
+    //   const controlOutData7 = result7.map((item) => ({
+    //     ...item,
+    //     SYNC_HEADER_ID: hdrId,
+    //     CUSTOMER_ID: 1,
+    //   }));
 
-      const insertRows8 = await cds.run(
-        INSERT.into("PAYMENT_TERMS_NOT_UPDATED_ON_CUSTOMER_MASTER").entries(
-          controlOutData8,
-        ),
-      );
+    //   const insertRows7 = await cds.run(
+    //     INSERT.into("INCOMPLETE_VENDOR_MASTER").entries(controlOutData7),
+    //   );
 
-      // CUSTOMERS WITHOUT CREDIT LIMITS
-      const result9 = await db.run(simulationQuery9);
+    //   // Payment Terms Not Updated On Customer Master
+    //   const result8 = await db.run(simulationQuery8);
 
-      const controlOutData9 = result9.map((item) => ({
-        ...item,
-        SYNC_HEADER_ID: hdrId,
-        CUSTOMER_ID: 1,
-      }));
+    //   const controlOutData8 = result8.map((item) => ({
+    //     ...item,
+    //     SYNC_HEADER_ID: hdrId,
+    //     CUSTOMER_ID: 1,
+    //   }));
 
-      const insertRows9 = await cds.run(
-        INSERT.into("CUSTOMERS_WITHOUT_CREDIT_LIMITS").entries(controlOutData9),
-      );
+    //   const insertRows8 = await cds.run(
+    //     INSERT.into("PAYMENT_TERMS_NOT_UPDATED_ON_CUSTOMER_MASTER").entries(
+    //       controlOutData8,
+    //     ),
+    //   );
 
-      // MULTIPLE_ITEM_CODES_ASSIGNED_TO_SAME_MATERIAL
-      const result10 = await db.run(simulationQuery10);
+    //   // CUSTOMERS WITHOUT CREDIT LIMITS
+    //   const result9 = await db.run(simulationQuery9);
 
-      const controlOutData10 = result10.map((item) => ({
-        ...item,
-        SYNC_HEADER_ID: hdrId,
-        CUSTOMER_ID: 1,
-      }));
+    //   const controlOutData9 = result9.map((item) => ({
+    //     ...item,
+    //     SYNC_HEADER_ID: hdrId,
+    //     CUSTOMER_ID: 1,
+    //   }));
 
-      const insertRows10 = await cds.run(
-        INSERT.into("MULTIPLE_ITEM_CODES_ASSIGNED_TO_SAME_MATERIAL").entries(
-          controlOutData10,
-        ),
-      );
+    //   const insertRows9 = await cds.run(
+    //     INSERT.into("CUSTOMERS_WITHOUT_CREDIT_LIMITS").entries(controlOutData9),
+    //   );
 
-      await cds.run(
-        UPDATE("PCF_DB_SYNC_HEADER")
-          .set({ IS_SIMULATED: true })
-          .where({ ID: hdrId }),
-      );
+    //   // MULTIPLE_ITEM_CODES_ASSIGNED_TO_SAME_MATERIAL
+    //   const result10 = await db.run(simulationQuery10);
 
-      return {
-        statusCode: HttpStatus.OK,
-        message: "Data Simulated Successfully!",
-      };
-    } catch (error) {
-      console.error(error);
-      return {
-        statusCode: HttpStatus.BAD_REQUEST,
-        message:
-          "Error in Data Simulation! - Please fill all the required fields",
-      };
-    }
+    //   const controlOutData10 = result10.map((item) => ({
+    //     ...item,
+    //     SYNC_HEADER_ID: hdrId,
+    //     CUSTOMER_ID: 1,
+    //   }));
+
+    //   const insertRows10 = await cds.run(
+    //     INSERT.into("MULTIPLE_ITEM_CODES_ASSIGNED_TO_SAME_MATERIAL").entries(
+    //       controlOutData10,
+    //     ),
+    //   );
+
+    //   await cds.run(
+    //     UPDATE("PCF_DB_SYNC_HEADER")
+    //       .set({ IS_SIMULATED: true })
+    //       .where({ ID: hdrId }),
+    //   );
+
+    //   return {
+    //     statusCode: HttpStatus.OK,
+    //     message: "Data Simulated Successfully!",
+    //   };
+    // } catch (error) {
+    //   console.error(error);
+    //   return {
+    //     statusCode: HttpStatus.BAD_REQUEST,
+    //     message:
+    //       "Error in Data Simulation! - Please fill all the required fields",
+    //   };
+    // }
   }
 }
