@@ -4,7 +4,7 @@ import * as fs from "fs";
 import { join } from "path";
 import * as xlsx from "xlsx";
 
-type insertDataEmployee = {
+type insertDataPA0002 = {
   CLIENT: string;
   PERSONAL_NUMBER: string;
   FIRST_NAME: string;
@@ -18,7 +18,7 @@ type insertDataEmployee = {
   CREATED_ON: string;
 };
 
-type insertDataSalesOrder = {
+type insertDataVA05 = {
   SALES_DOCUMENT: string;
   DOCUMENT_DATE: string;
   CREATED_BY: string;
@@ -33,7 +33,7 @@ type insertDataSalesOrder = {
   SCHEDULE_LINE_NUMBER: string;
 };
 
-type insertDataBillingInvoice = {
+type insertDataZSD0070 = {
   BILLING_DOCUMENT: string;
   SALES_DOCUMENT: string;
   PAYER_DESCRIPTION: string;
@@ -157,8 +157,6 @@ type insertDataMARA = {
   MATERIAL_DESCRIPTION: string;
 };
 
-
-
 @Injectable()
 export class DataImportService {
   async handleFileUploads(files: Array<Express.Multer.File>) {
@@ -212,9 +210,9 @@ export class DataImportService {
       const fileNameUpper = fileName.toUpperCase();
 
       // batch insert into db
-      if (fileNameUpper.includes("EMPLOYEE")) {
+      if (fileNameUpper.includes("PA0002")) {
         // Convert sheet to JSON object
-        const data: insertDataEmployee[] = xlsx.utils.sheet_to_json(sheet);
+        const data: insertDataPA0002[] = xlsx.utils.sheet_to_json(sheet);
 
         // insert into sync_details
         const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
@@ -248,9 +246,7 @@ export class DataImportService {
 
         // insert into employee_master
         try {
-          const insertRows = await INSERT(insertData).into(
-            "PA0002_EMPLOYEE_MASTER",
-          );
+          const insertRows = await INSERT(insertData).into("PA0002");
 
           // update sync_details status
           const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
@@ -275,12 +271,9 @@ export class DataImportService {
             });
           console.error("Can not insert rows! ", err);
         }
-      } else if (fileNameUpper.includes("BILLING")) {
-        // Convert sheet to JSON object
-        const data: insertDataBillingInvoice[] =
-          xlsx.utils.sheet_to_json(sheet);
+      } else if (fileNameUpper.includes("ZSD0070")) {
+        const data: insertDataZSD0070[] = xlsx.utils.sheet_to_json(sheet);
 
-        // insert into sync_details
         const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
           SYNC_HEADER_ID: syncHdrId,
           CONTROL_ID: 1,
@@ -291,7 +284,6 @@ export class DataImportService {
           CREATED_ON: `${new Date().toISOString()}`,
         });
 
-        // change billing data format
         const insertData = data.map((item) => {
           return {
             SYNC_HEADER_ID: syncHdrId,
@@ -312,13 +304,9 @@ export class DataImportService {
           };
         });
 
-        // insert into billing_master
         try {
-          const insertRows = await INSERT(insertData).into(
-            "ZSD0070_BILLING_REPORT",
-          );
+          const insertRows = await INSERT(insertData).into("ZSD0070");
 
-          // update sync_details status
           const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
             .set({
               SYNC_STATUS: "Completed",
@@ -329,7 +317,6 @@ export class DataImportService {
               REPORT_ID: 2,
             });
         } catch (err) {
-          // update sync_details status
           const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
             .set({
               SYNC_STATUS: "Error",
@@ -341,9 +328,8 @@ export class DataImportService {
             });
           console.error("Can not insert rows! ", err);
         }
-      } else if (fileNameUpper.includes("SALES")) {
-        // Convert sheet to JSON object
-        const data: insertDataSalesOrder[] = xlsx.utils.sheet_to_json(sheet);
+      } else if (fileNameUpper.includes("VA05")) {
+        const data: insertDataVA05[] = xlsx.utils.sheet_to_json(sheet);
 
         // insert into sync_details
         const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
@@ -376,11 +362,9 @@ export class DataImportService {
           };
         });
 
-        // insert into sales_order
         try {
-          const insertRows = await INSERT(insertData).into("VA05_SALES_ORDER");
+          const insertRows = await INSERT(insertData).into("VA05");
 
-          // update sync_details status
           const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
             .set({
               SYNC_STATUS: "Completed",
