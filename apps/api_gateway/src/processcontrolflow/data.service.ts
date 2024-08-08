@@ -4,488 +4,55 @@ import cds from "@sap/cds";
 @Injectable()
 export class DataService {
   async dataSimulation(hdrId: number): Promise<any> {
-    const db = await cds.connect.to("db");
-    const sync_id = hdrId
-    console.log(`up ${sync_id}`)
+    try {
+      const db = await cds.connect.to("db");
 
-    const simulationQuery = `
-      SELECT tbl.*
-        FROM (
-          SELECT 
-              tbl_billing.billing_document, 
-              tbl_billing.sales_document,
-              tbl_billing.billing_tax_amount,
-              tbl_billing.billing_cost,
-              tbl_billing.net_value AS billing_invoice_net_value, 
-              tbl_sales_order.net_value AS sales_order_net_value ,
-              tbl_sales_order.sales_personal_number,
-              tbl_sales_order.sold_to_party_name,
-              tbl_billing.item_description,
-              tbl_billing.payer_description,
-              CONCAT(CONCAT(CONCAT(CONCAT(PA0002.first_name, ' '), PA0002.middle_name), ' '), PA0002.last_name) employee_name,
-              tbl_sales_order.sales_order_created_on,
-              tbl_billing.billing_created_on
-          FROM (
-              SELECT 
-                  ID, 
-                  billing_document, 
-                  sales_document, 
-                  sales_document_item, 
-                  net_value AS net_value,
-                  tax_amount billing_tax_amount,
-                  cost billing_cost,
-                  item_description,
-                  payer_description,
-                  created_on billing_created_on
-              FROM 
-                  ZSD0070 where sync_header_id = ${hdrId}
-            ) AS tbl_billing 
-          INNER JOIN (
-                  SELECT 
-                      ID, 
-                      sales_document, 
-                      sales_document_item, 
-                      net_value, 
-                      schedule_line_number,
-                      sold_to_party_name,
-                      personal_number as sales_personal_number,
-                      created_on sales_order_created_on
-                  FROM 
-                      VA05 where sync_header_id = ${hdrId}
-              ) AS tbl_sales_order 
-          ON tbl_billing.sales_document = tbl_sales_order.sales_document
-          INNER JOIN PA0002 on PA0002.personal_number = tbl_sales_order.sales_personal_number and sync_header_id = ${hdrId}
-        ) tbl
-        where billing_invoice_net_value != sales_order_net_value;
-      `;
+      const simulations = await db
+        .read("PCF_DB_CHECK_POINT_MASTER")
+        .columns("SIMULATION", "OUT_TABLE")
+        .where("IS_ACTIVE = 'Y'");
 
-    const simulationQuery2 = `
-      SELECT 
-          EKKO.PURCHASING_DOCUMENT,
-          EKPO.PURCHASE_REQUISITION,
-          EKKO.DOCUMENT_DATE,
-          EKKO.CREATED_ON,
-          EKKO.CREATED_BY,
-          EKPO.MATERIAL,
-          EKPO.COMPANY_CODE,
-          EKPO.PLANT,
-          EKPO.STORAGE_LOCATION,
-          EKPO.MATERIAL_GROUP
-      FROM 
-          "FF9F2C685CB64B89B27EDD22961BD341"."EKKO" EKKO
-      JOIN 
-          "FF9F2C685CB64B89B27EDD22961BD341"."EKPO" EKPO
-      ON 
-          EKKO.PURCHASING_DOCUMENT = EKPO.PURCHASING_DOCUMENT
-          AND EKPO.SYNC_HEADER_ID = ${hdrId}
-          AND EKKO.SYNC_HEADER_ID = ${hdrId}
-      WHERE 
-          EKPO.PURCHASE_REQUISITION = 'undefined';
-    `;
+      const queries = simulations.map((simulation) => ({
+        query: simulation.SIMULATION.replace(/\${hdrId}/g, hdrId),
+        outTable: simulation.OUT_TABLE,
+      }));
 
-    const simulationQuery3 = `
-      WITH DUPLICATE_SALES_ORDERS AS (
-        SELECT SALES_DOCUMENT
-        FROM "FF9F2C685CB64B89B27EDD22961BD341"."VBAK"
-        WHERE SYNC_HEADER_ID = ${hdrId}
-        GROUP BY SALES_DOCUMENT
-        HAVING COUNT(*) > 1
-      )
-      SELECT V.*
-      FROM "FF9F2C685CB64B89B27EDD22961BD341"."VBAK" V 
-      INNER JOIN DUPLICATE_SALES_ORDERS DSO ON V.SALES_DOCUMENT = DSO.SALES_DOCUMENT
-      AND V.SYNC_HEADER_ID = ${hdrId}
-      ORDER BY V.SALES_DOCUMENT
-    `;
-
-    const simulationQuery4 = `
-      SELECT
-        P.CUSTOMER_ID,
-        P.PURCHASING_DOCUMENT, 
-        P.COMPANY_CODE, 
-        P.CREATED_ON AS PO_CREATED_ON, 
-        P.CREATED_BY AS PO_CREATED_BY, 
-        P.VENDOR, 
-        P.TERMS_OF_PAYMENT AS PO_PAYMENT_TERM, 
-        V.NAME_OF_VENDOR, 
-        V.STREET, 
-        V.CITY, 
-        V.ACCOUNT_GROUP, 
-        V.TERMS_OF_PAYMENT AS VENDOR_PAYMENT_TERM
-      FROM 
-          "FF9F2C685CB64B89B27EDD22961BD341"."ME2L" P
-      INNER JOIN 
-          "FF9F2C685CB64B89B27EDD22961BD341"."MKVZ" V 
-      ON 
-          P.VENDOR = V.VENDOR
-          AND V.SYNC_HEADER_ID = ${hdrId}
-          AND P.SYNC_HEADER_ID = ${hdrId}
-      WHERE 
-          P.TERMS_OF_PAYMENT <> V.TERMS_OF_PAYMENT 
-    `;
-
-    const simulationQuery5 = `
-      WITH DuplicateCustomers AS (
-        SELECT 
-            CUSTOMER
-        FROM 
-            KNB1
-        WHERE KNB1.SYNC_HEADER_ID = ${hdrId}
-        GROUP BY 
-            CUSTOMER
-        HAVING 
-            COUNT(*) > 1
-      )
-      SELECT 
-          KNB1.CUSTOMER, 
-          KNB1.COMPANY_CODE, 
-          KNB1.CREATED_ON, 
-          KNB1.CREATED_BY,
-          KNA1.COUNTRY, 
-          KNA1.NAME1, 
-          KNA1.CITY, 
-          KNA1.POSTAL_CODE, 
-          KNA1.REGION, 
-          KNA1.STREET, 
-          KNA1.TELEPHONE1
-      FROM 
-          KNB1
-      JOIN 
-          KNA1 ON KNB1.CUSTOMER = KNA1.CUSTOMER
-          AND KNB1.SYNC_HEADER_ID = ${hdrId} 
-          AND KNA1.SYNC_HEADER_ID = ${hdrId}
-      WHERE 
-          KNB1.CUSTOMER IN (SELECT CUSTOMER FROM DuplicateCustomers)
-          AND KNB1.SYNC_HEADER_ID = ${hdrId} 
-          AND KNA1.SYNC_HEADER_ID = ${hdrId}; 
-    `;
-
-    const simulationQuery6 = `
-      WITH VendorMultipleBankAccounts AS (
-        SELECT Vendor
-        FROM LFBK
-        WHERE SYNC_HEADER_ID = ${hdrId}
-        GROUP BY Vendor
-        HAVING COUNT(DISTINCT Bank_Account) > 1
-      )
-      SELECT lbk.Vendor,
-      lbk.country,
-      lbk.bank_key,
-      lbk.bank_account,
-      lbk.ACCOUNT_HOLDER
-      FROM LFBK lbk
-      INNER JOIN VendorMultipleBankAccounts vmba ON lbk.Vendor = vmba.Vendor AND lbk.SYNC_HEADER_ID = ${hdrId}; 
-    `;
-
-    const simulationQuery7 = `
-      SELECT * FROM (SELECT 
-        COALESCE(lfa1.Vendor, lfbk.Vendor) AS Vendor,
-        lfa1.Country AS Country_LFA1,
-        lfbk.Country AS Country_LFBK,
-        lfa1.Name1 AS Name1_LFA1,
-        lfbk.Account_Holder AS Account_Holder_LFBK,
-        lfa1.City AS City_LFA1,
-        lfa1.Telephone1 AS Telephone1_LFA1,
-        lfbk.Bank_Account AS Bank_Account_LFBK,
-        CASE 
-            WHEN lfa1.Vendor IS NULL THEN 'Missing in LFA1'
-            WHEN lfbk.Vendor IS NULL THEN 'Missing in LFBK'
-            WHEN lfa1.Country <> lfbk.Country 
-                OR lfa1.Name1 <> lfbk.Account_Holder 
-                THEN 'Discrepancy'
-            ELSE NULL -- NULL to indicate no discrepancy
-        END AS Issue_Type
-      FROM 
-          LFA1 lfa1
-      FULL OUTER JOIN 
-          LFBK lfbk 
-      ON 
-          lfa1.Vendor = lfbk.Vendor
-      WHERE 
-          lfa1.SYNC_HEADER_ID = ${hdrId}
-          AND lfbk.SYNC_HEADER_ID = ${hdrId}
-      ) TBL WHERE TBL.Issue_Type IS NOT NULL;
-    `;
-
-    const simulationQuery8 = `
-      SELECT
-        kna1.CUSTOMER,
-        kna1.COUNTRY,
-        kna1.NAME1,
-        kna1.CITY,
-        kna1.POSTAL_CODE,
-        kna1.REGION,
-        kna1.STREET,
-        kna1.TELEPHONE1,
-        knb1.COMPANY_CODE,
-        knb1.CREATED_ON,
-        knb1.CREATED_BY,
-        knb1.TERMS_OF_PAYMENT
-      FROM
-          KNA1 kna1
-      LEFT JOIN
-          KNB1 knb1
-      ON
-          kna1.CUSTOMER = knb1.CUSTOMER
-          AND kna1.SYNC_HEADER_ID = ${hdrId}
-          AND knb1.SYNC_HEADER_ID = ${hdrId}
-      WHERE
-          knb1.TERMS_OF_PAYMENT = 'undefined'  
-          AND kna1.SYNC_HEADER_ID = ${hdrId}
-          AND knb1.SYNC_HEADER_ID = ${hdrId};
-    `;
-
-    const simulationQuery9 = `
-      WITH CustomersWithoutCreditLimits AS (
-      SELECT kna1.CUSTOMER,
-      knkk.CREDIT_LIMIT
-      FROM KNA1 kna1
-      LEFT JOIN KNKK knkk ON kna1.CUSTOMER = knkk.Customer
-      WHERE TO_DECIMAL(knkk.CREDIT_LIMIT) = 0
-      AND knkk.SYNC_HEADER_ID = ${hdrId}
-      )
-      SELECT
-          kna1.CUSTOMER,
-          cwc.CREDIT_LIMIT,
-          kna1.COUNTRY,
-          kna1.NAME1,
-          kna1.CITY,
-          kna1.POSTAL_CODE,
-          kna1.REGION,
-          kna1.STREET,
-          kna1.TELEPHONE1,
-          knb1.COMPANY_CODE,
-          knb1.CREATED_ON,
-          knb1.CREATED_BY
-      FROM CustomersWithoutCreditLimits cwc
-      JOIN KNA1 kna1 ON cwc.CUSTOMER = kna1.CUSTOMER
-      LEFT JOIN KNB1 knb1 ON cwc.CUSTOMER = knb1.CUSTOMER
-      WHERE kna1.SYNC_HEADER_ID = ${hdrId}
-      AND knb1.SYNC_HEADER_ID = ${hdrId}; 
-    `;
-
-    const simulationQuery10 = `
-      SELECT * FROM (
-        WITH MultipleEANs AS (
-            SELECT 
-                EAN_UPC,
-                COUNT(*) AS EANCount
-            FROM 
-                MARA
-            WHERE MARA.SYNC_HEADER_ID = ${hdrId}
-            GROUP BY 
-                EAN_UPC
-            HAVING 
-                COUNT(*) > 1
-        ),
-        MaterialDetails AS (
-            SELECT 
-                mara.Material,
-                mara.EAN_UPC,
-                makt.Material_Description,
-                mara.CREATED_ON,
-                mara.CREATED_BY,
-                mara.MATERIAL_TYPE,
-                mara.MATERIAL_GROUP
-            FROM 
-                MARA mara
-            JOIN 
-                MAKT makt ON mara.Material = makt.Material
-            WHERE makt.SYNC_HEADER_ID = ${hdrId} AND mara.SYNC_HEADER_ID = ${hdrId}
-        )
-        SELECT 
-            md.Material,
-            md.EAN_UPC,
-            md.Material_Description,
-            md.CREATED_ON,
-            md.CREATED_BY,
-            md.MATERIAL_TYPE,
-            md.MATERIAL_GROUP
-        FROM 
-            MaterialDetails md
-        JOIN 
-            MultipleEANs me ON md.EAN_UPC = me.EAN_UPC
-      ) TBL WHERE TBL.EAN_UPC <> ''
-      ORDER BY 
-          TBL.EAN_UPC;
-    `;
-
-    const simulations = await db
-      .read("PCF_DB_CHECK_POINT_MASTER")
-      .columns("SIMULATION")
-      .where("IS_ACTIVE = 'Y'");
-
-    const queries = simulations.map((simulation) => {
-      return simulation.SIMULATION.replace(/\${hdrId}/g, hdrId);
-    });
-
-    for (const query of queries) {
-      try {
+      for (const { query, outTable } of queries) {
         const result = await db.run(query);
-        console.log(`Query executed successfully: ${query}`);
-        // console.log("Result:", result);
-      } catch (error) {
-        console.error(`Error executing query: ${query}`);
-        console.error("Error:", error);
+
+        const controlOutData = result.map((item) => ({
+          ...item,
+          SYNC_HEADER_ID: hdrId,
+          CUSTOMER_ID: 1,
+        }));
+
+        if (controlOutData.length > 0) {
+          const insertRows = await cds.run(
+            INSERT.into(outTable).entries(controlOutData),
+          );
+          console.log(`Data Inserted Successfully`);
+        } else {
+          console.log(`No data to insert into ${outTable}`);
+        }
       }
-    }  
 
-    // try {
-    //   // Price Mismatch
-    //   const result = await db.run(simulationQuery);
+      await cds.run(
+        UPDATE("PCF_DB_SYNC_HEADER")
+          .set({ IS_SIMULATED: true })
+          .where({ ID: hdrId }),
+      );
 
-    //   const controlOutData = result.map((item) => ({
-    //     ...item,
-    //     SYNC_HEADER_ID: hdrId,
-    //     CUSTOMER_ID: 1,
-    //   }));
-
-    //   // Insert into out table
-    //   const insertRows = await cds.run(
-    //     INSERT.into("PRICE_MISMATCH_OUT").entries(controlOutData),
-    //   );
-
-    //   // Manual PO Without PR Requisition
-    //   const result2 = await db.run(simulationQuery2);
-
-    //   const controlOutData2 = result2.map((item) => ({
-    //     ...item,
-    //     SYNC_HEADER_ID: hdrId,
-    //     CUSTOMER_ID: 1,
-    //   }));
-
-    //   const insertRows2 = await cds.run(
-    //     INSERT.into("MANUAL_PO_WITHOUT_PR_REFERENCE").entries(controlOutData2),
-    //   );
-
-    //   // Duplicate Sales Order
-    //   const result3 = await db.run(simulationQuery3);
-
-    //   const controlOutData3 = result3.map((item) => {
-    //     const { ID, ...rest } = item; // Exclude the ID column
-    //     return {
-    //       ...rest,
-    //       SYNC_HEADER_ID: hdrId,
-    //       CUSTOMER_ID: 1,
-    //     };
-    //   });
-
-    //   const insertRows3 = await cds.run(
-    //     INSERT.into("DUPLICATE_SALES_ORDER").entries(controlOutData3),
-    //   );
-
-    //   // Mismatch in Payment Terms
-    //   const result4 = await db.run(simulationQuery4);
-
-    //   const controlOutData4 = result4.map((item) => ({
-    //     ...item,
-    //     SYNC_HEADER_ID: hdrId,
-    //     CUSTOMER_ID: 1,
-    //   }));
-
-    //   const insertRows4 = await cds.run(
-    //     INSERT.into("MISMATCH_IN_PAYMENT_TERMS").entries(controlOutData4),
-    //   );
-
-    //   // DUPLICATE_CREDIT_CUSTOMER_CODES
-    //   const result5 = await db.run(simulationQuery5);
-
-    //   const controlOutData5 = result5.map((item) => ({
-    //     ...item,
-    //     SYNC_HEADER_ID: hdrId,
-    //     CUSTOMER_ID: 1,
-    //   }));
-
-    //   const insertRows5 = await cds.run(
-    //     INSERT.into("DUPLICATE_CREDIT_CUSTOMER_CODES").entries(controlOutData5),
-    //   );
-
-    //   // MULTIPLE BANK ACCOUNT AGAINST SAME VENDOR CODE
-    //   const result6 = await db.run(simulationQuery6);
-
-    //   const controlOutData6 = result6.map((item) => ({
-    //     ...item,
-    //     SYNC_HEADER_ID: hdrId,
-    //     CUSTOMER_ID: 1,
-    //   }));
-
-    //   const insertRows6 = await cds.run(
-    //     INSERT.into("MULTIPLE_BANK_ACCOUNTS_VENDOR").entries(controlOutData6),
-    //   );
-
-    //   // INCOMPLETE VENDOR MASTER
-    //   const result7 = await db.run(simulationQuery7);
-
-    //   const controlOutData7 = result7.map((item) => ({
-    //     ...item,
-    //     SYNC_HEADER_ID: hdrId,
-    //     CUSTOMER_ID: 1,
-    //   }));
-
-    //   const insertRows7 = await cds.run(
-    //     INSERT.into("INCOMPLETE_VENDOR_MASTER").entries(controlOutData7),
-    //   );
-
-    //   // Payment Terms Not Updated On Customer Master
-    //   const result8 = await db.run(simulationQuery8);
-
-    //   const controlOutData8 = result8.map((item) => ({
-    //     ...item,
-    //     SYNC_HEADER_ID: hdrId,
-    //     CUSTOMER_ID: 1,
-    //   }));
-
-    //   const insertRows8 = await cds.run(
-    //     INSERT.into("PAYMENT_TERMS_NOT_UPDATED_ON_CUSTOMER_MASTER").entries(
-    //       controlOutData8,
-    //     ),
-    //   );
-
-    //   // CUSTOMERS WITHOUT CREDIT LIMITS
-    //   const result9 = await db.run(simulationQuery9);
-
-    //   const controlOutData9 = result9.map((item) => ({
-    //     ...item,
-    //     SYNC_HEADER_ID: hdrId,
-    //     CUSTOMER_ID: 1,
-    //   }));
-
-    //   const insertRows9 = await cds.run(
-    //     INSERT.into("CUSTOMERS_WITHOUT_CREDIT_LIMITS").entries(controlOutData9),
-    //   );
-
-    //   // MULTIPLE_ITEM_CODES_ASSIGNED_TO_SAME_MATERIAL
-    //   const result10 = await db.run(simulationQuery10);
-
-    //   const controlOutData10 = result10.map((item) => ({
-    //     ...item,
-    //     SYNC_HEADER_ID: hdrId,
-    //     CUSTOMER_ID: 1,
-    //   }));
-
-    //   const insertRows10 = await cds.run(
-    //     INSERT.into("MULTIPLE_ITEM_CODES_ASSIGNED_TO_SAME_MATERIAL").entries(
-    //       controlOutData10,
-    //     ),
-    //   );
-
-    //   await cds.run(
-    //     UPDATE("PCF_DB_SYNC_HEADER")
-    //       .set({ IS_SIMULATED: true })
-    //       .where({ ID: hdrId }),
-    //   );
-
-    //   return {
-    //     statusCode: HttpStatus.OK,
-    //     message: "Data Simulated Successfully!",
-    //   };
-    // } catch (error) {
-    //   console.error(error);
-    //   return {
-    //     statusCode: HttpStatus.BAD_REQUEST,
-    //     message:
-    //       "Error in Data Simulation! - Please fill all the required fields",
-    //   };
-    // }
+      return {
+        statusCode: HttpStatus.OK,
+        message: "Data Simulated Successfully!",
+      };
+    } catch (error) {
+      console.error(error);
+      return {
+        statusCode: HttpStatus.BAD_REQUEST,
+        message:
+          "Error in Data Simulation! - Please fill all the required fields",
+      };
+    }
   }
 }
