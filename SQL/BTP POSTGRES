@@ -1,6 +1,0 @@
-#for create service key 
-cf create-service-key pcfsql pcf-sk
-
-#FOR CONNECTING BTP POSTGRES TO LOCAL PGADMIN#
-host for PGADMIN=127.0.0.1
-cf ssh -L localhost:5433:postgres-cfede104-831e-4cb0-b136-71f53273fec1.cqryblsdrbcs.us-east-1.rds.amazonaws.com:1943 demoproj -N
