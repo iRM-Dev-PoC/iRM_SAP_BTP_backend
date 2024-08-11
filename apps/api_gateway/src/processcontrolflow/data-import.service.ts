@@ -175,6 +175,25 @@ type insertDataVBUK = {
   OVERALL_DLV_STATUS: string;
 };
 
+type insertDataFBL1N = {
+  COMPANY_CODE: string | null;
+  VENDOR: string | null;
+  VENDOR_NAME: string | null;
+  REFERENCE: string | null;
+  DOCUMENT_DATE: string;
+  POSTING_DATE: string;
+  NET_DUE_DATE: string;
+  DOCUMENT_NUMBER: string | null;
+  ENTRY_DATE: string;
+  USER_NAME: string | null;
+  PURCHASING_DOCUMENT: string | null;
+  INVOICE_REFERENCE: string | null;
+  CLEARING_DOCUMENT: string | null;
+  ACCOUNT: string | null;
+  CLEARING_DATE: string;
+  AMOUNT_IN_LOCAL_CURRENCY: string | null;
+};
+
 @Injectable()
 export class DataImportService {
   async handleFileUploads(files: Array<Express.Multer.File>) {
@@ -226,6 +245,7 @@ export class DataImportService {
       const sheet = workbook.Sheets[sheetName];
 
       function excelSerialToDate(serial) {
+        if (!serial) return null; // Return null for empty or invalid input
         const excelEpoch = new Date(1899, 11, 30); // Excel's epoch date
         const date = new Date(excelEpoch.getTime() + (serial - 1) * 86400000);
         const year = date.getFullYear();
@@ -235,6 +255,7 @@ export class DataImportService {
       }
 
       function excelSerialToTime(serial) {
+        if (!serial && serial !== 0) return null; // Return null for empty or invalid input
         const totalSeconds = Math.floor(serial * 86400); // 86400 seconds in a day
         const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
         const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(
@@ -1173,6 +1194,68 @@ export class DataImportService {
             .where({
               SYNC_HEADER_ID: syncHdrId,
               REPORT_ID: 17,
+            });
+          console.error("Can not insert rows! ", err);
+        }
+      } else if (fileNameUpper.includes("FBL1N")) {
+        const data: insertDataFBL1N[] = xlsx.utils.sheet_to_json(sheet);
+
+        const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
+          SYNC_HEADER_ID: syncHdrId,
+          CONTROL_ID: 1,
+          REPORT_ID: 18,
+          SYNC_STARTED_AT: `${new Date().toISOString()}`,
+          CREATED_BY: `1`,
+          SYNC_STATUS: "Initiated",
+          CREATED_ON: `${new Date().toISOString()}`,
+        });
+
+        const insertData = data.map((item) => {
+          return {
+            SYNC_HEADER_ID: syncHdrId,
+            CUSTOMER_ID: 1,
+            COMPANY_CODE: String(item.COMPANY_CODE || null),
+            VENDOR: String(item.VENDOR || null),
+            VENDOR_NAME: String(item.VENDOR_NAME || null),
+            REFERENCE: String(item.REFERENCE),
+            DOCUMENT_DATE: excelSerialToDate(item.DOCUMENT_DATE),
+            POSTING_DATE: excelSerialToDate(item.POSTING_DATE),
+            NET_DUE_DATE: excelSerialToDate(item.NET_DUE_DATE),
+            DOCUMENT_NUMBER: String(item.DOCUMENT_NUMBER || null),
+            ENTRY_DATE: excelSerialToDate(item.ENTRY_DATE),
+            USER_NAME: String(item.USER_NAME || null),
+            PURCHASING_DOCUMENT: String(item.PURCHASING_DOCUMENT || null),
+            INVOICE_REFERENCE: String(item.INVOICE_REFERENCE || null),
+            CLEARING_DOCUMENT: String(item.CLEARING_DOCUMENT || null),
+            ACCOUNT: String(item.ACCOUNT || null),
+            CLEARING_DATE: excelSerialToDate(item.CLEARING_DATE),
+            AMOUNT_IN_LOCAL_CURRENCY: String(
+              item.AMOUNT_IN_LOCAL_CURRENCY || null,
+            ),
+          };
+        });
+
+        try {
+          const insertRows = await INSERT(insertData).into("FBL1N");
+
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Completed",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 18,
+            });
+        } catch (err) {
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Error",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 18,
             });
           console.error("Can not insert rows! ", err);
         }
