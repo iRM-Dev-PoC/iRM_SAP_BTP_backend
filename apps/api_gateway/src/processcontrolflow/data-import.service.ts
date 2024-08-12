@@ -50,10 +50,11 @@ type insertDataZSD0070 = {
 };
 
 type insertDataEKKO = {
-  PURCHASING_DOCUMENT: string;
-  CREATED_ON: string;
-  CREATED_BY: string;
-  DOCUMENT_DATE: string;
+  PURCHASING_DOCUMENT: string | null;
+  CREATED_ON: string | null;
+  CREATED_BY: string | null;
+  DOCUMENT_DATE: string | null;
+  VENDOR: string | null;
 };
 
 type insertDataEKPO = {
@@ -126,13 +127,14 @@ type insertDataLFBK = {
 };
 
 type insertDataLFA1 = {
-  VENDOR: string;
-  COUNTRY: string;
-  NAME1: string;
-  CITY: string;
-  POSTAL_CODE: string;
-  REGION: string;
-  TELEPHONE1: string;
+  VENDOR: string | null;
+  COUNTRY: string | null;
+  NAME1: string | null;
+  CITY: string | null;
+  POSTAL_CODE: string | null;
+  REGION: string | null;
+  TELEPHONE1: string | null;
+  CENTRAL_POSTING_BLOCK: string | null;
 };
 
 type insertDataKNKK = {
@@ -465,10 +467,11 @@ export class DataImportService {
           return {
             SYNC_HEADER_ID: syncHdrId,
             CUSTOMER_ID: 1,
-            PURCHASING_DOCUMENT: String(item.PURCHASING_DOCUMENT),
-            CREATED_ON: String(item.CREATED_ON),
-            CREATED_BY: String(item.CREATED_BY),
-            DOCUMENT_DATE: String(item.DOCUMENT_DATE),
+            PURCHASING_DOCUMENT: String(item.PURCHASING_DOCUMENT || null),
+            CREATED_ON: excelSerialToDate(item.CREATED_ON),
+            CREATED_BY: String(item.CREATED_BY || null),
+            DOCUMENT_DATE: excelSerialToDate(item.DOCUMENT_DATE),
+            VENDOR: String(item.VENDOR || null),
           };
         });
 
@@ -915,13 +918,14 @@ export class DataImportService {
           return {
             SYNC_HEADER_ID: syncHdrId,
             CUSTOMER_ID: 1,
-            VENDOR: String(item.VENDOR),
-            COUNTRY: String(item.COUNTRY),
-            NAME1: String(item.NAME1),
-            CITY: String(item.CITY),
-            POSTAL_CODE: String(item.POSTAL_CODE),
-            REGION: String(item.REGION),
-            TELEPHONE1: String(item.TELEPHONE1),
+            VENDOR: String(item.VENDOR || null),
+            COUNTRY: String(item.COUNTRY || null),
+            NAME1: String(item.NAME1 || null),
+            CITY: String(item.CITY || null),
+            POSTAL_CODE: String(item.POSTAL_CODE || null),
+            REGION: String(item.REGION || null),
+            TELEPHONE1: String(item.TELEPHONE1 || null),
+            CENTRAL_POSTING_BLOCK: String(item.CENTRAL_POSTING_BLOCK || null),
           };
         });
 
