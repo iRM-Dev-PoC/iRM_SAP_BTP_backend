@@ -50,7 +50,7 @@ export class DataLoadController {
 
   @Post("upload-and-store")
   @UseInterceptors(
-    FilesInterceptor("files", 20, {
+    FilesInterceptor("files", 30, {
       storage: diskStorage({
         destination: (req, file, cb) => {
           cb(null, process.env.UPLOAD_DEST);
