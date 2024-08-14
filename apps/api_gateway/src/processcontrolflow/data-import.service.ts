@@ -207,6 +207,41 @@ type insertDataFBL5N = {
   TERMS_OF_PAYMENT: string | null;
 };
 
+type insertDataEBAN = {
+  PURCHASING_REQUISITION: string | null;
+  PROCESSING_STATUS: string | null;
+  MATERIAL: string | null;
+  REQUISITION_DATE: string;
+  VALUATION_PRICE: string | null;
+};
+
+type insertDataCDPOS = {
+  CHANGE_DOCUMENT_OBJECT: string | null;
+  OBJECT_VALUE: string | null;
+  DOCUMENT_NUMBER: string | null;
+  TABLE_NAME: string | null;
+  FIELD_NAME: string | null;
+  NEW_VALUE: string | null;
+  OLD_VALUE: string | null;
+};
+
+type insertDataCDHDR = {
+  CHANGE_DOCUMENT_OBJECT: string | null;
+  OBJECT_VALUE: string | null;
+  DOCUMENT_NUMBER: string | null;
+  USER: string | null;
+  DATE: string;
+  TIME: string;
+};
+
+type insertDataEKET = {
+  PURCHASING_DOCUMENT: string | null;
+  ITEM: string | null;
+  SCHEDULED_QUANTITY: string | null;
+  QUANTITY_DELIVERED: string | null;
+  DELIVERY_DATE: string;
+};
+
 @Injectable()
 export class DataImportService {
   async handleFileUploads(files: Array<Express.Multer.File>) {
@@ -1279,7 +1314,7 @@ export class DataImportService {
 
         const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
           SYNC_HEADER_ID: syncHdrId,
-          CONTROL_ID: 1,
+          CONTROL_ID: 2,
           REPORT_ID: 19,
           SYNC_STARTED_AT: `${new Date().toISOString()}`,
           CREATED_BY: `1`,
@@ -1325,6 +1360,205 @@ export class DataImportService {
             .where({
               SYNC_HEADER_ID: syncHdrId,
               REPORT_ID: 19,
+            });
+          console.error("Can not insert rows! ", err);
+        }
+      } else if (fileNameUpper.includes("EBAN")) {
+        const data: insertDataEBAN[] = xlsx.utils.sheet_to_json(sheet);
+
+        const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
+          SYNC_HEADER_ID: syncHdrId,
+          CONTROL_ID: 2,
+          REPORT_ID: 20,
+          SYNC_STARTED_AT: `${new Date().toISOString()}`,
+          CREATED_BY: `1`,
+          SYNC_STATUS: "Initiated",
+          CREATED_ON: `${new Date().toISOString()}`,
+        });
+
+        const insertData = data.map((item) => {
+          return {
+            SYNC_HEADER_ID: syncHdrId,
+            CUSTOMER_ID: 1,
+            PURCHASING_REQUISITION: String(item.PURCHASING_REQUISITION || null),
+            PROCESSING_STATUS: String(item.PROCESSING_STATUS || null),
+            MATERIAL: String(item.MATERIAL || null),
+            REQUISITION_DATE: excelSerialToDate(item.REQUISITION_DATE),
+            VALUATION_PRICE: String(item.VALUATION_PRICE || null),
+          };
+        });
+
+        try {
+          const insertRows = await INSERT(insertData).into("EBAN");
+
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Completed",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 20,
+            });
+        } catch (err) {
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Error",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 20,
+            });
+          console.error("Can not insert rows! ", err);
+        }
+      } else if (fileNameUpper.includes("CDPOS")) {
+        const data: insertDataCDPOS[] = xlsx.utils.sheet_to_json(sheet);
+
+        const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
+          SYNC_HEADER_ID: syncHdrId,
+          CONTROL_ID: 2,
+          REPORT_ID: 21,
+          SYNC_STARTED_AT: `${new Date().toISOString()}`,
+          CREATED_BY: `1`,
+          SYNC_STATUS: "Initiated",
+          CREATED_ON: `${new Date().toISOString()}`,
+        });
+
+        const insertData = data.map((item) => {
+          return {
+            SYNC_HEADER_ID: syncHdrId,
+            CUSTOMER_ID: 1,
+            CHANGE_DOCUMENT_OBJECT: String(item.CHANGE_DOCUMENT_OBJECT || null),
+            OBJECT_VALUE: String(item.OBJECT_VALUE || null),
+            DOCUMENT_NUMBER: String(item.DOCUMENT_NUMBER || null),
+            TABLE_NAME: String(item.TABLE_NAME || null),
+            FIELD_NAME: String(item.FIELD_NAME || null),
+            NEW_VALUE: String(item.NEW_VALUE || null),
+            OLD_VALUE: String(item.OLD_VALUE || null),
+          };
+        });
+
+        try {
+          const insertRows = await INSERT(insertData).into("CDPOS");
+
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Completed",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 21,
+            });
+        } catch (err) {
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Error",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 21,
+            });
+          console.error("Can not insert rows! ", err);
+        }
+      } else if (fileNameUpper.includes("CDHDR")) {
+        const data: insertDataCDHDR[] = xlsx.utils.sheet_to_json(sheet);
+
+        const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
+          SYNC_HEADER_ID: syncHdrId,
+          CONTROL_ID: 2,
+          REPORT_ID: 22,
+          SYNC_STARTED_AT: `${new Date().toISOString()}`,
+          CREATED_BY: `1`,
+          SYNC_STATUS: "Initiated",
+          CREATED_ON: `${new Date().toISOString()}`,
+        });
+
+        const insertData = data.map((item) => {
+          return {
+            SYNC_HEADER_ID: syncHdrId,
+            CUSTOMER_ID: 1,
+            CHANGE_DOCUMENT_OBJECT: String(item.CHANGE_DOCUMENT_OBJECT || null),
+            OBJECT_VALUE: String(item.OBJECT_VALUE || null),
+            DOCUMENT_NUMBER: String(item.DOCUMENT_NUMBER || null),
+            USER: String(item.USER || null),
+            DATE: excelSerialToDate(item.DATE),
+            TIME: excelSerialToTime(item.TIME),
+          };
+        });
+
+        try {
+          const insertRows = await INSERT(insertData).into("CDHDR");
+
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Completed",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 22,
+            });
+        } catch (err) {
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Error",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 22,
+            });
+          console.error("Can not insert rows! ", err);
+        }
+      } else if (fileNameUpper.includes("EKET")) {
+        const data: insertDataEKET[] = xlsx.utils.sheet_to_json(sheet);
+
+        const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
+          SYNC_HEADER_ID: syncHdrId,
+          CONTROL_ID: 2,
+          REPORT_ID: 23,
+          SYNC_STARTED_AT: `${new Date().toISOString()}`,
+          CREATED_BY: `1`,
+          SYNC_STATUS: "Initiated",
+          CREATED_ON: `${new Date().toISOString()}`,
+        });
+
+        const insertData = data.map((item) => {
+          return {
+            SYNC_HEADER_ID: syncHdrId,
+            CUSTOMER_ID: 1,
+            PURCHASING_DOCUMENT: String(item.PURCHASING_DOCUMENT || null),
+            ITEM: String(item.ITEM || null),
+            SCHEDULED_QUANTITY: String(item.SCHEDULED_QUANTITY || null),
+            QUANTITY_DELIVERED: String(item.QUANTITY_DELIVERED || null),
+            DELIVERY_DATE: excelSerialToDate(item.DELIVERY_DATE),
+          };
+        });
+
+        try {
+          const insertRows = await INSERT(insertData).into("EKET");
+
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Completed",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 23,
+            });
+        } catch (err) {
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Error",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 23,
             });
           console.error("Can not insert rows! ", err);
         }
