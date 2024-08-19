@@ -5,27 +5,27 @@ import { join } from "path";
 import * as xlsx from "xlsx";
 
 type insertDataPA0002 = {
-  CLIENT: string;
-  PERSONAL_NUMBER: string;
-  FIRST_NAME: string;
-  END_DATE: string;
-  START_DATE: string;
-  LAST_NAME: string;
-  DATE_OF_BIRTH: string;
-  MIDDLE_NAME?: string;
-  ID_NUMBER: string;
-  CREATED_BY: string;
-  CREATED_ON: string;
+  CLIENT: string | null;
+  PERSONAL_NUMBER: string | null;
+  FIRST_NAME: string | null;
+  END_DATE: string | null;
+  START_DATE: string | null;
+  LAST_NAME: string | null;
+  DATE_OF_BIRTH: string | null;
+  MIDDLE_NAME: string | null;
+  ID_NUMBER: string | null;
+  CREATED_BY: string | null;
+  CREATED_ON: string | null;
 };
 
 type insertDataVA05 = {
-  SALES_DOCUMENT: string;
-  DOCUMENT_DATE: string;
-  CREATED_BY: string;
-  CREATED_ON: string;
-  TIME: string;
-  SOLD_TO_PARTY: string;
-  NET_VALUE: string;
+  SALES_DOCUMENT: string | null;
+  DOCUMENT_DATE: string | null;
+  CREATED_BY: string | null;
+  CREATED_ON: string | null;
+  TIME: string | null;
+  SOLD_TO_PARTY: string | null;
+  NET_VALUE: string | null;
   SOLD_TO_PARTY_NAME: string;
   SALES_DOCUMENT_ITEM: string;
   MATERIAL_DESCRIPTION: string;
@@ -58,13 +58,15 @@ type insertDataEKKO = {
 };
 
 type insertDataEKPO = {
-  PURCHASING_DOCUMENT: string;
-  MATERIAL: string;
-  COMPANY_CODE: string;
-  PLANT: string;
-  STORAGE_LOCATION: string;
-  MATERIAL_GROUP: string;
-  PURCHASE_REQUISITION: string;
+  PURCHASING_DOCUMENT: string | null;
+  MATERIAL: string | null;
+  COMPANY_CODE: string | null;
+  PLANT: string | null;
+  STORAGE_LOCATION: string | null;
+  MATERIAL_GROUP: string | null;
+  PURCHASE_REQUISITION: string | null;
+  DELETION_INDICATOR: string | null;
+  DELIVERY_COMPLETED: string | null;
 };
 
 type insertDataVBAK = {
@@ -135,6 +137,7 @@ type insertDataLFA1 = {
   REGION: string | null;
   TELEPHONE1: string | null;
   CENTRAL_POSTING_BLOCK: string | null;
+  CENTRAL_PURCHASING_BLOCK: string | null;
 };
 
 type insertDataKNKK = {
@@ -568,13 +571,15 @@ export class DataImportService {
           return {
             SYNC_HEADER_ID: syncHdrId,
             CUSTOMER_ID: 1,
-            PURCHASING_DOCUMENT: String(item.PURCHASING_DOCUMENT),
-            MATERIAL: String(item.MATERIAL),
-            COMPANY_CODE: String(item.COMPANY_CODE),
-            PLANT: String(item.PLANT),
-            STORAGE_LOCATION: String(item.STORAGE_LOCATION),
-            MATERIAL_GROUP: String(item.MATERIAL_GROUP),
-            PURCHASE_REQUISITION: String(item.PURCHASE_REQUISITION),
+            PURCHASING_DOCUMENT: String(item.PURCHASING_DOCUMENT || null),
+            MATERIAL: String(item.MATERIAL || null),
+            COMPANY_CODE: String(item.COMPANY_CODE || null),
+            PLANT: String(item.PLANT || null),
+            STORAGE_LOCATION: String(item.STORAGE_LOCATION || null),
+            MATERIAL_GROUP: String(item.MATERIAL_GROUP || null),
+            PURCHASE_REQUISITION: String(item.PURCHASE_REQUISITION || null),
+            DELETION_INDICATOR: String(item.DELETION_INDICATOR || null),
+            DELIVERY_COMPLETED: String(item.DELIVERY_COMPLETED || null),
           };
         });
 
@@ -972,6 +977,9 @@ export class DataImportService {
             REGION: String(item.REGION || null),
             TELEPHONE1: String(item.TELEPHONE1 || null),
             CENTRAL_POSTING_BLOCK: String(item.CENTRAL_POSTING_BLOCK || null),
+            CENTRAL_PURCHASING_BLOCK: String(
+              item.CENTRAL_PURCHASING_BLOCK || null,
+            ),
           };
         });
 
