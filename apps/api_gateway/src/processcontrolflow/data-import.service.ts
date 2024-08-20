@@ -55,6 +55,7 @@ type insertDataEKKO = {
   CREATED_BY: string | null;
   DOCUMENT_DATE: string | null;
   VENDOR: string | null;
+  RELEASE_INDICATOR: string | null;
 };
 
 type insertDataEKPO = {
@@ -243,6 +244,36 @@ type insertDataEKET = {
   SCHEDULED_QUANTITY: string | null;
   QUANTITY_DELIVERED: string | null;
   DELIVERY_DATE: string;
+};
+
+type insertDataANLA = {
+  COMPANY_CODE: string | null;
+  ASSET: string | null;
+  SUB_NUMBER: string | null;
+  ASSET_CLASS: string | null;
+  CREATED_BY: string | null;
+  CREATED_ON: string | null;
+  ASSET_DESCRIPTION: string | null;
+};
+
+type insertDataANLB = {
+  COMPANY_CODE: string | null;
+  ASSET: string | null;
+  SUB_NUMBER: string | null;
+  CREATED_BY: string | null;
+  CREATED_ON: string | null;
+  USEFUL_LIFE: string | null;
+};
+
+type insertDataANLZ = {
+  COMPANY_CODE: string | null;
+  ASSET: string | null;
+  SUB_NUMBER: string | null;
+  VALID_TO: string | null;
+  VALID_FROM: string | null;
+  COST_CENTER: string | null;
+  PLANT: string | null;
+  LOCATION: string | null;
 };
 
 @Injectable()
@@ -521,6 +552,7 @@ export class DataImportService {
             CREATED_BY: String(item.CREATED_BY || null),
             DOCUMENT_DATE: excelSerialToDate(item.DOCUMENT_DATE),
             VENDOR: String(item.VENDOR || null),
+            RELEASE_INDICATOR: String(item.RELEASE_INDICATOR || null),
           };
         });
 
@@ -1567,6 +1599,159 @@ export class DataImportService {
             .where({
               SYNC_HEADER_ID: syncHdrId,
               REPORT_ID: 23,
+            });
+          console.error("Can not insert rows! ", err);
+        }
+      } else if (fileNameUpper.includes("ANLA")) {
+        const data: insertDataANLA[] = xlsx.utils.sheet_to_json(sheet);
+
+        const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
+          SYNC_HEADER_ID: syncHdrId,
+          CONTROL_ID: 2,
+          REPORT_ID: 24,
+          SYNC_STARTED_AT: `${new Date().toISOString()}`,
+          CREATED_BY: `1`,
+          SYNC_STATUS: "Initiated",
+          CREATED_ON: `${new Date().toISOString()}`,
+        });
+
+        const insertData = data.map((item) => {
+          return {
+            SYNC_HEADER_ID: syncHdrId,
+            CUSTOMER_ID: 1,
+            COMPANY_CODE: String(item.COMPANY_CODE || null),
+            ASSET: String(item.ASSET || null),
+            SUB_NUMBER: String(item.SUB_NUMBER || null),
+            ASSET_CLASS: String(item.ASSET_CLASS || null),
+            CREATED_BY: String(item.CREATED_BY || null),
+            CREATED_ON: excelSerialToDate(item.CREATED_ON),
+            ASSET_DESCRIPTION: String(item.ASSET_DESCRIPTION || null),
+          };
+        });
+
+        try {
+          const insertRows = await INSERT(insertData).into("ANLA");
+
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Completed",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 24,
+            });
+        } catch (err) {
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Error",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 24,
+            });
+          console.error("Can not insert rows! ", err);
+        }
+      } else if (fileNameUpper.includes("ANLB")) {
+        const data: insertDataANLB[] = xlsx.utils.sheet_to_json(sheet);
+
+        const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
+          SYNC_HEADER_ID: syncHdrId,
+          CONTROL_ID: 2,
+          REPORT_ID: 25,
+          SYNC_STARTED_AT: `${new Date().toISOString()}`,
+          CREATED_BY: `1`,
+          SYNC_STATUS: "Initiated",
+          CREATED_ON: `${new Date().toISOString()}`,
+        });
+
+        const insertData = data.map((item) => {
+          return {
+            SYNC_HEADER_ID: syncHdrId,
+            CUSTOMER_ID: 1,
+            COMPANY_CODE: String(item.COMPANY_CODE || null),
+            ASSET: String(item.ASSET || null),
+            SUB_NUMBER: String(item.SUB_NUMBER || null),
+            CREATED_BY: String(item.CREATED_BY || null),
+            CREATED_ON: excelSerialToDate(item.CREATED_ON),
+            USEFUL_LIFE: String(item.USEFUL_LIFE || null),
+          };
+        });
+
+        try {
+          const insertRows = await INSERT(insertData).into("ANLB");
+
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Completed",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 25,
+            });
+        } catch (err) {
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Error",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 25,
+            });
+          console.error("Can not insert rows! ", err);
+        }
+      } else if (fileNameUpper.includes("ANLZ")) {
+        const data: insertDataANLZ[] = xlsx.utils.sheet_to_json(sheet);
+
+        const syncData = await INSERT.into("PCF_DB_SYNC_DETAILS").entries({
+          SYNC_HEADER_ID: syncHdrId,
+          CONTROL_ID: 2,
+          REPORT_ID: 26,
+          SYNC_STARTED_AT: `${new Date().toISOString()}`,
+          CREATED_BY: `1`,
+          SYNC_STATUS: "Initiated",
+          CREATED_ON: `${new Date().toISOString()}`,
+        });
+
+        const insertData = data.map((item) => {
+          return {
+            SYNC_HEADER_ID: syncHdrId,
+            CUSTOMER_ID: 1,
+            COMPANY_CODE: String(item.COMPANY_CODE || null),
+            ASSET: String(item.ASSET || null),
+            SUB_NUMBER: String(item.SUB_NUMBER || null),
+            VALID_TO: excelSerialToDate(item.VALID_TO),
+            VALID_FROM: excelSerialToDate(item.VALID_FROM),
+            COST_CENTER: String(item.COST_CENTER || null),
+            PLANT: String(item.PLANT || null),
+            LOCATION: String(item.LOCATION || null),
+          };
+        });
+
+        try {
+          const insertRows = await INSERT(insertData).into("ANLZ");
+
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Completed",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 26,
+            });
+        } catch (err) {
+          const updateStatus = await UPDATE("PCF_DB_SYNC_DETAILS")
+            .set({
+              SYNC_STATUS: "Error",
+              SYNC_ENDED_AT: `${new Date().toISOString()}`,
+            })
+            .where({
+              SYNC_HEADER_ID: syncHdrId,
+              REPORT_ID: 26,
             });
           console.error("Can not insert rows! ", err);
         }
