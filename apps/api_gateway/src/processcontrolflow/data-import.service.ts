@@ -34,19 +34,19 @@ type insertDataVA05 = {
 };
 
 type insertDataZSD0070 = {
-  BILLING_DOCUMENT: string;
-  SALES_DOCUMENT: string;
-  PAYER_DESCRIPTION: string;
-  ITEM_DESCRIPTION: string;
-  BILLING_DATE: string;
-  NET_VALUE: string;
-  TAX_AMOUNT: string;
-  COST: string;
-  GRORSS_VALUE: string;
-  SALES_DOCUMENT_ITEM: string;
-  CREATED_BY: string;
-  CREATED_ON: string;
-  SUMOF_NET_GROSS_VALUE: string;
+  BILLING_DOCUMENT: string | null;
+  SALES_DOCUMENT: string | null;
+  PAYER_DESCRIPTION: string | null;
+  ITEM_DESCRIPTION: string | null;
+  BILLING_DATE: string | null;
+  NET_VALUE: string | null;
+  TAX_AMOUNT: string | null;
+  COST: string | null;
+  GRORSS_VALUE: string | null;
+  SALES_DOCUMENT_ITEM: string | null;
+  CREATED_BY: string | null;
+  CREATED_ON: string | null;
+  SUMOF_NET_GROSS_VALUE: string | null;
 };
 
 type insertDataEKKO = {
@@ -71,62 +71,62 @@ type insertDataEKPO = {
 };
 
 type insertDataVBAK = {
-  SALES_DOCUMENT: string;
-  CREATED_ON: string;
-  TIME: string;
-  CREATED_BY: string;
-  DOCUMENT_DATE: string;
-  NET_VALUE: string;
-  PURCHASE_ORDER_NO: string;
-  PURCHASE_ORDER_DATE: string;
-  TELEPHONE: string;
-  SOLD_TO_PARTY: string;
+  SALES_DOCUMENT: string | null;
+  CREATED_ON: string | null;
+  TIME: string | null;
+  CREATED_BY: string | null;
+  DOCUMENT_DATE: string | null;
+  NET_VALUE: string | null;
+  PURCHASE_ORDER_NO: string | null;
+  PURCHASE_ORDER_DATE: string | null;
+  TELEPHONE: string | null;
+  SOLD_TO_PARTY: string | null;
 };
 
 type insertDataME2L = {
-  PURCHASING_DOCUMENT: string;
-  COMPANY_CODE: string;
-  CREATED_ON: string;
-  CREATED_BY: string;
-  VENDOR: string;
-  TERMS_OF_PAYMENT: string;
-  DOCUMENT_DATE: string;
+  PURCHASING_DOCUMENT: string | null;
+  COMPANY_CODE: string | null;
+  CREATED_ON: string | null;
+  CREATED_BY: string | null;
+  VENDOR: string | null;
+  TERMS_OF_PAYMENT: string | null;
+  DOCUMENT_DATE: string | null;
 };
 
 type insertDataMKVZ = {
-  NAME_OF_VENDOR: string;
-  STREET: string;
-  CITY: string;
-  ACCOUNT_GROUP: string;
-  TERMS_OF_PAYMENT: string;
-  VENDOR: string;
+  NAME_OF_VENDOR: string | null;
+  STREET: string | null;
+  CITY: string | null;
+  ACCOUNT_GROUP: string | null;
+  TERMS_OF_PAYMENT: string | null;
+  VENDOR: string | null;
 };
 
 type insertDataKNA1 = {
-  CUSTOMER: string;
-  COUNTRY: string;
-  NAME1: string;
-  CITY: string;
-  POSTAL_CODE: string;
-  REGION: string;
-  STREET: string;
-  TELEPHONE1: string;
+  CUSTOMER: string | null;
+  COUNTRY: string | null;
+  NAME1: string | null;
+  CITY: string | null;
+  POSTAL_CODE: string | null;
+  REGION: string | null;
+  STREET: string | null;
+  TELEPHONE1: string | null;
 };
 
 type insertDataKNB1 = {
-  CUSTOMER: string;
-  COMPANY_CODE: string;
-  CREATED_ON: string;
-  CREATED_BY: string;
-  TERMS_OF_PAYMENT: string;
+  CUSTOMER: string | null;
+  COMPANY_CODE: string | null;
+  CREATED_ON: string | null;
+  CREATED_BY: string | null;
+  TERMS_OF_PAYMENT: string | null;
 };
 
 type insertDataLFBK = {
-  VENDOR: string;
-  COUNTRY: string;
-  BANK_KEY: string;
-  BANK_ACCOUNT: string;
-  ACCOUNT_HOLDER: string;
+  VENDOR: string | null;
+  COUNTRY: string | null;
+  BANK_KEY: string | null;
+  BANK_ACCOUNT: string | null;
+  ACCOUNT_HOLDER: string | null;
 };
 
 type insertDataLFA1 = {
@@ -142,43 +142,43 @@ type insertDataLFA1 = {
 };
 
 type insertDataKNKK = {
-  CUSTOMER: string;
-  CREDIT_CONTROL_AREA: string;
-  CREDIT_LIMIT: string;
+  CUSTOMER: string | null;
+  CREDIT_CONTROL_AREA: string | null;
+  CREDIT_LIMIT: string | null;
 };
 
 type insertDataMAKT = {
-  MATERIAL: string;
-  LANGUAGE_KEY: string;
-  MATERIAL_DESCRIPTION: string;
+  MATERIAL: string | null;
+  LANGUAGE_KEY: string | null;
+  MATERIAL_DESCRIPTION: string | null;
 };
 
 type insertDataMARA = {
-  MATERIAL: string;
-  CREATED_ON: string;
-  CREATED_BY: string;
-  MATERIAL_TYPE: string;
-  MATERIAL_GROUP: string;
-  EAN_UPC: string;
-  MATERIAL_DESCRIPTION: string;
+  MATERIAL: string | null;
+  CREATED_ON: string | null;
+  CREATED_BY: string | null;
+  MATERIAL_TYPE: string | null;
+  MATERIAL_GROUP: string | null;
+  EAN_UPC: string | null;
+  MATERIAL_DESCRIPTION: string | null;
 };
 
 type insertDataEKBE = {
-  PURCHASING_DOCUMENT: string;
-  ITEM: string;
-  MATERIAL_DESCRIPTION: string;
-  INVOICE_VALUE: string;
-  MATERIAL: string;
-  PLANT: string;
-  DOCUMENT_DATE: string;
-  CREATED_BY: string;
-  QUANTITY: string;
+  PURCHASING_DOCUMENT: string | null;
+  ITEM: string | null;
+  MATERIAL_DESCRIPTION: string | null;
+  INVOICE_VALUE: string | null;
+  MATERIAL: string | null;
+  PLANT: string | null;
+  DOCUMENT_DATE: string | null;
+  CREATED_BY: string | null;
+  QUANTITY: string | null;
 };
 
 type insertDataVBUK = {
-  SALES_DOCUMENT: string;
-  DELIVERY_STATUS: string;
-  OVERALL_DLV_STATUS: string;
+  SALES_DOCUMENT: string | null;
+  DELIVERY_STATUS: string | null;
+  OVERALL_DLV_STATUS: string | null;
 };
 
 type insertDataFBL1N = {
@@ -833,14 +833,14 @@ export class DataImportService {
           return {
             SYNC_HEADER_ID: syncHdrId,
             CUSTOMER_ID: 1,
-            CUSTOMER: String(item.CUSTOMER),
-            COUNTRY: String(item.COUNTRY),
-            NAME1: String(item.NAME1),
-            CITY: String(item.CITY),
-            POSTAL_CODE: String(item.POSTAL_CODE),
-            REGION: String(item.REGION),
-            STREET: String(item.STREET),
-            TELEPHONE1: String(item.TELEPHONE1),
+            CUSTOMER: String(item.CUSTOMER || null),
+            COUNTRY: String(item.COUNTRY || null),
+            NAME1: String(item.NAME1 || null),
+            CITY: String(item.CITY || null),
+            POSTAL_CODE: String(item.POSTAL_CODE || null),
+            REGION: String(item.REGION || null),
+            STREET: String(item.STREET || null),
+            TELEPHONE1: String(item.TELEPHONE1 || null),
           };
         });
 
@@ -891,11 +891,11 @@ export class DataImportService {
           return {
             SYNC_HEADER_ID: syncHdrId,
             CUSTOMER_ID: 1,
-            CUSTOMER: String(item.CUSTOMER),
-            COMPANY_CODE: String(item.COMPANY_CODE),
-            CREATED_ON: String(item.CREATED_ON),
-            CREATED_BY: String(item.CREATED_BY),
-            TERMS_OF_PAYMENT: String(item.TERMS_OF_PAYMENT),
+            CUSTOMER: String(item.CUSTOMER || null),
+            COMPANY_CODE: String(item.COMPANY_CODE || null),
+            CREATED_ON: excelSerialToDate(item.CREATED_ON),
+            CREATED_BY: String(item.CREATED_BY || null),
+            TERMS_OF_PAYMENT: String(item.TERMS_OF_PAYMENT || null),
           };
         });
 
@@ -946,11 +946,11 @@ export class DataImportService {
           return {
             SYNC_HEADER_ID: syncHdrId,
             CUSTOMER_ID: 1,
-            VENDOR: String(item.VENDOR),
-            COUNTRY: String(item.COUNTRY),
-            BANK_KEY: String(item.BANK_KEY),
-            BANK_ACCOUNT: String(item.BANK_ACCOUNT),
-            ACCOUNT_HOLDER: String(item.ACCOUNT_HOLDER),
+            VENDOR: String(item.VENDOR || null),
+            COUNTRY: String(item.COUNTRY) || null,
+            BANK_KEY: String(item.BANK_KEY || null),
+            BANK_ACCOUNT: String(item.BANK_ACCOUNT || null),
+            ACCOUNT_HOLDER: String(item.ACCOUNT_HOLDER || null),
           };
         });
 
