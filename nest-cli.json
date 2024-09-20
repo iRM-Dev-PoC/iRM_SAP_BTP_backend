@@ -80,6 +80,15 @@
       "compilerOptions": {
         "tsConfigPath": "libs/auth/src/guards/jwtguards/guard/tsconfig.lib.json"
       }
+    },
+    "lo_service": {
+      "type": "application",
+      "root": "apps/lo_service",
+      "entryFile": "main",
+      "sourceRoot": "apps/lo_service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/lo_service/tsconfig.app.json"
+      }
     }
   }
 }
