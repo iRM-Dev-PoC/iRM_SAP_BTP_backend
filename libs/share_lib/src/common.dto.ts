@@ -4,9 +4,10 @@ import { UUID } from 'crypto';
 export class ResponseDto {
   statuscode: any;
   message: string;
-  data: any;
+  data?: any;
   reportdata?: any;
   checkpointdata?: any;
+  results?: any[];
 }
 
 export class CurrentUserDto {
