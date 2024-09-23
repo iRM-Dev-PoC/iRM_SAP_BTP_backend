@@ -19,31 +19,31 @@ type getExceptionDataDTO = {
   flag : String;
 }
 
-type getControlCheckpointsDTO = {
-  typeOfControlsId: number;
+type getInactiveUsersDto = {
+  customer_id: number;
   hdrId: number;
 };
 
 // @UseGuards(JwtAuthGuard)
-@Controller('lo/dashboard')
+@Controller("lo/dashboard")
 // Add metadata
 export class DashboardController {
-  constructor(
-    private dashboardService : DashboardService
-  ) {}
-  
-  @Post('control-checkpoints')
-  async getControlCheckpoints(@Body() filterData: getControlCheckpointsDTO) {
-    return await this.dashboardService.getControlCheckPoints(filterData);
+  constructor(private dashboardService: DashboardService) {}
+
+  @Post("inactive-users")
+  async getInactiveUsers(
+    @Body() inactiveUsers: getInactiveUsersDto,
+  ) {
+    return await this.dashboardService.getInactiveUsers(inactiveUsers);
   }
 
-  @Post('get-control-data')
+  @Post("get-control-data")
   async getControlData(@Body() controlDetails: getControlDetailsDTO) {
     return await this.dashboardService.getControlData(controlDetails);
   }
 
   /** Get Exception data against Control Checkpoint */
-  @Post('get-exception-data')
+  @Post("get-exception-data")
   async getExceptionBaseData(@Body() controlDetails: getExceptionDataDTO) {
     return await this.dashboardService.getExceptionBaseData(controlDetails);
   }
