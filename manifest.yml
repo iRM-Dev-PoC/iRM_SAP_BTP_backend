@@ -8,3 +8,13 @@ applications:
     instances: 1
     command: npm run start:prod
     random-route: true
+
+  - name: iRM_SAP_BTP_LO_BACKEND
+    path: ./
+    buildpacks:
+      - https://github.com/cloudfoundry/nodejs-buildpack
+    memory: 512M
+    disk: 2048M
+    instances: 1
+    command: npm run start:prod1
+    random-route: true

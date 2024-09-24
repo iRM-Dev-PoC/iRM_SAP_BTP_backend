@@ -6,6 +6,7 @@ import { HttpStatus, Injectable } from "@nestjs/common";
 export class DashboardService {
   async getInactiveUsers(inactiveUsers): Promise<any> {
     try {
+      
       const { customer_id, hdrId } = inactiveUsers;
       const db = await cds.connect.to("db");
 
