@@ -137,7 +137,7 @@ export class DataImportService {
               SYNC_HEADER_ID: syncHdrId,
               CUSTOMER_ID: 1,
               AGR_NAME: String(item.AGR_NAME || null),
-              UNAME: String(item.AGR_NAME || null),
+              UNAME: String(item.UNAME || null),
               FROM_DAT: excelSerialToDate(item.FROM_DAT),
               TO_DAT: excelSerialToDate(item.TO_DAT),
             };
@@ -275,9 +275,11 @@ export class DataImportService {
         } else {
           throw new Error("Unknown File Name");
         }
-        const syncEndedAt = await UPDATE("LO_SYNC_HEADER").set({
-          SYNC_ENDED_AT: `${new Date().toISOString()}`,
-        });
+        const syncEndedAt = await UPDATE("LO_SYNC_HEADER")
+          .set({
+            SYNC_ENDED_AT: `${new Date().toISOString()}`,
+          })
+          .where(`ID = ${syncHdrId}`);
       } catch (err) {
         console.error("Error importing CSV data:", err);
       }

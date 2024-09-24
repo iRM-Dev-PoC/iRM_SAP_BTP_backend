@@ -4,96 +4,29 @@ import { HttpStatus, Injectable } from "@nestjs/common";
 
 @Injectable()
 export class DashboardService {
-  async getControlCheckPoints(filterDtls): Promise<any> {
+  async getInactiveUsers(inactiveUsers): Promise<any> {
     try {
-      const { typeOfControlsId, hdrId } = filterDtls;
-
+      const { customer_id, hdrId } = inactiveUsers;
       const db = await cds.connect.to("db");
 
-      let dynmcWhereClause = `IS_ACTIVE = 'Y'`;
-
-      if (typeOfControlsId) { dynmcWhereClause += ` AND CONTROL_ID = ${typeOfControlsId}`; }
-
-      const whereClause = cds.parse.expr(dynmcWhereClause);
-
-      const allControlCheckpoints = await db
-        .read("PCF_DB_CHECK_POINT_MASTER")
-        .where(whereClause);
-
-      if (!allControlCheckpoints || allControlCheckpoints.length === 0) {
-        return {
-          statuscode: HttpStatus.OK,
-          message: "No Control Check Points found",
-          data: allControlCheckpoints,
-        };
-      }
-
-      // Function to fetch necessary data for calculating deviation
-      const fetchControlLogicData = async (controlId, hdrId) => {
-        const controlLogicClause = { ID: controlId };
-        const syncHeaderClause = `WHERE SYNC_HEADER_ID = ${hdrId}`;
-
-        try {
-          const controlLogicData = await db
-            .read("PCF_DB_CHECK_POINT_MASTER")
-            .columns("BASE_COUNT", "EXCEPTION_COUNT")
-            .where(controlLogicClause);
-
-          if (!controlLogicData.length) {
-            throw new Error(
-              "No control logic data found for the given control ID",
-            );
-          }
-
-          const baseDataCount = await db.run(
-            `${controlLogicData[0].BASE_COUNT} ${syncHeaderClause}`,
-          );
-          const exceptionDataCount = await db.run(
-            `${controlLogicData[0].EXCEPTION_COUNT} ${syncHeaderClause}`,
-          );
-
-          return { baseDataCount, exceptionDataCount };
-        } catch (error) {
-          console.error("Error fetching control logic data:", error.message);
-          throw error;
-        }
-      };
-
-      // Modify RISK_SCORE based on calculated deviation
-      const modifiedControlCheckpoints = await Promise.all(
-        allControlCheckpoints.map(async (item) => {
-          try {
-            const { baseDataCount, exceptionDataCount } =
-              await fetchControlLogicData(item.ID, hdrId);
-
-            // Calculate deviation and risk score
-            const deviation =
-              (exceptionDataCount[0].EXCEPTION_COUNT /
-                baseDataCount[0].BASE_DATA) *
-              100;
-            const riskScore = deviation;
-
-            return { ...item, RISK_SCORE: riskScore };
-          } catch (error) {
-            console.error(
-              `Error calculating risk score for checkpoint ID ${item.ID}:`,
-              error.message,
-            );
-            return { ...item, RISK_SCORE: 0 };
-          }
-        }),
-      );
+      let inactiveUser = await db.run(`SELECT * FROM LO_USR02 
+        WHERE UFLAG NOT IN (32, 64, 128)
+        AND DAYS_BETWEEN(TRDAT , CURRENT_DATE) < 90
+        AND SYNC_HEADER_ID = ${hdrId}
+        AND CUSTOMER_ID = ${customer_id}`);
+      
+      console.table(inactiveUser);
 
       return {
         statuscode: HttpStatus.OK,
         message: "Data fetched successfully",
-        data: modifiedControlCheckpoints,
+        data: inactiveUser,
       };
     } catch (error) {
-      console.error("Error fetching control checkpoints:", error.message);
+      console.error("Error fetching in inactive users:", error.message);
       return {
         statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: "Failed to fetch check points",
+        message: "Failed to fetch inactive users",
         data: error,
       };
     }
