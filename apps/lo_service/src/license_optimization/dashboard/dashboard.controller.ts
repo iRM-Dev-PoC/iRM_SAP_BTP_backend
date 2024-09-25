@@ -19,7 +19,7 @@ type getExceptionDataDTO = {
   flag : String;
 }
 
-type getInactiveUsersDto = {
+type getUserStatusDto = {
   customer_id: number;
   hdrId: number;
 };
@@ -30,11 +30,9 @@ type getInactiveUsersDto = {
 export class DashboardController {
   constructor(private dashboardService: DashboardService) {}
 
-  @Post("inactive-users")
-  async getInactiveUsers(
-    @Body() inactiveUsers: getInactiveUsersDto,
-  ) {
-    return await this.dashboardService.getInactiveUsers(inactiveUsers);
+  @Post("users")
+  async getUsersStatus(@Body() userStatus: getUserStatusDto) {
+    return await this.dashboardService.getUsersStatus(userStatus);
   }
 
   @Post("get-control-data")

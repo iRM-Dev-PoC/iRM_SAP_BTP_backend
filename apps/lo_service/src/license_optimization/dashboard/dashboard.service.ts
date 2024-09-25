@@ -4,24 +4,34 @@ import { HttpStatus, Injectable } from "@nestjs/common";
 
 @Injectable()
 export class DashboardService {
-  async getInactiveUsers(inactiveUsers): Promise<any> {
+  async getUsersStatus(userStatus): Promise<any> {
     try {
-      
-      const { customer_id, hdrId } = inactiveUsers;
+      const { customer_id, hdrId } = userStatus;
       const db = await cds.connect.to("db");
 
-      let inactiveUser = await db.run(`SELECT * FROM LO_USR02 
-        WHERE UFLAG NOT IN (32, 64, 128)
+      let activeUserQuery = `UFLAG NOT IN (32, 64, 128)
         AND DAYS_BETWEEN(TRDAT , CURRENT_DATE) < 90
         AND SYNC_HEADER_ID = ${hdrId}
-        AND CUSTOMER_ID = ${customer_id}`);
+        AND CUSTOMER_ID = ${customer_id}`;
       
+      let inactiveUserQuery = `UFLAG IN (32, 64, 128)
+        AND DAYS_BETWEEN(TRDAT , CURRENT_DATE) > 90
+        AND SYNC_HEADER_ID = ${hdrId}
+        AND CUSTOMER_ID = ${customer_id}`;
+      
+      let activeUser = await db.read(`LO_USR02`).columns().where(activeUserQuery);
+      let inactiveUser = await db.read(`LO_USR02`).where(inactiveUserQuery);
+
+      console.table(activeUser);
       console.table(inactiveUser);
 
       return {
         statuscode: HttpStatus.OK,
         message: "Data fetched successfully",
-        data: inactiveUser,
+        data: {
+          activeUsers: activeUser,
+          inactiveUsers: inactiveUser,
+        },
       };
     } catch (error) {
       console.error("Error fetching in inactive users:", error.message);
