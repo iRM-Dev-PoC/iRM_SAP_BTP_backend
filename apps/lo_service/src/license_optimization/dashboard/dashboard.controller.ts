@@ -1,12 +1,12 @@
 import { Body, Controller, Post } from "@nestjs/common";
 import { DashboardService } from "./dashboard.service";
 
-type getActiveUsersRolesDTO = {
+type getUserStatusDto = {
   customer_id: number;
   hdrId: number;
 };
 
-type getUserStatusDto = {
+type getActiveUsersDetailsDTO = {
   customer_id: number;
   hdrId: number;
 };
@@ -22,10 +22,37 @@ export class DashboardController {
 
   @Post("get-active-users-roles")
   async getActiveUsersRolesData(
-    @Body() getActiveUsersRolesDto: getActiveUsersRolesDTO,
+    @Body() getActiveUsersRolesDto: getActiveUsersDetailsDTO,
   ) {
     return await this.dashboardService.getActiveUsersRolesData(
       getActiveUsersRolesDto,
+    );
+  }
+
+  @Post("get-active-users-roles-details")
+  async getActiveUsersRolesTcodeData(
+    @Body() getActiveUsersRoleDetailsDto: getActiveUsersDetailsDTO,
+  ) {
+    return await this.dashboardService.getActiveUsersRolesDetails(
+      getActiveUsersRoleDetailsDto,
+    );
+  }
+
+  @Post("get-active-users-roles-usage")
+  async getActiveUsersRolesUsageData(
+    @Body() getActiveUsersRolesUsageDto: getActiveUsersDetailsDTO,
+  ) {
+    return await this.dashboardService.getActiveUsersRolesUsage(
+      getActiveUsersRolesUsageDto,
+    );
+  }
+
+  @Post("get-active-users-roles-usage-count")
+  async getActiveUsersRolesUsageCountData(
+    @Body() getActiveUsersRolesUsageCountDto: getActiveUsersDetailsDTO,
+  ) {
+    return await this.dashboardService.getActiveUsersRolesUsageCount(
+      getActiveUsersRolesUsageCountDto,
     );
   }
 }

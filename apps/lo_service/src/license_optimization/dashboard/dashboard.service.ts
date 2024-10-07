@@ -19,7 +19,9 @@ export class DashboardService {
         AND SYNC_HEADER_ID = ${hdrId}
         AND CUSTOMER_ID = ${customer_id}`;
 
-      let activeUser = await db.run(`SELECT DISTINCT * FROM LO_USR02 WHERE ${activeUserQuery}`);
+      let activeUser = await db.run(
+        `SELECT DISTINCT * FROM LO_USR02 WHERE ${activeUserQuery}`,
+      );
       let inactiveUser = await db.run(
         `SELECT DISTINCT * FROM LO_USR02 WHERE ${inactiveUserQuery}`,
       );
@@ -57,19 +59,21 @@ export class DashboardService {
           A."UNAME", 
           A."AGR_NAME"
         FROM 
-            "FF9F2C685CB64B89B27EDD22961BD341"."LO_AGR_USERS" A
+          "FF9F2C685CB64B89B27EDD22961BD341"."LO_AGR_USERS" A
         JOIN 
-            "FF9F2C685CB64B89B27EDD22961BD341"."LO_USR02" B
+          "FF9F2C685CB64B89B27EDD22961BD341"."LO_USR02" B
         ON 
-            A."UNAME" = B."BNAME"
+          A."UNAME" = B."BNAME"
         WHERE 
-            B."UFLAG" NOT IN (32, 64, 128)
-            AND DAYS_BETWEEN(B."TRDAT", CURRENT_DATE) < 90 
-            AND A."SYNC_HEADER_ID" = ${hdrId}
-            AND A."CUSTOMER_ID" = ${customer_id}
-            AND B."SYNC_HEADER_ID" = ${hdrId}
-            AND B."CUSTOMER_ID" = ${customer_id}
-            `,
+          B."UFLAG" NOT IN (32, 64, 128)
+          AND DAYS_BETWEEN(B."TRDAT", CURRENT_DATE) < 90 
+          AND A."SYNC_HEADER_ID" = ${hdrId}
+          AND A."CUSTOMER_ID" = ${customer_id}
+          AND B."SYNC_HEADER_ID" = ${hdrId}
+          AND B."CUSTOMER_ID" = ${customer_id}
+        ORDER BY 
+          A."UNAME" ASC
+          `,
       );
 
       console.table(activeUsersRoles);
@@ -84,6 +88,226 @@ export class DashboardService {
       return {
         statuscode: HttpStatus.BAD_REQUEST,
         message: "Cannot fetch active users roles!",
+        data: error,
+      };
+    }
+  }
+
+  async getActiveUsersRolesDetails(getActiveUsersRoleDetailsDto): Promise<any> {
+    const { customer_id, hdrId } = getActiveUsersRoleDetailsDto;
+
+    try {
+      const db = await cds.connect.to("db");
+
+      let activeUsersRolesDetails = await db.run(
+        `
+        SELECT DISTINCT
+          A."UNAME", 
+          A."AGR_NAME", 
+          C."LOW",
+          C."OBJECT",
+          C."FIELD",
+          C."AUTH",
+          B."UFLAG", 
+          B."TRDAT"
+        FROM 
+            "FF9F2C685CB64B89B27EDD22961BD341"."LO_AGR_USERS" A
+        JOIN 
+            "FF9F2C685CB64B89B27EDD22961BD341"."LO_USR02" B
+        ON 
+            A."UNAME" = B."BNAME"
+        JOIN 
+            "FF9F2C685CB64B89B27EDD22961BD341"."LO_AGR_1251" C
+        ON 
+            A."AGR_NAME" = C."AGR_NAME"
+        WHERE 
+            B."UFLAG" NOT IN (32, 64, 128)
+            AND DAYS_BETWEEN(B."TRDAT", CURRENT_DATE) < 90
+            AND C.OBJECT = 'S_TCODE'
+            AND C.FIELD = 'TCD'
+            AND A."SYNC_HEADER_ID" = ${hdrId}
+            AND A."CUSTOMER_ID" = ${customer_id}
+            AND B."SYNC_HEADER_ID" = ${hdrId}
+            AND B."CUSTOMER_ID" = ${customer_id}
+            AND C."SYNC_HEADER_ID" = ${hdrId}
+            AND C."CUSTOMER_ID" = ${customer_id}
+          ORDER BY
+          A."UNAME"
+          `,
+      );
+
+      console.table(activeUsersRolesDetails);
+
+      return {
+        statuscode: HttpStatus.OK,
+        message: "Data fetched successfully",
+        data: activeUsersRolesDetails,
+      };
+    } catch (error) {
+      console.error(
+        "Error fetching active users roles details:",
+        error.message,
+      );
+      return {
+        statuscode: HttpStatus.BAD_REQUEST,
+        message: "Cannot fetch active users roles details!",
+        data: error,
+      };
+    }
+  }
+
+  async getActiveUsersRolesUsage(getActiveUsersRolesUsageDto): Promise<any> {
+    const { customer_id, hdrId } = getActiveUsersRolesUsageDto;
+
+    try {
+      const db = await cds.connect.to("db");
+
+      let activeUsersRolesUsage = await db.run(
+        `
+        WITH ActiveUsersDetails AS (
+        SELECT DISTINCT
+            A."UNAME", 
+            A."AGR_NAME", 
+            C."LOW",
+            C."OBJECT",
+            C."FIELD",
+            C."AUTH",
+            B."UFLAG", 
+            B."TRDAT"
+        FROM 
+            "FF9F2C685CB64B89B27EDD22961BD341"."LO_AGR_USERS" A
+        JOIN 
+            "FF9F2C685CB64B89B27EDD22961BD341"."LO_USR02" B
+        ON 
+            A."UNAME" = B."BNAME"
+        JOIN 
+            "FF9F2C685CB64B89B27EDD22961BD341"."LO_AGR_1251" C
+        ON 
+            A."AGR_NAME" = C."AGR_NAME"
+        WHERE 
+            B."UFLAG" NOT IN (32, 64, 128)
+            AND DAYS_BETWEEN(B."TRDAT", CURRENT_DATE) < 90
+            AND C.OBJECT = 'S_TCODE'
+            AND C.FIELD = 'TCD'
+            AND A."SYNC_HEADER_ID" = ${hdrId}
+            AND A."CUSTOMER_ID" = ${customer_id}
+            AND B."SYNC_HEADER_ID" = ${hdrId}
+            AND B."CUSTOMER_ID" = ${customer_id}
+            AND C."SYNC_HEADER_ID" = ${hdrId}
+            AND C."CUSTOMER_ID" = ${customer_id}
+        ),
+        RolesUsage AS (
+          SELECT DISTINCT 
+            TRANSACTION_CODE, 
+            USER
+          FROM 
+            "FF9F2C685CB64B89B27EDD22961BD341"."LO_SM20" 
+          WHERE 
+            TRANSACTION_CODE NOT IN ('S000', 'SESSION_MANAGER')
+            AND "SYNC_HEADER_ID" = ${hdrId}
+            AND "CUSTOMER_ID" = ${customer_id}
+        )
+        SELECT DISTINCT
+          AUD."UNAME",
+          AUD."LOW",
+          RU."TRANSACTION_CODE"
+          FROM 
+            ActiveUsersDetails AUD
+          JOIN 
+            RolesUsage RU
+          ON 
+            AUD."UNAME" = RU."USER"
+        WHERE 
+          AUD."LOW" != RU."TRANSACTION_CODE"
+        ORDER BY
+          AUD."UNAME"
+        `,
+      );
+
+      console.table(activeUsersRolesUsage);
+
+      return {
+        statuscode: HttpStatus.OK,
+        message: "Data fetched successfully",
+        data: activeUsersRolesUsage,
+      };
+    } catch (error) {
+      console.error(
+        "Error fetching active users roles details:",
+        error.message,
+      );
+      return {
+        statuscode: HttpStatus.BAD_REQUEST,
+        message: "Cannot fetch active users roles details!",
+        data: error,
+      };
+    }
+  }
+
+  async getActiveUsersRolesUsageCount(
+    getActiveUsersRolesUsageCountDto,
+  ): Promise<any> {
+    const { customer_id, hdrId } = getActiveUsersRolesUsageCountDto;
+
+    try {
+      const db = await cds.connect.to("db");
+
+      let activeUsersRolesUsageCount = await db.run(
+        `
+        WITH ActiveUsers AS (
+          SELECT 
+              "BNAME"
+          FROM 
+              "FF9F2C685CB64B89B27EDD22961BD341"."LO_USR02" 
+          WHERE 
+              "UFLAG" NOT IN (32, 64, 128)
+              AND DAYS_BETWEEN("TRDAT", CURRENT_DATE) < 90
+              AND "SYNC_HEADER_ID" = ${hdrId}
+              AND "CUSTOMER_ID" = ${customer_id}
+      ),
+      RolesUsage AS (
+          SELECT  
+            TRANSACTION_CODE, 
+            USER
+          FROM 
+            "FF9F2C685CB64B89B27EDD22961BD341"."LO_SM20" 
+          WHERE 
+            TRANSACTION_CODE NOT IN ('S000', 'SESSION_MANAGER')
+            AND "SYNC_HEADER_ID" = ${hdrId}
+            AND "CUSTOMER_ID" = ${customer_id}
+        )
+      SELECT 
+          AU."BNAME",
+          RU."TRANSACTION_CODE",
+          COUNT(RU."TRANSACTION_CODE") AS "TRANSACTION_COUNT"
+      FROM 
+          ActiveUsers AU
+      JOIN 
+          RolesUsage RU
+      ON 
+          AU."BNAME" = RU."USER"
+      GROUP BY
+          AU."BNAME", RU."TRANSACTION_CODE"
+      ORDER BY
+          AU."BNAME", "TRANSACTION_COUNT" DESC;
+        `,
+      );
+
+      console.table(activeUsersRolesUsageCount);
+
+      return {
+        statuscode: HttpStatus.OK,
+        message: "Data fetched successfully",
+        data: activeUsersRolesUsageCount,
+      };
+    } catch (error) {
+      console.error(
+        "Error fetching active users roles details:",
+        error.message,
+      );
+      return {
+        statuscode: HttpStatus.BAD_REQUEST,
+        message: "Cannot fetch active users roles details!",
         data: error,
       };
     }
