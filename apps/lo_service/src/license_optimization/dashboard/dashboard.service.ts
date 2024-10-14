@@ -20,10 +20,38 @@ export class DashboardService {
         AND CUSTOMER_ID = ${customer_id}`;
 
       let activeUser = await db.run(
-        `SELECT DISTINCT * FROM LO_USR02 WHERE ${activeUserQuery}`,
+        `SELECT DISTINCT
+          BNAME AS "User name",
+          GLTGV AS "User valid from", 
+          GLTGB AS "User valid to", 
+          USTYP AS "User Type",
+          CLASS AS "User group",
+          UFLAG AS "User Lock Status",
+          ACCNT AS "Account ID",
+          ANAME AS "Creator of the User",
+          ERDAT AS "Creation Date of the User",
+          TRDAT AS "Last Logon Date",
+          LTIME AS "Last Logon Time",
+          TZONE AS "Time Zone"
+        FROM LO_USR02
+        WHERE ${activeUserQuery}`,
       );
       let inactiveUser = await db.run(
-        `SELECT DISTINCT * FROM LO_USR02 WHERE ${inactiveUserQuery}`,
+        `SELECT DISTINCT
+          BNAME AS "User name",
+          GLTGV AS "User valid from", 
+          GLTGB AS "User valid to", 
+          USTYP AS "User Type",
+          CLASS AS "User group",
+          UFLAG AS "User Lock Status",
+          ACCNT AS "Account ID",
+          ANAME AS "Creator of the User",
+          ERDAT AS "Creation Date of the User",
+          TRDAT AS "Last Logon Date",
+          LTIME AS "Last Logon Time",
+          TZONE AS "Time Zone"
+        FROM LO_USR02
+        WHERE ${inactiveUserQuery}`,
       );
 
       console.table(activeUser);
@@ -73,7 +101,7 @@ export class DashboardService {
           AND B."CUSTOMER_ID" = ${customer_id}
         ORDER BY 
           A."UNAME" ASC
-          `,
+        `,
       );
 
       console.table(activeUsersRoles);
@@ -102,14 +130,14 @@ export class DashboardService {
       let activeUsersRolesDetails = await db.run(
         `
         SELECT DISTINCT
-          A."UNAME", 
-          A."AGR_NAME", 
-          C."LOW",
-          C."OBJECT",
-          C."FIELD",
-          C."AUTH",
-          B."UFLAG", 
-          B."TRDAT"
+            A."UNAME", 
+            A."AGR_NAME", 
+            C."LOW",
+            C."OBJECT",
+            C."FIELD",
+            C."AUTH",
+            B."UFLAG", 
+            B."TRDAT"
         FROM 
             "FF9F2C685CB64B89B27EDD22961BD341"."LO_AGR_USERS" A
         JOIN 
@@ -131,8 +159,8 @@ export class DashboardService {
             AND B."CUSTOMER_ID" = ${customer_id}
             AND C."SYNC_HEADER_ID" = ${hdrId}
             AND C."CUSTOMER_ID" = ${customer_id}
-          ORDER BY
-          A."UNAME"
+        ORDER BY
+            A."UNAME"
           `,
       );
 
