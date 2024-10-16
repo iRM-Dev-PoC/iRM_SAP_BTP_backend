@@ -10,7 +10,7 @@ export class DashboardService {
       const db = await cds.connect.to("db");
 
       let activeUserQuery = `UFLAG NOT IN (32, 64, 128)
-        AND DAYS_BETWEEN(TRDAT , CURRENT_DATE) < 90
+        AND DAYS_BETWEEN(TRDAT , CURRENT_DATE) <= 90
         AND SYNC_HEADER_ID = ${hdrId}
         AND CUSTOMER_ID = ${customer_id}`;
 
@@ -75,6 +75,59 @@ export class DashboardService {
     }
   }
 
+  //----------PIE CHART - BASED ON ACTIVE USER BY USER TYPE------------
+  async getUsersTypeCount(userStatus): Promise<any> {
+    try {
+      const { customer_id, hdrId } = userStatus;
+      const db = await cds.connect.to("db");
+
+      let activeUserQuery = `UFLAG NOT IN (32, 64, 128)
+        AND DAYS_BETWEEN(TRDAT , CURRENT_DATE) <= 90
+        AND SYNC_HEADER_ID = ${hdrId}
+        AND CUSTOMER_ID = ${customer_id}`;
+
+      let activeUserTypeData = await db.run(
+        `
+        SELECT
+        USTYP AS "User Type",
+        COUNT(USTYP) as "Count"
+        FROM LO_USR02
+        WHERE ${activeUserQuery}
+        GROUP BY USTYP
+        `,
+      );
+
+      console.table(activeUserTypeData);
+
+      let transformedData = {
+        series: activeUserTypeData.map((item, index) => ({
+          name: item["User Type"],
+          items: [
+            {
+              id: (index + 1).toString(),
+              value: item.Count,
+              labelDisplay: "LABEL",
+              name: item["User Type"],
+            },
+          ],
+        })),
+      };
+
+      return {
+        statuscode: HttpStatus.OK,
+        message: "Data fetched successfully",
+        data: transformedData,
+      };
+    } catch (error) {
+      console.error("Error fetching in active users type:", error.message);
+      return {
+        statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: "Failed to fetch active users type",
+        data: error,
+      };
+    }
+  }
+
   async getActiveUsersRolesData(getActiveUsersRolesDto): Promise<any> {
     const { customer_id, hdrId } = getActiveUsersRolesDto;
 
@@ -94,7 +147,7 @@ export class DashboardService {
           A."UNAME" = B."BNAME"
         WHERE 
           B."UFLAG" NOT IN (32, 64, 128)
-          AND DAYS_BETWEEN(B."TRDAT", CURRENT_DATE) < 90 
+          AND DAYS_BETWEEN(B."TRDAT", CURRENT_DATE) <= 90 
           AND A."SYNC_HEADER_ID" = ${hdrId}
           AND A."CUSTOMER_ID" = ${customer_id}
           AND B."SYNC_HEADER_ID" = ${hdrId}
@@ -116,6 +169,76 @@ export class DashboardService {
       return {
         statuscode: HttpStatus.BAD_REQUEST,
         message: "Cannot fetch active users roles!",
+        data: error,
+      };
+    }
+  }
+
+  //----------PIE CHART - BASED ON USER ROLES COUNT BY ROLE ASSIGNED------------
+
+  async getUsersRoleCount(userStatus): Promise<any> {
+    try {
+      const { customer_id, hdrId } = userStatus;
+      const db = await cds.connect.to("db");
+
+      let activeUserRoleCountData = await db.run(
+        `
+        WITH DistinctUserRoles AS (
+          SELECT DISTINCT
+            A."UNAME", 
+            A."AGR_NAME"
+          FROM 
+            "FF9F2C685CB64B89B27EDD22961BD341"."LO_AGR_USERS" A
+          JOIN 
+            "FF9F2C685CB64B89B27EDD22961BD341"."LO_USR02" B
+          ON 
+            A."UNAME" = B."BNAME"
+          WHERE 
+            B."UFLAG" NOT IN (32, 64, 128)
+            AND DAYS_BETWEEN(B."TRDAT", CURRENT_DATE) <= 90
+            AND A."SYNC_HEADER_ID" = ${hdrId}
+            AND A."CUSTOMER_ID" = ${customer_id}
+            AND B."SYNC_HEADER_ID" = ${hdrId}
+            AND B."CUSTOMER_ID" = ${customer_id}
+        )
+        SELECT 
+          "UNAME" as "User Name",
+          COUNT("AGR_NAME") AS "Role Count"
+        FROM 
+          DistinctUserRoles
+        GROUP BY 
+          "UNAME"
+        ORDER BY 
+          "UNAME";
+        `,
+      );
+
+      console.table(activeUserRoleCountData);
+
+      let transformedData = {
+        series: activeUserRoleCountData.map((item, index) => ({
+          name: item["User Name"],
+          items: [
+            {
+              id: (index + 1).toString(),
+              value: item["Role Count"],
+              labelDisplay: "LABEL",
+              name: item["User Name"],
+            },
+          ],
+        })),
+      };
+
+      return {
+        statuscode: HttpStatus.OK,
+        message: "Data fetched successfully",
+        data: transformedData,
+      };
+    } catch (error) {
+      console.error("Error fetching in active users role count:", error.message);
+      return {
+        statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: "Failed to fetch active users role count",
         data: error,
       };
     }
