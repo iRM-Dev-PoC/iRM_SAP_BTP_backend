@@ -20,6 +20,11 @@ export class DashboardController {
     return await this.dashboardService.getUsersStatus(userStatus);
   }
 
+  @Post("users-type") // PIE CHART DATA - BASED ON USER TYPES
+  async getUsersTypeCount(@Body() userStatus: getUserStatusDto) {
+    return await this.dashboardService.getUsersTypeCount(userStatus);
+  }
+
   @Post("get-active-users-roles")
   async getActiveUsersRolesData(
     @Body() getActiveUsersRolesDto: getActiveUsersDetailsDTO,
@@ -27,6 +32,11 @@ export class DashboardController {
     return await this.dashboardService.getActiveUsersRolesData(
       getActiveUsersRolesDto,
     );
+  }
+
+  @Post("users-role-count") // PIE CHART DATA - BASED ON USER ROLES COUNTS
+  async getUsersRoleCount(@Body() userStatus: getUserStatusDto) {
+    return await this.dashboardService.getUsersRoleCount(userStatus);
   }
 
   @Post("get-active-users-roles-details")
