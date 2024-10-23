@@ -457,52 +457,65 @@ export class DashboardService {
 
       let activeUsersRolesUsageCount = await db.run(
         `
-      WITH ActiveUsers AS (
-        SELECT 
-            "BNAME"
-        FROM 
-            "FF9F2C685CB64B89B27EDD22961BD341"."LO_USR02" 
-        WHERE 
-            "UFLAG" NOT IN (32, 64, 128)
-            AND DAYS_BETWEEN("TRDAT", CURRENT_DATE) < 90
-            AND "SYNC_HEADER_ID" = ${hdrId}
-            AND "CUSTOMER_ID" = ${customer_id}
-    ),
-    RolesUsage AS (
-        SELECT  
-          TRANSACTION_CODE, 
-          USER
-        FROM 
-          "FF9F2C685CB64B89B27EDD22961BD341"."LO_SM20" 
-        WHERE 
-          TRANSACTION_CODE NOT IN ('S000', 'SESSION_MANAGER')
+    WITH ActiveUsers AS (
+      SELECT 
+          "BNAME",
+          "CLASS",
+          "USTYP",
+          "ANAME"
+      FROM 
+          "FF9F2C685CB64B89B27EDD22961BD341"."LO_USR02" 
+      WHERE 
+          "UFLAG" NOT IN (32, 64, 128)
+          AND DAYS_BETWEEN("TRDAT", CURRENT_DATE) < 90
           AND "SYNC_HEADER_ID" = ${hdrId}
           AND "CUSTOMER_ID" = ${customer_id}
-      )
-    SELECT 
-        AU."BNAME",
-        RU."TRANSACTION_CODE",
-        COUNT(RU."TRANSACTION_CODE") AS "TRANSACTION_COUNT"
-    FROM 
-        ActiveUsers AU
-    JOIN 
-        RolesUsage RU
-    ON 
-        AU."BNAME" = RU."USER"
-    GROUP BY
-        AU."BNAME", RU."TRANSACTION_CODE"
-    ORDER BY
-        AU."BNAME", "TRANSACTION_COUNT" DESC;
-      `,
+  ),
+  RolesUsage AS (
+      SELECT  
+        TRANSACTION_CODE, 
+        USER
+      FROM 
+        "FF9F2C685CB64B89B27EDD22961BD341"."LO_SM20" 
+      WHERE 
+        TRANSACTION_CODE NOT IN ('S000', 'SESSION_MANAGER')
+        AND "SYNC_HEADER_ID" = ${hdrId}
+        AND "CUSTOMER_ID" = ${customer_id}
+    )
+  SELECT 
+      AU."BNAME",
+      AU."ANAME",
+      AU."CLASS",
+      AU."USTYP",
+      RU."TRANSACTION_CODE",
+      COUNT(RU."TRANSACTION_CODE") AS "TRANSACTION_COUNT"
+  FROM 
+      ActiveUsers AU
+  JOIN 
+      RolesUsage RU
+  ON 
+      AU."BNAME" = RU."USER"
+  GROUP BY
+      AU."BNAME", RU."TRANSACTION_CODE", AU."CLASS", AU."USTYP", AU."ANAME"
+  ORDER BY
+      AU."BNAME", "TRANSACTION_COUNT" DESC;
+    `,
       );
 
       const transformedResult = activeUsersRolesUsageCount.reduce(
         (acc, curr) => {
-          const { BNAME, TRANSACTION_CODE, TRANSACTION_COUNT } = curr;
+          const {
+            BNAME,
+            ANAME,
+            CLASS,
+            USTYP,
+            TRANSACTION_CODE,
+            TRANSACTION_COUNT,
+          } = curr;
 
           // Check if the user already exists in the result
           if (!acc[BNAME]) {
-            acc[BNAME] = { BNAME };
+            acc[BNAME] = { BNAME, ANAME, CLASS, USTYP };
           }
 
           const currentTransactionCount = Object.keys(acc[BNAME]).filter(
