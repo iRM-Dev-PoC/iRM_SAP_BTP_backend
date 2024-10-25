@@ -378,75 +378,6 @@ export class DashboardService {
     }
   }
 
-  // async getActiveUsersRolesUsageCount(
-  //   getActiveUsersRolesUsageCountDto,
-  // ): Promise<any> {
-  //   const { customer_id, hdrId } = getActiveUsersRolesUsageCountDto;
-
-  //   try {
-  //     const db = await cds.connect.to("db");
-
-  //     let activeUsersRolesUsageCount = await db.run(
-  //       `
-  //       WITH ActiveUsers AS (
-  //         SELECT
-  //             "BNAME"
-  //         FROM
-  //             "FF9F2C685CB64B89B27EDD22961BD341"."LO_USR02"
-  //         WHERE
-  //             "UFLAG" NOT IN (32, 64, 128)
-  //             AND DAYS_BETWEEN("TRDAT", CURRENT_DATE) < 90
-  //             AND "SYNC_HEADER_ID" = ${hdrId}
-  //             AND "CUSTOMER_ID" = ${customer_id}
-  //     ),
-  //     RolesUsage AS (
-  //         SELECT
-  //           TRANSACTION_CODE,
-  //           USER
-  //         FROM
-  //           "FF9F2C685CB64B89B27EDD22961BD341"."LO_SM20"
-  //         WHERE
-  //           TRANSACTION_CODE NOT IN ('S000', 'SESSION_MANAGER')
-  //           AND "SYNC_HEADER_ID" = ${hdrId}
-  //           AND "CUSTOMER_ID" = ${customer_id}
-  //       )
-  //     SELECT
-  //         AU."BNAME",
-  //         RU."TRANSACTION_CODE",
-  //         COUNT(RU."TRANSACTION_CODE") AS "TRANSACTION_COUNT"
-  //     FROM
-  //         ActiveUsers AU
-  //     JOIN
-  //         RolesUsage RU
-  //     ON
-  //         AU."BNAME" = RU."USER"
-  //     GROUP BY
-  //         AU."BNAME", RU."TRANSACTION_CODE"
-  //     ORDER BY
-  //         AU."BNAME", "TRANSACTION_COUNT" DESC;
-  //       `,
-  //     );
-
-  //     console.table(activeUsersRolesUsageCount);
-
-  //     return {
-  //       statuscode: HttpStatus.OK,
-  //       message: "Data fetched successfully",
-  //       data: activeUsersRolesUsageCount,
-  //     };
-  //   } catch (error) {
-  //     console.error(
-  //       "Error fetching active users roles details:",
-  //       error.message,
-  //     );
-  //     return {
-  //       statuscode: HttpStatus.BAD_REQUEST,
-  //       message: "Cannot fetch active users roles details!",
-  //       data: error,
-  //     };
-  //   }
-  // }
-
   async getActiveUsersRolesUsageCount(
     getActiveUsersRolesUsageCountDto,
   ): Promise<any> {
@@ -457,49 +388,49 @@ export class DashboardService {
 
       let activeUsersRolesUsageCount = await db.run(
         `
-    WITH ActiveUsers AS (
-      SELECT 
-          "BNAME",
-          "CLASS",
-          "USTYP",
-          "ANAME"
-      FROM 
-          "FF9F2C685CB64B89B27EDD22961BD341"."LO_USR02" 
-      WHERE 
-          "UFLAG" NOT IN (32, 64, 128)
-          AND DAYS_BETWEEN("TRDAT", CURRENT_DATE) < 90
-          AND "SYNC_HEADER_ID" = ${hdrId}
-          AND "CUSTOMER_ID" = ${customer_id}
-  ),
-  RolesUsage AS (
-      SELECT  
-        TRANSACTION_CODE, 
-        USER
-      FROM 
-        "FF9F2C685CB64B89B27EDD22961BD341"."LO_SM20" 
-      WHERE 
-        TRANSACTION_CODE NOT IN ('S000', 'SESSION_MANAGER')
-        AND "SYNC_HEADER_ID" = ${hdrId}
-        AND "CUSTOMER_ID" = ${customer_id}
-    )
-  SELECT 
-      AU."BNAME",
-      AU."ANAME",
-      AU."CLASS",
-      AU."USTYP",
-      RU."TRANSACTION_CODE",
-      COUNT(RU."TRANSACTION_CODE") AS "TRANSACTION_COUNT"
-  FROM 
-      ActiveUsers AU
-  JOIN 
-      RolesUsage RU
-  ON 
-      AU."BNAME" = RU."USER"
-  GROUP BY
-      AU."BNAME", RU."TRANSACTION_CODE", AU."CLASS", AU."USTYP", AU."ANAME"
-  ORDER BY
-      AU."BNAME", "TRANSACTION_COUNT" DESC;
-    `,
+        WITH ActiveUsers AS (
+          SELECT 
+              "BNAME",
+              "CLASS",
+              "USTYP",
+              "ANAME"
+          FROM 
+              "FF9F2C685CB64B89B27EDD22961BD341"."LO_USR02" 
+          WHERE 
+              "UFLAG" NOT IN (32, 64, 128)
+              AND DAYS_BETWEEN("TRDAT", CURRENT_DATE) < 90
+              AND "SYNC_HEADER_ID" = ${hdrId}
+              AND "CUSTOMER_ID" = ${customer_id}
+        ),
+        RolesUsage AS (
+            SELECT  
+              TRANSACTION_CODE, 
+              USER
+            FROM 
+              "FF9F2C685CB64B89B27EDD22961BD341"."LO_SM20" 
+            WHERE 
+              TRANSACTION_CODE NOT IN ('S000', 'SESSION_MANAGER')
+              AND "SYNC_HEADER_ID" = ${hdrId}
+              AND "CUSTOMER_ID" = ${customer_id}
+          )
+        SELECT 
+            AU."BNAME",
+            AU."ANAME",
+            AU."CLASS",
+            AU."USTYP",
+            RU."TRANSACTION_CODE",
+            COUNT(RU."TRANSACTION_CODE") AS "TRANSACTION_COUNT"
+        FROM 
+            ActiveUsers AU
+        JOIN 
+            RolesUsage RU
+        ON 
+            AU."BNAME" = RU."USER"
+        GROUP BY
+            AU."BNAME", RU."TRANSACTION_CODE", AU."CLASS", AU."USTYP", AU."ANAME"
+        ORDER BY
+            AU."BNAME", "TRANSACTION_COUNT" DESC;
+        `,
       );
 
       const transformedResult = activeUsersRolesUsageCount.reduce(
@@ -513,19 +444,41 @@ export class DashboardService {
             TRANSACTION_COUNT,
           } = curr;
 
-          // Check if the user already exists in the result
           if (!acc[BNAME]) {
-            acc[BNAME] = { BNAME, ANAME, CLASS, USTYP };
+            // Initialize the structure for a new user
+            acc[BNAME] = {
+              BNAME,
+              userDetails: {
+                ANAME,
+                CLASS,
+                USTYP,
+              },
+              transactions: [],
+              bar_chart: [
+                {
+                  name: BNAME,
+                  assignedToY2: "off",
+                  displayInLegend: "auto",
+                  items: [],
+                },
+              ],
+            };
           }
 
-          const currentTransactionCount = Object.keys(acc[BNAME]).filter(
-            (key) => key.startsWith("TRANSACTION_CODE_"),
-          ).length;
+          // Add transaction data
+          const transactionIndex = acc[BNAME].transactions.length;
+          acc[BNAME].transactions.push({
+            [`TRANSACTION_CODE_${transactionIndex}`]: TRANSACTION_CODE,
+            [`TRANSACTION_COUNT_${transactionIndex}`]: TRANSACTION_COUNT,
+          });
 
-          acc[BNAME][`TRANSACTION_CODE_${currentTransactionCount}`] =
-            TRANSACTION_CODE;
-          acc[BNAME][`TRANSACTION_COUNT_${currentTransactionCount}`] =
-            TRANSACTION_COUNT;
+          // Add bar chart item
+          acc[BNAME].bar_chart[0].items.push({
+            id: (acc[BNAME].bar_chart[0].items.length + 1).toString(),
+            value: TRANSACTION_COUNT,
+            name: TRANSACTION_CODE,
+            labelPosition: "none",
+          });
 
           return acc;
         },
@@ -534,7 +487,7 @@ export class DashboardService {
 
       const resultArray = Object.values(transformedResult);
 
-      console.table(resultArray);
+      console.log(resultArray);
 
       return {
         statuscode: HttpStatus.OK,
