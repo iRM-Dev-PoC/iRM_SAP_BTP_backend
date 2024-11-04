@@ -63,15 +63,7 @@ credentials.json
 
 # added by cds
 .cdsrc-private.json
-
-# added by cds
-.cdsrc-private.json
-
-# added by cds
-.cdsrc-private.json
-
-# added by cds
-.cdsrc-private.json
-
-# added by cds
-.cdsrc-private.json
+.cdsrc.json
+old-default-env.json
+pcf-sk.json
+rds-combined-ca-bundle.pem
