@@ -223,13 +223,13 @@ export class ReportCheckPointMappingService {
           report.REPORT_NAME,
           customer.CUSTOMER_NAME
         FROM
-          "FF9F2C685CB64B89B27EDD22961BD341"."PCF_DB_REPORT_CHECKPOINT_MAPPING" AS mapping
+          PCF_DB_REPORT_CHECKPOINT_MAPPING AS mapping
         LEFT JOIN
-          "FF9F2C685CB64B89B27EDD22961BD341"."PCF_DB_REPORT_MASTER" AS report ON mapping.REPORT_ID = report.ID
+          PCF_DB_REPORT_MASTER AS report ON mapping.REPORT_ID = report.ID
         LEFT JOIN
-          "FF9F2C685CB64B89B27EDD22961BD341"."PCF_DB_CHECK_POINT_MASTER" AS checkpoint ON mapping.CHECK_POINT_ID = checkpoint.ID
+          PCF_DB_CHECK_POINT_MASTER AS checkpoint ON mapping.CHECK_POINT_ID = checkpoint.ID
         LEFT JOIN
-          "FF9F2C685CB64B89B27EDD22961BD341"."PCF_DB_CUSTOMER_MASTER" AS customer ON mapping.CUSTOMER_ID = customer.ID
+          PCF_DB_CUSTOMER_MASTER AS customer ON mapping.CUSTOMER_ID = customer.ID
         WHERE
           mapping.IS_ACTIVE = 'Y'
         ORDER BY mapping.CHECK_POINT_ID

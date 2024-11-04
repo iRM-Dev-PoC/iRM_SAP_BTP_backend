@@ -122,9 +122,9 @@ export class DashboardService {
             A."UNAME", 
             A."AGR_NAME"
           FROM 
-            "FF9F2C685CB64B89B27EDD22961BD341"."LO_AGR_USERS" A
+            LO_AGR_USERS A
           JOIN 
-            "FF9F2C685CB64B89B27EDD22961BD341"."LO_USR02" B
+            LO_USR02 B
           ON 
             A."UNAME" = B."BNAME"
           WHERE 
@@ -193,9 +193,9 @@ export class DashboardService {
           A."UNAME", 
           A."AGR_NAME"
         FROM 
-          "FF9F2C685CB64B89B27EDD22961BD341"."LO_AGR_USERS" A
+          LO_AGR_USERS A
         JOIN 
-          "FF9F2C685CB64B89B27EDD22961BD341"."LO_USR02" B
+          LO_USR02 B
         ON 
           A."UNAME" = B."BNAME"
         WHERE 
@@ -245,13 +245,13 @@ export class DashboardService {
             B."UFLAG", 
             B."TRDAT"
         FROM 
-            "FF9F2C685CB64B89B27EDD22961BD341"."LO_AGR_USERS" A
+            LO_AGR_USERS A
         JOIN 
-            "FF9F2C685CB64B89B27EDD22961BD341"."LO_USR02" B
+            LO_USR02 B
         ON 
             A."UNAME" = B."BNAME"
         JOIN 
-            "FF9F2C685CB64B89B27EDD22961BD341"."LO_AGR_1251" C
+            LO_AGR_1251 C
         ON 
             A."AGR_NAME" = C."AGR_NAME"
         WHERE 
@@ -309,13 +309,13 @@ export class DashboardService {
             B."UFLAG", 
             B."TRDAT"
         FROM 
-            "FF9F2C685CB64B89B27EDD22961BD341"."LO_AGR_USERS" A
+            LO_AGR_USERS A
         JOIN 
-            "FF9F2C685CB64B89B27EDD22961BD341"."LO_USR02" B
+            LO_USR02 B
         ON 
             A."UNAME" = B."BNAME"
         JOIN 
-            "FF9F2C685CB64B89B27EDD22961BD341"."LO_AGR_1251" C
+            LO_AGR_1251 C
         ON 
             A."AGR_NAME" = C."AGR_NAME"
         WHERE 
@@ -335,7 +335,7 @@ export class DashboardService {
             TRANSACTION_CODE, 
             USER
           FROM 
-            "FF9F2C685CB64B89B27EDD22961BD341"."LO_SM20" 
+            LO_SM20 
           WHERE 
             TRANSACTION_CODE NOT IN ('S000', 'SESSION_MANAGER')
             AND "SYNC_HEADER_ID" = ${hdrId}
@@ -395,7 +395,7 @@ export class DashboardService {
               "USTYP",
               "ANAME"
           FROM 
-              "FF9F2C685CB64B89B27EDD22961BD341"."LO_USR02" 
+              LO_USR02 
           WHERE 
               "UFLAG" NOT IN (32, 64, 128)
               AND DAYS_BETWEEN("TRDAT", CURRENT_DATE) < 90
@@ -407,7 +407,7 @@ export class DashboardService {
               TRANSACTION_CODE, 
               USER
             FROM 
-              "FF9F2C685CB64B89B27EDD22961BD341"."LO_SM20" 
+              LO_SM20 
             WHERE 
               TRANSACTION_CODE NOT IN ('S000', 'SESSION_MANAGER')
               AND "SYNC_HEADER_ID" = ${hdrId}
