@@ -414,11 +414,14 @@ export class DashboardService {
               AND "CUSTOMER_ID" = ${customer_id}
           )
         SELECT 
-            AU."BNAME",
+            -- AU."BNAME",
+            UADDR."NAME_TEXTC" AS USER_NAME,
             AU."ANAME",
             AU."CLASS",
             AU."USTYP",
+            UADDR."DEPARTMENT",
             RU."TRANSACTION_CODE",
+            -- TT."TRANSACTION_TEXT",
             COUNT(RU."TRANSACTION_CODE") AS "TRANSACTION_COUNT"
         FROM 
             ActiveUsers AU
@@ -426,37 +429,56 @@ export class DashboardService {
             RolesUsage RU
         ON 
             AU."BNAME" = RU."USER"
-        GROUP BY
-            AU."BNAME", RU."TRANSACTION_CODE", AU."CLASS", AU."USTYP", AU."ANAME"
-        ORDER BY
-            AU."BNAME", "TRANSACTION_COUNT" DESC;
+        JOIN
+          LO_USER_ADDR UADDR
+        ON
+          AU."BNAME" = UADDR."BNAME"
+        -- JOIN
+        --   LO_TSTC TT
+        -- ON
+        --   RU."TRANSACTION_CODE" = TT."TCODE"
+            GROUP BY
+                -- AU."BNAME",
+                UADDR."NAME_TEXTC",
+                RU."TRANSACTION_CODE",
+                -- TT."TRANSACTION_TEXT",
+                AU."CLASS",
+                AU."USTYP",
+                AU."ANAME",
+                UADDR."DEPARTMENT"
+            ORDER BY
+                -- AU."BNAME",
+                UADDR."NAME_TEXTC",
+                "TRANSACTION_COUNT" DESC;
         `,
       );
 
       const transformedResult = activeUsersRolesUsageCount.reduce(
         (acc, curr) => {
           const {
-            BNAME,
+            USER_NAME,
             ANAME,
             CLASS,
             USTYP,
+            DEPARTMENT,
             TRANSACTION_CODE,
             TRANSACTION_COUNT,
           } = curr;
 
-          if (!acc[BNAME]) {
+          if (!acc[USER_NAME]) {
             // Initialize the structure for a new user
-            acc[BNAME] = {
-              BNAME,
+            acc[USER_NAME] = {
+              USER_NAME,
               userDetails: {
                 ANAME,
                 CLASS,
                 USTYP,
+                DEPARTMENT,
               },
               transactions: [],
               bar_chart: [
                 {
-                  name: BNAME,
+                  name: USER_NAME,
                   assignedToY2: "off",
                   displayInLegend: "auto",
                   items: [],
@@ -466,15 +488,15 @@ export class DashboardService {
           }
 
           // Add transaction data
-          const transactionIndex = acc[BNAME].transactions.length;
-          acc[BNAME].transactions.push({
+          const transactionIndex = acc[USER_NAME].transactions.length;
+          acc[USER_NAME].transactions.push({
             [`TRANSACTION_CODE_${transactionIndex}`]: TRANSACTION_CODE,
             [`TRANSACTION_COUNT_${transactionIndex}`]: TRANSACTION_COUNT,
           });
 
           // Add bar chart item
-          acc[BNAME].bar_chart[0].items.push({
-            id: (acc[BNAME].bar_chart[0].items.length + 1).toString(),
+          acc[USER_NAME].bar_chart[0].items.push({
+            id: (acc[USER_NAME].bar_chart[0].items.length + 1).toString(),
             value: TRANSACTION_COUNT,
             name: TRANSACTION_CODE,
             labelPosition: "none",
