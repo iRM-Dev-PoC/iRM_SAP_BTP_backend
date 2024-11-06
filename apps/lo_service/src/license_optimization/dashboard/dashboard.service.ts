@@ -75,7 +75,7 @@ export class DashboardService {
     }
   }
 
-  //----------DASHBOARD DATA------------
+  //----------  START DASHBOARD DATA  ------------
   async getDashboardData(userStatus): Promise<any> {
     try {
       const { customer_id, hdrId } = userStatus;
@@ -119,7 +119,8 @@ export class DashboardService {
         `
         WITH DistinctUserRoles AS (
           SELECT DISTINCT
-            A."UNAME", 
+            -- A."UNAME", 
+            C."NAME_TEXTC",
             A."AGR_NAME"
           FROM 
             LO_AGR_USERS A
@@ -127,6 +128,10 @@ export class DashboardService {
             LO_USR02 B
           ON 
             A."UNAME" = B."BNAME"
+          JOIN
+            LO_USER_ADDR C
+          ON
+            A."UNAME" = C."BNAME"
           WHERE 
             B."UFLAG" NOT IN (32, 64, 128)
             AND DAYS_BETWEEN(B."TRDAT", CURRENT_DATE) <= 90
@@ -134,16 +139,20 @@ export class DashboardService {
             AND A."CUSTOMER_ID" = ${customer_id}
             AND B."SYNC_HEADER_ID" = ${hdrId}
             AND B."CUSTOMER_ID" = ${customer_id}
+            AND C."SYNC_HEADER_ID" = ${hdrId}
+            AND C."CUSTOMER_ID" = ${customer_id}
         )
         SELECT 
-          "UNAME" as "User Name",
+          --"UNAME" as "User Name",
+          "NAME_TEXTC" as "User Name",
           COUNT("AGR_NAME") AS "Role Count"
         FROM 
           DistinctUserRoles
         GROUP BY 
-          "UNAME"
+          --"UNAME",
+          "NAME_TEXTC"
         ORDER BY 
-          "UNAME";
+          "NAME_TEXTC";
         `,
       );
 
@@ -180,6 +189,8 @@ export class DashboardService {
       };
     }
   }
+
+  //----------  END DASHBOARD DATA  ------------
 
   async getActiveUsersRolesData(getActiveUsersRolesDto): Promise<any> {
     const { customer_id, hdrId } = getActiveUsersRolesDto;
