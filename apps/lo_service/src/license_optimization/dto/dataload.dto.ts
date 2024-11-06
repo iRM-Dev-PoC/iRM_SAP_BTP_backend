@@ -1,6 +1,3 @@
-// import { Type } from "class-transformer";
-// import { IsArray } from "class-validator";
-
 export class USR02_Dto {
   BNAME: string | null; //STRING
   GLTGV: string | null; //DATE
@@ -40,4 +37,17 @@ export class AGR_1251_Dto {
   FIELD: string | null; //STRING;
   LOW: string | null; //STRING;
   HIGH: string | null; //STRING;
+}
+
+export class USER_ADDR_Dto {
+  BNAME: string | null; //STRING;
+  NAME_FIRST: string | null; //STRING;
+  NAME_LAST: string | null; //STRING;
+  NAME_TEXTC: string | null; //STRING;
+  DEPARTMENT: string | null; //STRING;
+}
+
+export class TSTC_Dto {
+  TCODE: string | null; //STRING;
+  TRANSACTION_TEXT: string | null; //STRING;
 }

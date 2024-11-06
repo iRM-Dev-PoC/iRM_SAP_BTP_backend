@@ -3,7 +3,7 @@ import { Injectable } from "@nestjs/common";
 import cds from "@sap/cds";
 import * as fs from "fs";
 import * as xlsx from "xlsx";
-import { AGR_1251_Dto, AGR_USERS_Dto, SM20_Dto, USR02_Dto } from "./dto/dataload.dto";
+import { AGR_1251_Dto, AGR_USERS_Dto, SM20_Dto, USR02_Dto, USER_ADDR_Dto, TSTC_Dto } from "./dto/dataload.dto";
 
 @Injectable()
 export class DataImportService {
@@ -269,6 +269,103 @@ export class DataImportService {
               .where({
                 SYNC_HEADER_ID: syncHdrId,
                 REPORT_ID: 4,
+              });
+            console.error("Can not insert rows! ", err);
+          }
+        } else if (fileNameUpper.includes("USER_ADDR")) {
+          const data: USER_ADDR_Dto[] = xlsx.utils.sheet_to_json(sheet);
+
+          const syncData = await INSERT.into("LO_SYNC_DETAILS").entries({
+            SYNC_HEADER_ID: syncHdrId,
+            REPORT_ID: 5,
+            SYNC_STARTED_AT: `${new Date().toISOString()}`,
+            CREATED_BY: `1`,
+            SYNC_STATUS: "Initiated",
+            CREATED_ON: `${new Date().toISOString()}`,
+          });
+
+          const insertData = data.map((item) => {
+            return {
+              SYNC_HEADER_ID: syncHdrId,
+              CUSTOMER_ID: 1,
+              BNAME: String(item.BNAME || null),
+              NAME_FIRST: String(item.NAME_FIRST || null),
+              NAME_LAST: String(item.NAME_LAST || null),
+              NAME_TEXTC: String(item.NAME_TEXTC || null),
+              DEPARTMENT: String(item.DEPARTMENT || null),
+            };
+          });
+
+          try {
+            const insertRows = await INSERT(insertData).into("LO_USER_ADDR");
+
+            // update sync_details status
+            const updateStatus = await UPDATE("LO_SYNC_DETAILS")
+              .set({
+                SYNC_STATUS: "Completed",
+                SYNC_ENDED_AT: `${new Date().toISOString()}`,
+              })
+              .where({
+                SYNC_HEADER_ID: syncHdrId,
+                REPORT_ID: 5,
+              });
+          } catch (err) {
+            // update sync_details status
+            const updateStatus = await UPDATE("LO_SYNC_DETAILS")
+              .set({
+                SYNC_STATUS: "Error",
+                SYNC_ENDED_AT: `${new Date().toISOString()}`,
+              })
+              .where({
+                SYNC_HEADER_ID: syncHdrId,
+                REPORT_ID: 5,
+              });
+            console.error("Can not insert rows! ", err);
+          }
+        } else if (fileNameUpper.includes("TSTC")) {
+          const data: TSTC_Dto[] = xlsx.utils.sheet_to_json(sheet);
+
+          const syncData = await INSERT.into("LO_SYNC_DETAILS").entries({
+            SYNC_HEADER_ID: syncHdrId,
+            REPORT_ID: 6,
+            SYNC_STARTED_AT: `${new Date().toISOString()}`,
+            CREATED_BY: `1`,
+            SYNC_STATUS: "Initiated",
+            CREATED_ON: `${new Date().toISOString()}`,
+          });
+
+          const insertData = data.map((item) => {
+            return {
+              SYNC_HEADER_ID: syncHdrId,
+              CUSTOMER_ID: 1,
+              TCODE: String(item.TCODE || null),
+              TRANSACTION_TEXT: String(item.TRANSACTION_TEXT || null),
+            };
+          });
+
+          try {
+            const insertRows = await INSERT(insertData).into("LO_TSTC");
+
+            // update sync_details status
+            const updateStatus = await UPDATE("LO_SYNC_DETAILS")
+              .set({
+                SYNC_STATUS: "Completed",
+                SYNC_ENDED_AT: `${new Date().toISOString()}`,
+              })
+              .where({
+                SYNC_HEADER_ID: syncHdrId,
+                REPORT_ID: 6,
+              });
+          } catch (err) {
+            // update sync_details status
+            const updateStatus = await UPDATE("LO_SYNC_DETAILS")
+              .set({
+                SYNC_STATUS: "Error",
+                SYNC_ENDED_AT: `${new Date().toISOString()}`,
+              })
+              .where({
+                SYNC_HEADER_ID: syncHdrId,
+                REPORT_ID: 6,
               });
             console.error("Can not insert rows! ", err);
           }

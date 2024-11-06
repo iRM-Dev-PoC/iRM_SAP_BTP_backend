@@ -154,8 +154,8 @@ export class DataLoadController {
     }
   }
 
-  @Post("simulate-data")
-  async simulateData(@Req() req: Request, @Body() { id }) {
-    return await this.dataService.dataSimulation(id);
-  }
+  // @Post("simulate-data")
+  // async simulateData(@Req() req: Request, @Body() { id }) {
+  //   return await this.dataService.dataSimulation(id);
+  // }
 }
