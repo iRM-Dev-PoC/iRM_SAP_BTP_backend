@@ -98,8 +98,6 @@ export class DashboardService {
         `,
       );
 
-      console.table(activeUserTypeData);
-
       let transformedActiveUserTypeData = {
         series: activeUserTypeData.map((item, index) => ({
           name: item["User Type"],
@@ -119,19 +117,19 @@ export class DashboardService {
         `
         WITH DistinctUserRoles AS (
           SELECT DISTINCT
-            -- A."UNAME", 
-            C."NAME_TEXTC",
-            A."AGR_NAME"
+          -- A."UNAME", 
+          C."NAME_TEXTC",
+          A."AGR_NAME"
           FROM 
-            LO_AGR_USERS A
+          LO_AGR_USERS A
           JOIN 
-            LO_USR02 B
+          LO_USR02 B
           ON 
-            A."UNAME" = B."BNAME"
+          A."UNAME" = B."BNAME"
           JOIN
-            LO_USER_ADDR C
+          LO_USER_ADDR C
           ON
-            A."UNAME" = C."BNAME"
+          A."UNAME" = C."BNAME"
           WHERE 
             B."UFLAG" NOT IN (32, 64, 128)
             AND DAYS_BETWEEN(B."TRDAT", CURRENT_DATE) <= 90
@@ -141,22 +139,20 @@ export class DashboardService {
             AND B."CUSTOMER_ID" = ${customer_id}
             AND C."SYNC_HEADER_ID" = ${hdrId}
             AND C."CUSTOMER_ID" = ${customer_id}
-        )
-        SELECT 
-          --"UNAME" as "User Name",
-          "NAME_TEXTC" as "User Name",
-          COUNT("AGR_NAME") AS "Role Count"
-        FROM 
-          DistinctUserRoles
-        GROUP BY 
-          --"UNAME",
-          "NAME_TEXTC"
-        ORDER BY 
-          "NAME_TEXTC";
-        `,
+            )
+            SELECT 
+            --"UNAME" as "User Name",
+            "NAME_TEXTC" as "User Name",
+            COUNT("AGR_NAME") AS "Role Count"
+            FROM 
+            DistinctUserRoles
+            GROUP BY 
+            --"UNAME",
+            "NAME_TEXTC"
+            ORDER BY 
+            "NAME_TEXTC";
+            `,
       );
-
-      console.table(activeUserRoleCountData);
 
       let transformedActiveUserRoleCountData = {
         series: activeUserRoleCountData.map((item, index) => ({
@@ -172,12 +168,76 @@ export class DashboardService {
         })),
       };
 
+      let getTopRolesByActiveUserCount = await db.run(
+        `
+        SELECT TOP 10
+        A."AGR_NAME" AS "ROLE NAME",
+        COUNT(DISTINCT A."UNAME") AS "USER COUNT"
+        FROM 
+        LO_AGR_USERS A
+        JOIN 
+        LO_USR02 B
+        ON 
+        A."UNAME" = B."BNAME"
+        JOIN
+        LO_USER_ADDR C
+        ON
+        A."UNAME" = C."BNAME"
+        WHERE 
+        B."UFLAG" NOT IN (32, 64, 128)
+        AND DAYS_BETWEEN(B."TRDAT", CURRENT_DATE) <= 90
+        AND A."SYNC_HEADER_ID" = ${hdrId}
+        AND A."CUSTOMER_ID" = ${customer_id}
+        AND B."SYNC_HEADER_ID" = ${hdrId}
+        AND B."CUSTOMER_ID" = ${customer_id}
+        AND C."SYNC_HEADER_ID" = ${hdrId}
+        AND C."CUSTOMER_ID" = ${customer_id}
+        GROUP BY 
+        A."AGR_NAME"
+        ORDER BY 
+        "USER COUNT" DESC;
+        `,
+      );
+
+      let getTopTransactionsByActiveUsers = await db.run(
+        `
+        SELECT TOP 5
+        S.TRANSACTION_CODE AS "TRANSACTION CODE",
+        COUNT(S.USER) AS "USER COUNT"
+        FROM 
+        LO_USR02 U
+        JOIN 
+        LO_SM20 S
+        ON 
+        U.BNAME = S.USER
+        WHERE 
+            U.UFLAG NOT IN (32, 64, 128)
+            AND DAYS_BETWEEN(U.TRDAT, CURRENT_DATE) < 90
+            AND S.TRANSACTION_CODE NOT IN ('S000', 'SESSION_MANAGER')
+            AND S."SYNC_HEADER_ID" = ${hdrId}
+            AND U."SYNC_HEADER_ID" = ${hdrId}
+            AND S."CUSTOMER_ID" = ${customer_id}
+            AND U."CUSTOMER_ID" = ${customer_id}
+            GROUP BY 
+            S.TRANSACTION_CODE
+            ORDER BY 
+            "USER COUNT" DESC;
+            `,
+      );
+
+      console.table(activeUserTypeData);
+      console.table(activeUserRoleCountData);
+      console.table(getTopRolesByActiveUserCount);
+      console.table(getTopTransactionsByActiveUsers);
+
       return {
         statuscode: HttpStatus.OK,
         message: "Data fetched successfully",
         data: {
           activeUserType: transformedActiveUserTypeData,
           activeUserRoleCount: transformedActiveUserRoleCountData,
+          topRolesByActiveUserCount: getTopRolesByActiveUserCount,
+          topTransactionsByActiveUsers: getTopTransactionsByActiveUsers,
         },
       };
     } catch (error) {
