@@ -3,7 +3,16 @@ import { Injectable } from "@nestjs/common";
 import cds from "@sap/cds";
 import * as fs from "fs";
 import * as xlsx from "xlsx";
-import { AGR_1251_Dto, AGR_USERS_Dto, SM20_Dto, USR02_Dto, USER_ADDR_Dto, TSTC_Dto } from "./dto/dataload.dto";
+import {
+  AGR_1251_Dto,
+  AGR_USERS_Dto,
+  SM20_Dto,
+  USR02_Dto,
+  USER_ADDR_Dto,
+  TSTCT_Dto,
+  AGR_DEFINE_Dto,
+} from "./dto/dataload.dto";
+import { STATUS_CODES } from "http";
 
 @Injectable()
 export class DataImportService {
@@ -186,7 +195,7 @@ export class DataImportService {
               SYNC_HEADER_ID: syncHdrId,
               CUSTOMER_ID: 1,
               DATE: excelSerialToDate(item.DATE),
-              TIME: excelSerialToTime(item.TIME),
+              TIME: String(item.TIME || null),
               USER: String(item.USER || null),
               TERMINAL_NAME: String(item.TERMINAL_NAME || null),
               TRANSACTION_CODE: String(item.TRANSACTION_CODE || null),
@@ -322,8 +331,8 @@ export class DataImportService {
               });
             console.error("Can not insert rows! ", err);
           }
-        } else if (fileNameUpper.includes("TSTC")) {
-          const data: TSTC_Dto[] = xlsx.utils.sheet_to_json(sheet);
+        } else if (fileNameUpper.includes("TSTCT")) {
+          const data: TSTCT_Dto[] = xlsx.utils.sheet_to_json(sheet);
 
           const syncData = await INSERT.into("LO_SYNC_DETAILS").entries({
             SYNC_HEADER_ID: syncHdrId,
@@ -344,7 +353,7 @@ export class DataImportService {
           });
 
           try {
-            const insertRows = await INSERT(insertData).into("LO_TSTC");
+            const insertRows = await INSERT(insertData).into("LO_TSTCT");
 
             // update sync_details status
             const updateStatus = await UPDATE("LO_SYNC_DETAILS")
@@ -366,6 +375,54 @@ export class DataImportService {
               .where({
                 SYNC_HEADER_ID: syncHdrId,
                 REPORT_ID: 6,
+              });
+            console.error("Can not insert rows! ", err);
+          }
+        } else if (fileNameUpper.includes("AGR_DEFINE")) {
+          const data: AGR_DEFINE_Dto[] = xlsx.utils.sheet_to_json(sheet);
+
+          const syncData = await INSERT.into("LO_SYNC_DETAILS").entries({
+            SYNC_HEADER_ID: syncHdrId,
+            REPORT_ID: 7,
+            SYNC_STARTED_AT: `${new Date().toISOString()}`,
+            CREATED_BY: `1`,
+            SYNC_STATUS: "Initiated",
+            CREATED_ON: `${new Date().toISOString()}`,
+          });
+
+          const insertData = data.map((item) => {
+            return {
+              SYNC_HEADER_ID: syncHdrId,
+              CUSTOMER_ID: 1,
+              AGR_NAME: String(item.AGR_NAME || null),
+              PARENT_AGR: String(item.PARENT_AGR || null),
+              TEXT: String(item.TEXT || null),
+            };
+          });
+
+          try {
+            const insertRows = await INSERT(insertData).into("LO_AGR_DEFINE");
+
+            // update sync_details status
+            const updateStatus = await UPDATE("LO_SYNC_DETAILS")
+              .set({
+                SYNC_STATUS: "Completed",
+                SYNC_ENDED_AT: `${new Date().toISOString()}`,
+              })
+              .where({
+                SYNC_HEADER_ID: syncHdrId,
+                REPORT_ID: 7,
+              });
+          } catch (err) {
+            // update sync_details status
+            const updateStatus = await UPDATE("LO_SYNC_DETAILS")
+              .set({
+                SYNC_STATUS: "Error",
+                SYNC_ENDED_AT: `${new Date().toISOString()}`,
+              })
+              .where({
+                SYNC_HEADER_ID: syncHdrId,
+                REPORT_ID: 7,
               });
             console.error("Can not insert rows! ", err);
           }

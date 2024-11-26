@@ -14,8 +14,13 @@ export class DashboardService {
         AND SYNC_HEADER_ID = ${hdrId}
         AND CUSTOMER_ID = ${customer_id}`;
 
-      let inactiveUserQuery = `UFLAG IN (32, 64, 128)
-        AND DAYS_BETWEEN(TRDAT , CURRENT_DATE) > 90
+      let inactiveUserQuery = `
+        NOT (
+          UFLAG NOT IN (32, 64, 128) 
+          AND DAYS_BETWEEN(TRDAT, CURRENT_DATE) <= 90
+          AND SYNC_HEADER_ID = ${hdrId}
+          AND CUSTOMER_ID = ${customer_id}
+        )
         AND SYNC_HEADER_ID = ${hdrId}
         AND CUSTOMER_ID = ${customer_id}`;
 
@@ -170,65 +175,134 @@ export class DashboardService {
 
       let getTopRolesByActiveUserCount = await db.run(
         `
-        SELECT TOP 10
-        A."AGR_NAME" AS "ROLE NAME",
-        COUNT(DISTINCT A."UNAME") AS "USER COUNT"
-        FROM 
-        LO_AGR_USERS A
-        JOIN 
-        LO_USR02 B
-        ON 
-        A."UNAME" = B."BNAME"
-        JOIN
-        LO_USER_ADDR C
-        ON
-        A."UNAME" = C."BNAME"
-        WHERE 
-        B."UFLAG" NOT IN (32, 64, 128)
-        AND DAYS_BETWEEN(B."TRDAT", CURRENT_DATE) <= 90
-        AND A."SYNC_HEADER_ID" = ${hdrId}
-        AND A."CUSTOMER_ID" = ${customer_id}
-        AND B."SYNC_HEADER_ID" = ${hdrId}
-        AND B."CUSTOMER_ID" = ${customer_id}
-        AND C."SYNC_HEADER_ID" = ${hdrId}
-        AND C."CUSTOMER_ID" = ${customer_id}
-        GROUP BY 
-        A."AGR_NAME"
-        ORDER BY 
-        "USER COUNT" DESC;
+        SELECT 
+          CONCAT(subquery."ROLE DESCRIPTION", ' : ') || subquery."ROLE NAME" AS "ROLE NAME",
+          subquery."USER COUNT"
+        FROM (
+            SELECT TOP 10
+                A."AGR_NAME" AS "ROLE NAME",
+                D."TEXT" AS "ROLE DESCRIPTION",
+                COUNT(A."UNAME") AS "USER COUNT"
+            FROM 
+                LO_AGR_USERS A
+            JOIN 
+                LO_USR02 B
+            ON 
+                A."UNAME" = B."BNAME"
+            JOIN
+                LO_AGR_DEFINE D
+            ON
+                A."AGR_NAME" = D."AGR_NAME"
+            WHERE 
+                B."UFLAG" NOT IN (32, 64, 128)
+                AND DAYS_BETWEEN(B."TRDAT", CURRENT_DATE) <= 90
+                AND A."SYNC_HEADER_ID" = ${hdrId}
+                AND A."CUSTOMER_ID" = ${customer_id}
+                AND B."SYNC_HEADER_ID" = ${hdrId}
+                AND B."CUSTOMER_ID" = ${customer_id}
+                AND D."SYNC_HEADER_ID" = ${hdrId}
+                AND D."CUSTOMER_ID" = ${customer_id}
+                GROUP BY 
+                A."AGR_NAME",
+                D."TEXT"
+            ORDER BY 
+                "USER COUNT" DESC
+        ) AS subquery;
         `,
       );
 
+      let topRolesBarChartData = [
+        {
+          name: "Top 10 Roles by active user assign", 
+          assignedToY2: "off",
+          displayInLegend: "auto",
+          items: [],
+        },
+      ];
+
+      getTopRolesByActiveUserCount.forEach((row, index) => {
+        topRolesBarChartData[0].items.push({
+          id: (index + 1).toString(),
+          value: row["USER COUNT"],
+          name: row["ROLE NAME"],
+          labelPosition: "none",
+        });
+      });
+
+      
       let getTopTransactionsByActiveUsers = await db.run(
         `
         SELECT TOP 5
-        S.TRANSACTION_CODE AS "TRANSACTION CODE",
-        COUNT(S.USER) AS "USER COUNT"
+        -- S.TRANSACTION_CODE AS "TRANSACTION CODE",
+        T.TRANSACTION_TEXT AS "TRANSACTION TEXT",
+        COUNT(S.USER) AS "EXECUTION COUNT"
         FROM 
         LO_USR02 U
         JOIN 
         LO_SM20 S
         ON 
         U.BNAME = S.USER
+        JOIN
+        LO_TSTCT T
+        ON
+        S.TRANSACTION_CODE = T.TCODE
         WHERE 
-            U.UFLAG NOT IN (32, 64, 128)
-            AND DAYS_BETWEEN(U.TRDAT, CURRENT_DATE) < 90
-            AND S.TRANSACTION_CODE NOT IN ('S000', 'SESSION_MANAGER')
-            AND S."SYNC_HEADER_ID" = ${hdrId}
-            AND U."SYNC_HEADER_ID" = ${hdrId}
-            AND S."CUSTOMER_ID" = ${customer_id}
-            AND U."CUSTOMER_ID" = ${customer_id}
-            GROUP BY 
-            S.TRANSACTION_CODE
-            ORDER BY 
-            "USER COUNT" DESC;
-            `,
+        U.UFLAG NOT IN (32, 64, 128)
+        AND DAYS_BETWEEN(U.TRDAT, CURRENT_DATE) < 90
+        AND S.TRANSACTION_CODE NOT IN ('S000', 'SESSION_MANAGER', 'null')
+        AND S."SYNC_HEADER_ID" = ${hdrId}
+        AND U."SYNC_HEADER_ID" = ${hdrId}
+        AND T."SYNC_HEADER_ID" = ${hdrId}
+        AND S."CUSTOMER_ID" = ${customer_id}
+        AND U."CUSTOMER_ID" = ${customer_id}
+        AND T."CUSTOMER_ID" = ${customer_id}
+        GROUP BY 
+        -- S.TRANSACTION_CODE,
+        T.TRANSACTION_TEXT
+        ORDER BY 
+        "EXECUTION COUNT" DESC;
+        `,
       );
+      
+      // let topTransactionchartData = {
+      //   categories: getTopTransactionsByActiveUsers.map(
+      //     (row) => row["TRANSACTION CODE"],
+      //   ),
+      //   series: [
+      //     {
+      //       name: "Top 5 Transactions by Active Users",
+      //       data: getTopTransactionsByActiveUsers.map(
+      //         (row) => row["USER COUNT"],
+      //       ),
+      //     },
+      //   ],
+      // };
 
+      let topTransactionBarChartData = [
+        {
+          name: "Top 5 Transaction by active users execution time",
+          assignedToY2: "off",
+          displayInLegend: "auto",
+          items: [],
+        },
+      ];
+
+      getTopTransactionsByActiveUsers.forEach((row, index) => {
+        topTransactionBarChartData[0].items.push({
+          id: (index + 1).toString(),
+          value: row["EXECUTION COUNT"],
+          name: row["TRANSACTION TEXT"],
+          labelPosition: "none",
+        });
+      });
+      
+      
       console.table(activeUserTypeData);
       console.table(activeUserRoleCountData);
       console.table(getTopRolesByActiveUserCount);
       console.table(getTopTransactionsByActiveUsers);
+      console.log(JSON.stringify(topRolesBarChartData, null, 2));
+      console.log(JSON.stringify(topTransactionBarChartData, null, 2));
 
       return {
         statuscode: HttpStatus.OK,
@@ -238,6 +312,8 @@ export class DashboardService {
           activeUserRoleCount: transformedActiveUserRoleCountData,
           topRolesByActiveUserCount: getTopRolesByActiveUserCount,
           topTransactionsByActiveUsers: getTopTransactionsByActiveUsers,
+          barChartTopRolesByActiveUserCount: topRolesBarChartData,
+          barChartTopTransactionsByActiveUsers: topTransactionBarChartData,
         },
       };
     } catch (error) {

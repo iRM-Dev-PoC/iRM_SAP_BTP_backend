@@ -47,7 +47,13 @@ export class USER_ADDR_Dto {
   DEPARTMENT: string | null; //STRING;
 }
 
-export class TSTC_Dto {
+export class TSTCT_Dto {
   TCODE: string | null; //STRING;
   TRANSACTION_TEXT: string | null; //STRING;
+}
+
+export class AGR_DEFINE_Dto {
+  AGR_NAME: string | null; //STRING;
+  PARENT_AGR: string | null; //STRING;
+  TEXT: string | null; //STRING;
 }
