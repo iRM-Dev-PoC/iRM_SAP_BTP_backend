@@ -11,51 +11,61 @@ export class DashboardService {
 
       let activeUserQuery = `UFLAG NOT IN (32, 64, 128)
         AND DAYS_BETWEEN(TRDAT , CURRENT_DATE) <= 90
-        AND SYNC_HEADER_ID = ${hdrId}
-        AND CUSTOMER_ID = ${customer_id}`;
+        AND USR.SYNC_HEADER_ID = ${hdrId}
+        AND USR.CUSTOMER_ID = ${customer_id}`;
 
       let inactiveUserQuery = `
         NOT (
           UFLAG NOT IN (32, 64, 128) 
           AND DAYS_BETWEEN(TRDAT, CURRENT_DATE) <= 90
-          AND SYNC_HEADER_ID = ${hdrId}
-          AND CUSTOMER_ID = ${customer_id}
         )
-        AND SYNC_HEADER_ID = ${hdrId}
-        AND CUSTOMER_ID = ${customer_id}`;
+          AND USR.SYNC_HEADER_ID = ${hdrId}
+          AND USR.CUSTOMER_ID = ${customer_id}
+        `;
 
       let activeUser = await db.run(
-        `SELECT DISTINCT
-          BNAME AS "User name",
-          GLTGV AS "User valid from", 
-          GLTGB AS "User valid to", 
-          USTYP AS "User Type",
-          CLASS AS "User group",
-          UFLAG AS "User Lock Status",
-          ACCNT AS "Account ID",
-          ANAME AS "Creator of the User",
-          ERDAT AS "Creation Date of the User",
-          TRDAT AS "Last Logon Date",
-          LTIME AS "Last Logon Time",
-          TZONE AS "Time Zone"
-        FROM LO_USR02
+        `SELECT 
+          USR.BNAME AS "User name",
+          COALESCE(USRAD.NAME_TEXTC, 'Not Available') AS "User original name", 
+          USR.GLTGV AS "User valid from", 
+          USR.GLTGB AS "User valid to", 
+          USR.USTYP AS "User Type",
+          USR.CLASS AS "User group",
+          USR.UFLAG AS "User Lock Status",
+          USR.ACCNT AS "Account ID",
+          USR.ANAME AS "Creator of the User",
+          USR.ERDAT AS "Creation Date of the User",
+          USR.TRDAT AS "Last Logon Date",
+          USR.LTIME AS "Last Logon Time",
+          USR.TZONE AS "Time Zone"
+        FROM LO_USR02 USR
+        LEFT JOIN LO_USER_ADDR USRAD
+        ON USR.BNAME = USRAD.BNAME
+        AND USRAD.SYNC_HEADER_ID = ${hdrId}
+        AND USRAD.CUSTOMER_ID = ${customer_id}
         WHERE ${activeUserQuery}`,
       );
       let inactiveUser = await db.run(
         `SELECT DISTINCT
-          BNAME AS "User name",
-          GLTGV AS "User valid from", 
-          GLTGB AS "User valid to", 
-          USTYP AS "User Type",
-          CLASS AS "User group",
-          UFLAG AS "User Lock Status",
-          ACCNT AS "Account ID",
-          ANAME AS "Creator of the User",
-          ERDAT AS "Creation Date of the User",
-          TRDAT AS "Last Logon Date",
-          LTIME AS "Last Logon Time",
-          TZONE AS "Time Zone"
-        FROM LO_USR02
+          USR.BNAME AS "User name",
+          COALESCE(USRAD.NAME_TEXTC, 'Not Available') AS "User original name",
+          USR.GLTGV AS "User valid from", 
+          USR.GLTGB AS "User valid to", 
+          USR.USTYP AS "User Type",
+          USR.CLASS AS "User group",
+          USR.UFLAG AS "User Lock Status",
+          USR.ACCNT AS "Account ID",
+          USR.ANAME AS "Creator of the User",
+          USR.ERDAT AS "Creation Date of the User",
+          USR.TRDAT AS "Last Logon Date",
+          USR.LTIME AS "Last Logon Time",
+          USR.TZONE AS "Time Zone"
+        FROM LO_USR02 USR
+        LEFT JOIN
+        LO_USER_ADDR USRAD
+        ON USR.BNAME = USRAD.BNAME
+        AND USRAD.SYNC_HEADER_ID = ${hdrId}
+        AND USRAD.CUSTOMER_ID = ${customer_id}
         WHERE ${inactiveUserQuery}`,
       );
 
@@ -535,68 +545,83 @@ export class DashboardService {
 
       let activeUsersRolesUsageCount = await db.run(
         `
-        WITH ActiveUsers AS (
-          SELECT 
-              "BNAME",
-              "CLASS",
-              "USTYP",
-              "ANAME"
-          FROM 
-              LO_USR02 
-          WHERE 
-              "UFLAG" NOT IN (32, 64, 128)
-              AND DAYS_BETWEEN("TRDAT", CURRENT_DATE) < 90
-              AND "SYNC_HEADER_ID" = ${hdrId}
-              AND "CUSTOMER_ID" = ${customer_id}
-        ),
-        RolesUsage AS (
-            SELECT  
-              TRANSACTION_CODE, 
-              USER
-            FROM 
-              LO_SM20 
-            WHERE 
-              TRANSACTION_CODE NOT IN ('S000', 'SESSION_MANAGER')
-              AND "SYNC_HEADER_ID" = ${hdrId}
-              AND "CUSTOMER_ID" = ${customer_id}
-          )
         SELECT 
-            -- AU."BNAME",
-            UADDR."NAME_TEXTC" AS USER_NAME,
-            AU."ANAME",
-            AU."CLASS",
-            AU."USTYP",
-            UADDR."DEPARTMENT",
-            RU."TRANSACTION_CODE",
-            -- TT."TRANSACTION_TEXT",
-            COUNT(RU."TRANSACTION_CODE") AS "TRANSACTION_COUNT"
-        FROM 
-            ActiveUsers AU
-        JOIN 
-            RolesUsage RU
-        ON 
-            AU."BNAME" = RU."USER"
-        JOIN
-          LO_USER_ADDR UADDR
-        ON
-          AU."BNAME" = UADDR."BNAME"
-        -- JOIN
-        --   LO_TSTC TT
-        -- ON
-        --   RU."TRANSACTION_CODE" = TT."TCODE"
-            GROUP BY
-                -- AU."BNAME",
-                UADDR."NAME_TEXTC",
-                RU."TRANSACTION_CODE",
-                -- TT."TRANSACTION_TEXT",
-                AU."CLASS",
-                AU."USTYP",
-                AU."ANAME",
-                UADDR."DEPARTMENT"
-            ORDER BY
-                -- AU."BNAME",
-                UADDR."NAME_TEXTC",
-                "TRANSACTION_COUNT" DESC;
+          subquery."USER_NAME",
+          subquery."ANAME",
+          subquery."CLASS",
+          subquery."USTYP",
+          subquery."DEPARTMENT",
+          CONCAT(subquery."TRANSACTION NAME", ' : ') || subquery."TRANSACTION_CODE" AS "TRANSACTION_NAME",
+          subquery."TRANSACTION_COUNT"
+        FROM (
+        WITH ActiveUsers AS (
+                  SELECT 
+                      "BNAME",
+                      "CLASS",
+                      "USTYP",
+                      "ANAME"
+                  FROM 
+                      LO_USR02 
+                  WHERE 
+                      "UFLAG" NOT IN (32, 64, 128)
+                      AND DAYS_BETWEEN("TRDAT", CURRENT_DATE) < 90
+                      AND "SYNC_HEADER_ID" = ${hdrId}
+                      AND "CUSTOMER_ID" = ${customer_id}
+                ),
+                RolesUsage AS (
+                    SELECT  
+                      TRANSACTION_CODE, 
+                      USER
+                    FROM 
+                      LO_SM20 
+                    WHERE 
+                      TRANSACTION_CODE NOT IN ('S000', 'SESSION_MANAGER', 'null')
+                      AND "SYNC_HEADER_ID" = ${hdrId}
+                      AND "CUSTOMER_ID" = ${customer_id}
+                  )
+                SELECT 
+                    -- AU."BNAME",
+                    UADDR."NAME_TEXTC" AS USER_NAME,
+                    AU."ANAME",
+                    AU."CLASS",
+                    AU."USTYP",
+                    UADDR."DEPARTMENT",
+                    RU."TRANSACTION_CODE",
+                    TT."TRANSACTION_TEXT" AS "TRANSACTION NAME",
+                    COUNT(RU."TRANSACTION_CODE") AS "TRANSACTION_COUNT"
+                FROM 
+                    ActiveUsers AU
+                JOIN 
+                    RolesUsage RU
+                ON 
+                    AU."BNAME" = RU."USER"
+                JOIN
+                  LO_USER_ADDR UADDR
+                ON
+                  AU."BNAME" = UADDR."BNAME"
+                JOIN
+                  LO_TSTCT TT
+                ON
+                  RU."TRANSACTION_CODE" = TT."TCODE"
+                WHERE
+                  UADDR."SYNC_HEADER_ID" = ${hdrId}
+                  AND UADDR."CUSTOMER_ID" = ${customer_id}
+                  AND TT."SYNC_HEADER_ID" = ${hdrId}
+                  AND TT."CUSTOMER_ID" = ${customer_id}
+                    GROUP BY
+                        -- AU."BNAME",
+                        UADDR."NAME_TEXTC",
+                        RU."TRANSACTION_CODE",
+                        TT."TRANSACTION_TEXT",
+                        AU."CLASS",
+                        AU."USTYP",
+                        AU."ANAME",
+                        UADDR."DEPARTMENT"
+                    ORDER BY
+                        -- AU."BNAME",
+                        UADDR."NAME_TEXTC",
+                        "TRANSACTION_COUNT" DESC
+        ) AS subquery
         `,
       );
 
@@ -608,7 +633,7 @@ export class DashboardService {
             CLASS,
             USTYP,
             DEPARTMENT,
-            TRANSACTION_CODE,
+            TRANSACTION_NAME,
             TRANSACTION_COUNT,
           } = curr;
 
@@ -637,7 +662,7 @@ export class DashboardService {
           // Add transaction data
           const transactionIndex = acc[USER_NAME].transactions.length;
           acc[USER_NAME].transactions.push({
-            [`TRANSACTION_CODE_${transactionIndex}`]: TRANSACTION_CODE,
+            [`TRANSACTION_CODE_${transactionIndex}`]: TRANSACTION_NAME,
             [`TRANSACTION_COUNT_${transactionIndex}`]: TRANSACTION_COUNT,
           });
 
@@ -645,7 +670,7 @@ export class DashboardService {
           acc[USER_NAME].bar_chart[0].items.push({
             id: (acc[USER_NAME].bar_chart[0].items.length + 1).toString(),
             value: TRANSACTION_COUNT,
-            name: TRANSACTION_CODE,
+            name: TRANSACTION_NAME,
             labelPosition: "none",
           });
 
