@@ -16,6 +16,7 @@
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "pcf-lbp": "cf login && npm run build && cf push",
     "lo-lbp": "cf login && nest build lo_service && cf push",
+    "lo-bp": "nest build lo_service && cf push",
     "bp": "nest build && cf push",
     "test": "jest",
     "test:watch": "jest --watch",
