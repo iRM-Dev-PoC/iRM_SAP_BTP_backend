@@ -10,14 +10,14 @@ export class DashboardService {
       const db = await cds.connect.to("db");
 
       let activeUserQuery = `UFLAG NOT IN (32, 64, 128)
-        AND DAYS_BETWEEN(TRDAT , CURRENT_DATE) <= 90
+        -- AND DAYS_BETWEEN(TRDAT , CURRENT_DATE) <= 90
         AND USR.SYNC_HEADER_ID = ${hdrId}
         AND USR.CUSTOMER_ID = ${customer_id}`;
 
       let inactiveUserQuery = `
         NOT (
           UFLAG NOT IN (32, 64, 128) 
-          AND DAYS_BETWEEN(TRDAT, CURRENT_DATE) <= 90
+          -- AND DAYS_BETWEEN(TRDAT, CURRENT_DATE) <= 90
         )
           AND USR.SYNC_HEADER_ID = ${hdrId}
           AND USR.CUSTOMER_ID = ${customer_id}
@@ -96,7 +96,7 @@ export class DashboardService {
       const { customer_id, hdrId } = userStatus;
       const db = await cds.connect.to("db");
 
-      //----------PIE CHART - BASED ON ACTIVE USER BY USER TYPE------------
+      //----------PIE CHART 0- BASED ON ACTIVE USER BY USER TYPE/ 90 DAYS------------
       let activeUserQuery = `UFLAG NOT IN (32, 64, 128)
         AND DAYS_BETWEEN(TRDAT , CURRENT_DATE) <= 90
         AND SYNC_HEADER_ID = ${hdrId}
@@ -127,45 +127,88 @@ export class DashboardService {
         })),
       };
 
+      //----------PIE CHART 1- BASED ON ACTIVE USER BY USER TYPE/ NOT 90 DAYS------------
+
+        let allActiveUserQuery = `UFLAG NOT IN (32, 64, 128)
+        AND SYNC_HEADER_ID = ${hdrId}
+        AND CUSTOMER_ID = ${customer_id}`;
+
+      let allActiveUserTypeData = await db.run(
+        `
+        SELECT
+        USTYP AS "User Type",
+        COUNT(USTYP) as "Count"
+        FROM LO_USR02
+        WHERE ${allActiveUserQuery}
+        GROUP BY USTYP
+        `,
+      );
+
+      let transformedAllActiveUserTypeData = {
+        series: allActiveUserTypeData.map((item, index) => ({
+          name: item["User Type"],
+          items: [
+            {
+              id: (index + 1).toString(),
+              value: item.Count,
+              labelDisplay: "LABEL",
+              name: item["User Type"],
+            },
+          ],
+        })),
+      };
+
       //----------PIE CHART - BASED ON USER ROLES COUNT BY ROLE ASSIGNED------------
       let activeUserRoleCountData = await db.run(
         `
         WITH DistinctUserRoles AS (
-          SELECT DISTINCT
-          -- A."UNAME", 
-          C."NAME_TEXTC",
-          A."AGR_NAME"
-          FROM 
-          LO_AGR_USERS A
-          JOIN 
-          LO_USR02 B
-          ON 
-          A."UNAME" = B."BNAME"
-          JOIN
-          LO_USER_ADDR C
-          ON
-          A."UNAME" = C."BNAME"
-          WHERE 
-            B."UFLAG" NOT IN (32, 64, 128)
-            AND DAYS_BETWEEN(B."TRDAT", CURRENT_DATE) <= 90
-            AND A."SYNC_HEADER_ID" = ${hdrId}
-            AND A."CUSTOMER_ID" = ${customer_id}
-            AND B."SYNC_HEADER_ID" = ${hdrId}
-            AND B."CUSTOMER_ID" = ${customer_id}
-            AND C."SYNC_HEADER_ID" = ${hdrId}
-            AND C."CUSTOMER_ID" = ${customer_id}
-            )
-            SELECT 
-            --"UNAME" as "User Name",
-            "NAME_TEXTC" as "User Name",
-            COUNT("AGR_NAME") AS "Role Count"
+            SELECT DISTINCT
+                A."UNAME", 
+                COUNT(A."AGR_NAME") AS "Role Count"
             FROM 
-            DistinctUserRoles
+                LO_AGR_USERS A
+            JOIN 
+                LO_USR02 B
+            ON 
+                A."UNAME" = B."BNAME"
+            WHERE 
+                B."UFLAG" NOT IN (32, 64, 128)
+                AND DAYS_BETWEEN(B."TRDAT", CURRENT_DATE) <= 90
+                AND A."SYNC_HEADER_ID" = ${hdrId}
+                AND A."CUSTOMER_ID" = ${customer_id}
+                AND B."SYNC_HEADER_ID" = ${hdrId}
+                AND B."CUSTOMER_ID" = ${customer_id}
+            GROUP BY
+                A."UNAME"
+        ),
+        UniqueNames AS (
+            SELECT 
+                BNAME,
+                NAME_TEXTC
+            FROM 
+                LO_USER_ADDR
+            WHERE 
+                BNAME IS NOT NULL
+                AND NAME_TEXTC != 'null'
+                AND "SYNC_HEADER_ID" = ${hdrId}
+                AND "CUSTOMER_ID" = ${customer_id}
             GROUP BY 
-            --"UNAME",
-            "NAME_TEXTC"
-            ORDER BY 
-            "NAME_TEXTC";
+                BNAME,
+                NAME_TEXTC
+        )
+        SELECT 
+            (CASE 
+                WHEN UniqueNames."NAME_TEXTC" IS NOT NULL AND UniqueNames."NAME_TEXTC" != '' 
+                THEN UniqueNames."NAME_TEXTC"
+                ELSE 'No Name'
+            END) || ' : ' || DistinctUserRoles."UNAME" AS "User Name",
+            DistinctUserRoles."Role Count"
+        FROM 
+            DistinctUserRoles
+        LEFT JOIN 
+            UniqueNames
+        ON 
+            DistinctUserRoles."UNAME" = UniqueNames.BNAME;
             `,
       );
 
@@ -185,45 +228,93 @@ export class DashboardService {
 
       let getTopRolesByActiveUserCount = await db.run(
         `
-        SELECT 
-          CONCAT(subquery."ROLE DESCRIPTION", ' : ') || subquery."ROLE NAME" AS "ROLE NAME",
-          subquery."USER COUNT"
-        FROM (
-            SELECT TOP 10
-                A."AGR_NAME" AS "ROLE NAME",
-                D."TEXT" AS "ROLE DESCRIPTION",
-                COUNT(A."UNAME") AS "USER COUNT"
-            FROM 
-                LO_AGR_USERS A
-            JOIN 
-                LO_USR02 B
-            ON 
-                A."UNAME" = B."BNAME"
-            JOIN
-                LO_AGR_DEFINE D
-            ON
-                A."AGR_NAME" = D."AGR_NAME"
-            WHERE 
-                B."UFLAG" NOT IN (32, 64, 128)
-                AND DAYS_BETWEEN(B."TRDAT", CURRENT_DATE) <= 90
-                AND A."SYNC_HEADER_ID" = ${hdrId}
-                AND A."CUSTOMER_ID" = ${customer_id}
-                AND B."SYNC_HEADER_ID" = ${hdrId}
-                AND B."CUSTOMER_ID" = ${customer_id}
-                AND D."SYNC_HEADER_ID" = ${hdrId}
-                AND D."CUSTOMER_ID" = ${customer_id}
-                GROUP BY 
-                A."AGR_NAME",
-                D."TEXT"
-            ORDER BY 
-                "USER COUNT" DESC
-        ) AS subquery;
+          SELECT 
+            CONCAT(subquery."ROLE DESCRIPTION", ' : ') || subquery."AGR_NAME" AS "ROLE NAME",
+            subquery."USER NAME",
+            subquery."USER COUNT"
+          FROM (
+          WITH UniqueRoles AS (
+              -- Select unique roles and their first description
+              SELECT 
+                  AGR_NAME,
+                  MIN(TEXT) AS "ROLE DESCRIPTION"  -- Picking the first description for each role
+              FROM 
+                  LO_AGR_DEFINE
+              WHERE 
+                  AGR_NAME IS NOT NULL
+                  AND TEXT != 'null'
+                  AND "SYNC_HEADER_ID" = ${hdrId}
+              AND "CUSTOMER_ID" = ${customer_id}
+              GROUP BY 
+                  AGR_NAME
+          )
+          ,
+          UniqueNames AS (
+            SELECT 
+                  BNAME,
+                  NAME_TEXTC
+              FROM 
+                  LO_USER_ADDR
+              WHERE 
+                  BNAME IS NOT NULL
+                  AND NAME_TEXTC != 'null'
+                  AND "SYNC_HEADER_ID" = ${hdrId}
+              AND "CUSTOMER_ID" = ${customer_id}
+              GROUP BY 
+                  BNAME,
+                  NAME_TEXTC
+          )
+          SELECT TOP 10
+            LO_AGR_USERS.AGR_NAME,
+            UniqueRoles."ROLE DESCRIPTION",
+            STRING_AGG(
+                  CONCAT(
+                      LO_AGR_USERS.UNAME, 
+                      CONCAT(
+                          ' : ', 
+                          CASE 
+                              WHEN UniqueNames.BNAME IS NOT NULL THEN UniqueNames.NAME_TEXTC
+                              ELSE 'Not Available'
+                          END
+                      )
+                  ), ', '
+              ) AS "USER NAME", -- Concatenating user name and full name
+              COUNT(LO_AGR_USERS.UNAME) AS "USER COUNT"
+          FROM
+            LO_AGR_USERS
+          JOIN
+            UniqueRoles
+          ON
+            LO_AGR_USERS.AGR_NAME = UniqueRoles.AGR_NAME
+          LEFT JOIN
+            UniqueNames
+          ON
+            LO_AGR_USERS.UNAME = UniqueNames.BNAME
+          WHERE
+            UNAME IN (
+                  SELECT 
+                    BNAME
+                  FROM LO_USR02 
+                  WHERE
+                    UFLAG NOT IN (32, 64, 128)
+                    -- AND DAYS_BETWEEN(TRDAT, CURRENT_DATE) <= 90
+                    AND "SYNC_HEADER_ID" = ${hdrId}
+                    AND "CUSTOMER_ID" = ${customer_id}
+                )
+            AND LO_AGR_USERS."SYNC_HEADER_ID" = ${hdrId}
+            AND LO_AGR_USERS."CUSTOMER_ID" = ${customer_id}
+          GROUP BY
+            LO_AGR_USERS.AGR_NAME,
+            UniqueRoles."ROLE DESCRIPTION"
+          ORDER BY
+            "USER COUNT" DESC
+          ) subquery	
         `,
       );
 
       let topRolesBarChartData = [
         {
-          name: "Top 10 Roles by active user assign", 
+          name: "Top 10 Roles by active user assign",
           assignedToY2: "off",
           displayInLegend: "auto",
           items: [],
@@ -231,15 +322,30 @@ export class DashboardService {
       ];
 
       getTopRolesByActiveUserCount.forEach((row, index) => {
+        // Split the USER NAME field into individual username: full name pairs
+        const userDetails = row["USER NAME"]
+          .split(", ")
+          .map((user, userIndex) => {
+            const [username, fullName] = user
+              .split(": ")
+              .map((item) => item.trim());
+            return {
+              "Sl No": userIndex + 1,
+              "User Name": username,
+              "Full Name": fullName,
+            };
+          });
+
+        // Push the transformed data to the chart data array
         topRolesBarChartData[0].items.push({
           id: (index + 1).toString(),
           value: row["USER COUNT"],
           name: row["ROLE NAME"],
+          series: userDetails, // Now series is an array of arrays [sl.no, username, full name]
           labelPosition: "none",
         });
       });
 
-      
       let getTopTransactionsByActiveUsers = await db.run(
         `
         SELECT TOP 5
@@ -258,7 +364,7 @@ export class DashboardService {
         S.TRANSACTION_CODE = T.TCODE
         WHERE 
         U.UFLAG NOT IN (32, 64, 128)
-        AND DAYS_BETWEEN(U.TRDAT, CURRENT_DATE) < 90
+        -- AND DAYS_BETWEEN(U.TRDAT, CURRENT_DATE) < 90
         AND S.TRANSACTION_CODE NOT IN ('S000', 'SESSION_MANAGER', 'null')
         AND S."SYNC_HEADER_ID" = ${hdrId}
         AND U."SYNC_HEADER_ID" = ${hdrId}
@@ -273,20 +379,6 @@ export class DashboardService {
         "EXECUTION COUNT" DESC;
         `,
       );
-      
-      // let topTransactionchartData = {
-      //   categories: getTopTransactionsByActiveUsers.map(
-      //     (row) => row["TRANSACTION CODE"],
-      //   ),
-      //   series: [
-      //     {
-      //       name: "Top 5 Transactions by Active Users",
-      //       data: getTopTransactionsByActiveUsers.map(
-      //         (row) => row["USER COUNT"],
-      //       ),
-      //     },
-      //   ],
-      // };
 
       let topTransactionBarChartData = [
         {
@@ -305,8 +397,7 @@ export class DashboardService {
           labelPosition: "none",
         });
       });
-      
-      
+
       console.table(activeUserTypeData);
       console.table(activeUserRoleCountData);
       console.table(getTopRolesByActiveUserCount);
@@ -319,6 +410,7 @@ export class DashboardService {
         message: "Data fetched successfully",
         data: {
           activeUserType: transformedActiveUserTypeData,
+          allActiveUserType: transformedAllActiveUserTypeData,
           activeUserRoleCount: transformedActiveUserRoleCountData,
           topRolesByActiveUserCount: getTopRolesByActiveUserCount,
           topTransactionsByActiveUsers: getTopTransactionsByActiveUsers,
@@ -357,7 +449,7 @@ export class DashboardService {
           A."UNAME" = B."BNAME"
         WHERE 
           B."UFLAG" NOT IN (32, 64, 128)
-          AND DAYS_BETWEEN(B."TRDAT", CURRENT_DATE) <= 90 
+          -- AND DAYS_BETWEEN(B."TRDAT", CURRENT_DATE) <= 90 
           AND A."SYNC_HEADER_ID" = ${hdrId}
           AND A."CUSTOMER_ID" = ${customer_id}
           AND B."SYNC_HEADER_ID" = ${hdrId}
@@ -413,7 +505,7 @@ export class DashboardService {
             A."AGR_NAME" = C."AGR_NAME"
         WHERE 
             B."UFLAG" NOT IN (32, 64, 128)
-            AND DAYS_BETWEEN(B."TRDAT", CURRENT_DATE) < 90
+            -- AND DAYS_BETWEEN(B."TRDAT", CURRENT_DATE) < 90
             AND C.OBJECT = 'S_TCODE'
             AND C.FIELD = 'TCD'
             AND A."SYNC_HEADER_ID" = ${hdrId}
@@ -477,7 +569,7 @@ export class DashboardService {
             A."AGR_NAME" = C."AGR_NAME"
         WHERE 
             B."UFLAG" NOT IN (32, 64, 128)
-            AND DAYS_BETWEEN(B."TRDAT", CURRENT_DATE) < 90
+            -- AND DAYS_BETWEEN(B."TRDAT", CURRENT_DATE) < 90
             AND C.OBJECT = 'S_TCODE'
             AND C.FIELD = 'TCD'
             AND A."SYNC_HEADER_ID" = ${hdrId}
@@ -564,7 +656,7 @@ export class DashboardService {
                       LO_USR02 
                   WHERE 
                       "UFLAG" NOT IN (32, 64, 128)
-                      AND DAYS_BETWEEN("TRDAT", CURRENT_DATE) < 90
+                      -- AND DAYS_BETWEEN("TRDAT", CURRENT_DATE) < 90
                       AND "SYNC_HEADER_ID" = ${hdrId}
                       AND "CUSTOMER_ID" = ${customer_id}
                 ),
