@@ -259,7 +259,7 @@ export class DashboardService {
                   BNAME IS NOT NULL
                   AND NAME_TEXTC != 'null'
                   AND "SYNC_HEADER_ID" = ${hdrId}
-              AND "CUSTOMER_ID" = ${customer_id}
+                  AND "CUSTOMER_ID" = ${customer_id}
               GROUP BY 
                   BNAME,
                   NAME_TEXTC
@@ -638,82 +638,98 @@ export class DashboardService {
       let activeUsersRolesUsageCount = await db.run(
         `
         SELECT 
-          subquery."USER_NAME",
-          subquery."ANAME",
-          subquery."CLASS",
-          subquery."USTYP",
-          subquery."DEPARTMENT",
-          CONCAT(subquery."TRANSACTION NAME", ' : ') || subquery."TRANSACTION_CODE" AS "TRANSACTION_NAME",
-          subquery."TRANSACTION_COUNT"
+            subquery."USER_NAME",
+            subquery."ANAME",
+            subquery."CLASS",
+            subquery."USTYP",
+            (subquery."TRANSACTION NAME" || ' : ' || subquery."TRANSACTION_CODE") AS "TRANSACTION_NAME",
+            subquery."TRANSACTION_COUNT"
         FROM (
-        WITH ActiveUsers AS (
-                  SELECT 
-                      "BNAME",
-                      "CLASS",
-                      "USTYP",
-                      "ANAME"
-                  FROM 
-                      LO_USR02 
-                  WHERE 
-                      "UFLAG" NOT IN (32, 64, 128)
-                      -- AND DAYS_BETWEEN("TRDAT", CURRENT_DATE) < 90
-                      AND "SYNC_HEADER_ID" = ${hdrId}
-                      AND "CUSTOMER_ID" = ${customer_id}
-                ),
-                RolesUsage AS (
-                    SELECT  
-                      TRANSACTION_CODE, 
-                      USER
-                    FROM 
-                      LO_SM20 
-                    WHERE 
-                      TRANSACTION_CODE NOT IN ('S000', 'SESSION_MANAGER', 'null')
-                      AND "SYNC_HEADER_ID" = ${hdrId}
-                      AND "CUSTOMER_ID" = ${customer_id}
-                  )
+            WITH ActiveUsers AS (
                 SELECT 
-                    -- AU."BNAME",
-                    UADDR."NAME_TEXTC" AS USER_NAME,
-                    AU."ANAME",
-                    AU."CLASS",
-                    AU."USTYP",
-                    UADDR."DEPARTMENT",
-                    RU."TRANSACTION_CODE",
-                    TT."TRANSACTION_TEXT" AS "TRANSACTION NAME",
-                    COUNT(RU."TRANSACTION_CODE") AS "TRANSACTION_COUNT"
+                    "BNAME",
+                    "CLASS",
+                    "USTYP",
+                    "ANAME"
                 FROM 
-                    ActiveUsers AU
-                JOIN 
-                    RolesUsage RU
-                ON 
-                    AU."BNAME" = RU."USER"
-                JOIN
-                  LO_USER_ADDR UADDR
-                ON
-                  AU."BNAME" = UADDR."BNAME"
-                JOIN
-                  LO_TSTCT TT
-                ON
-                  RU."TRANSACTION_CODE" = TT."TCODE"
+                    LO_USR02 
+                WHERE 
+                    "UFLAG" NOT IN (32, 64, 128)
+                    AND "SYNC_HEADER_ID" = ${hdrId}
+                    AND "CUSTOMER_ID" = ${customer_id}
+            ),
+            RolesUsage AS (
+                SELECT  
+                    "TRANSACTION_CODE", 
+                    "USER"
+                FROM 
+                    LO_SM20 
+                WHERE 
+                    "TRANSACTION_CODE" NOT IN ('S000', 'SESSION_MANAGER', 'null')
+                    AND "SYNC_HEADER_ID" = ${hdrId}
+                    AND "CUSTOMER_ID" = ${customer_id}
+            ),
+            UniqueNames AS (
+                SELECT 
+                    "BNAME",
+                    "NAME_TEXTC"
+                FROM 
+                    LO_USER_ADDR
+                WHERE 
+                    "BNAME" IS NOT NULL
+                    AND "NAME_TEXTC" != 'null'
+                    AND "SYNC_HEADER_ID" = ${hdrId}
+                    AND "CUSTOMER_ID" = ${customer_id}
+                GROUP BY 
+                    "BNAME",
+                    "NAME_TEXTC"
+            ),
+            UniqueTcodeText AS (
+                SELECT
+                    "TCODE",
+                    "TRANSACTION_TEXT"
+                FROM
+                    LO_TSTCT
                 WHERE
-                  UADDR."SYNC_HEADER_ID" = ${hdrId}
-                  AND UADDR."CUSTOMER_ID" = ${customer_id}
-                  AND TT."SYNC_HEADER_ID" = ${hdrId}
-                  AND TT."CUSTOMER_ID" = ${customer_id}
-                    GROUP BY
-                        -- AU."BNAME",
-                        UADDR."NAME_TEXTC",
-                        RU."TRANSACTION_CODE",
-                        TT."TRANSACTION_TEXT",
-                        AU."CLASS",
-                        AU."USTYP",
-                        AU."ANAME",
-                        UADDR."DEPARTMENT"
-                    ORDER BY
-                        -- AU."BNAME",
-                        UADDR."NAME_TEXTC",
-                        "TRANSACTION_COUNT" DESC
-        ) AS subquery
+                    "TCODE" IS NOT NULL
+                    AND "TRANSACTION_TEXT" != 'null'
+                    AND "SYNC_HEADER_ID" = ${hdrId}
+                    AND "CUSTOMER_ID" = ${customer_id}
+            )
+            SELECT 
+                (AU."BNAME" || ' : ' || 
+                COALESCE(UN."NAME_TEXTC", 'Not Available')) AS "USER_NAME",
+                AU."ANAME",
+                AU."CLASS",
+                AU."USTYP",
+                RU."TRANSACTION_CODE",
+                TT."TRANSACTION_TEXT" AS "TRANSACTION NAME",
+                COUNT(RU."TRANSACTION_CODE") AS "TRANSACTION_COUNT"
+            FROM 
+                ActiveUsers AU
+            JOIN 
+                RolesUsage RU
+            ON 
+                AU."BNAME" = RU."USER"
+            LEFT JOIN
+                UniqueNames UN
+            ON
+                AU."BNAME" = UN."BNAME"
+            LEFT JOIN
+                UniqueTcodeText TT
+            ON
+                RU."TRANSACTION_CODE" = TT."TCODE"
+            GROUP BY
+                AU."BNAME",
+                UN."NAME_TEXTC",
+                RU."TRANSACTION_CODE",
+                TT."TRANSACTION_TEXT",
+                AU."CLASS",
+                AU."USTYP",
+                AU."ANAME"
+            ORDER BY
+                COUNT(RU."TRANSACTION_CODE") DESC
+        ) AS subquery;
         `,
       );
 
@@ -724,7 +740,6 @@ export class DashboardService {
             ANAME,
             CLASS,
             USTYP,
-            DEPARTMENT,
             TRANSACTION_NAME,
             TRANSACTION_COUNT,
           } = curr;
@@ -737,7 +752,6 @@ export class DashboardService {
                 ANAME,
                 CLASS,
                 USTYP,
-                DEPARTMENT,
               },
               transactions: [],
               bar_chart: [
