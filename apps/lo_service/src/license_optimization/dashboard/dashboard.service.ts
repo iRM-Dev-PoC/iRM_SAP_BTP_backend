@@ -2,6 +2,15 @@ import cds from "@sap/cds";
 
 import { HttpStatus, Injectable } from "@nestjs/common";
 
+interface UserTypeData {
+    "User Type": string;
+    BNAME: string;
+    "Full Name": string;
+    ERDAT: string;
+    TRDAT: string;
+    Count: number;
+}
+
 @Injectable()
 export class DashboardService {
   async getUsersStatus(userStatus): Promise<any> {
@@ -102,60 +111,188 @@ export class DashboardService {
         AND SYNC_HEADER_ID = ${hdrId}
         AND CUSTOMER_ID = ${customer_id}`;
 
-      let activeUserTypeData = await db.run(
+      const activeUserTypeData = await db.run(
         `
+        WITH UniqueNames AS (
+            SELECT 
+                "BNAME",
+                "NAME_TEXTC"
+            FROM 
+                LO_USER_ADDR
+            WHERE 
+                "BNAME" IS NOT NULL
+                AND "NAME_TEXTC" != 'null'
+            GROUP BY 
+                "BNAME",
+                "NAME_TEXTC"
+        )
         SELECT
-        USTYP AS "User Type",
-        COUNT(USTYP) as "Count"
-        FROM LO_USR02
+            USTYP AS "User Type",
+            LO_USR02.BNAME,
+            CASE 
+                WHEN UN.BNAME IS NOT NULL THEN UN.NAME_TEXTC
+                ELSE 'Not Available'
+            END AS "Full Name",
+            LO_USR02.ERDAT,
+            LO_USR02.TRDAT,
+            COUNT(LO_USR02.USTYP) AS "Count"
+        FROM 
+            LO_USR02
+        LEFT JOIN
+            UniqueNames UN
+        ON
+            LO_USR02.BNAME = UN.BNAME
         WHERE ${activeUserQuery}
-        GROUP BY USTYP
-        `,
+        GROUP BY 
+            USTYP,
+            LO_USR02.BNAME,
+            LO_USR02.ERDAT,
+            LO_USR02.TRDAT,
+            UN."NAME_TEXTC";
+        `,  
       );
 
-      let transformedActiveUserTypeData = {
-        series: activeUserTypeData.map((item, index) => ({
-          name: item["User Type"],
-          items: [
-            {
-              id: (index + 1).toString(),
-              value: item.Count,
-              labelDisplay: "LABEL",
-              name: item["User Type"],
-            },
-          ],
-        })),
+      const userTypeGroups = activeUserTypeData.reduce((acc: Record<string, UserTypeData[]>, item: UserTypeData) => {
+          const userType = item["User Type"];
+          
+          if (!acc[userType]) {
+              acc[userType] = [];
+          }
+          
+          if (item && item.BNAME) {
+              acc[userType].push(item);
+          }
+          
+          return acc;
+      }, {} as Record<string, UserTypeData[]>);
+
+      const transformedActiveUserTypeData = {
+          series: Object.entries(userTypeGroups)
+              .filter(([_, userTypeGroup]) => Array.isArray(userTypeGroup) && userTypeGroup.length > 0)
+              .map(([userType, userTypeGroup], index) => {
+                  // Explicitly type userTypeGroup
+                  const typedUserTypeGroup = userTypeGroup as UserTypeData[];
+
+                  // Calculate total count for this user type
+                  const totalCount = typedUserTypeGroup.reduce((sum, item) => sum + (item.Count || 0), 0);
+
+                  // Create series for this user type
+                  return {
+                      name: userType,
+                      totalCount: totalCount,
+                      items: [
+                          {
+                              id: (index + 1).toString(),
+                              value: totalCount,
+                              labelDisplay: "LABEL",
+                              name: userType,
+                          },
+                      ],
+                      series: typedUserTypeGroup.map((user, index) => ({
+                        "Sl No": index + 1,
+                          "user Name": user.BNAME,
+                          "Full Name": user["Full Name"],
+                          "User Type": user["User Type"],
+                          "Creation Date": user.ERDAT,
+                          "Last Logon Date": user.TRDAT
+                      }))
+                  };
+              }),
       };
 
       //----------PIE CHART 1- BASED ON ACTIVE USER BY USER TYPE/ NOT 90 DAYS------------
 
-        let allActiveUserQuery = `UFLAG NOT IN (32, 64, 128)
-        AND SYNC_HEADER_ID = ${hdrId}
-        AND CUSTOMER_ID = ${customer_id}`;
+      let allActiveUserQuery = `UFLAG NOT IN (32, 64, 128)
+      AND SYNC_HEADER_ID = ${hdrId}
+      AND CUSTOMER_ID = ${customer_id}`;
 
-      let allActiveUserTypeData = await db.run(
+      const allActiveUserTypeData = await db.run(
         `
+        WITH UniqueNames AS (
+            SELECT 
+                "BNAME",
+                "NAME_TEXTC"
+            FROM 
+                LO_USER_ADDR
+            WHERE 
+                "BNAME" IS NOT NULL
+                AND "NAME_TEXTC" != 'null'
+            GROUP BY 
+                "BNAME",
+                "NAME_TEXTC"
+        )
         SELECT
-        USTYP AS "User Type",
-        COUNT(USTYP) as "Count"
-        FROM LO_USR02
+            USTYP AS "User Type",
+            LO_USR02.BNAME,
+            CASE 
+                WHEN UN.BNAME IS NOT NULL THEN UN.NAME_TEXTC
+                ELSE 'Not Available'
+            END AS "Full Name",
+            LO_USR02.ERDAT,
+            LO_USR02.TRDAT,
+            COUNT(LO_USR02.USTYP) AS "Count"
+        FROM 
+            LO_USR02
+        LEFT JOIN
+            UniqueNames UN
+        ON
+            LO_USR02.BNAME = UN.BNAME
         WHERE ${allActiveUserQuery}
-        GROUP BY USTYP
-        `,
+        GROUP BY 
+            USTYP,
+            LO_USR02.BNAME,
+            LO_USR02.ERDAT,
+            LO_USR02.TRDAT,
+            UN."NAME_TEXTC";
+        `,  
       );
 
-      let transformedAllActiveUserTypeData = {
-        series: allActiveUserTypeData.map((item, index) => ({
-          name: item["User Type"],
-          items: [
-            {
-              id: (index + 1).toString(),
-              value: item.Count,
-              labelDisplay: "LABEL",
-              name: item["User Type"],
-            },
-          ],
-        })),
+      const allUserTypeGroups = allActiveUserTypeData.reduce((acc: Record<string, UserTypeData[]>, item: UserTypeData) => {
+          const userType = item["User Type"];
+          
+          if (!acc[userType]) {
+              acc[userType] = [];
+          }
+          
+          if (item && item.BNAME) {
+              acc[userType].push(item);
+          }
+          
+          return acc;
+      }, {} as Record<string, UserTypeData[]>);
+
+      const transformedAllActiveUserTypeData = {
+          series: Object.entries(allUserTypeGroups)
+              .filter(([_, allUserTypeGroups]) => Array.isArray(allUserTypeGroups) && allUserTypeGroups.length > 0)
+              .map(([userType, allUserTypeGroups], index) => {
+                  // Explicitly type userTypeGroup
+                  const typedUserTypeGroup = allUserTypeGroups as UserTypeData[];
+
+                  // Calculate total count for this user type
+                  const totalCount = typedUserTypeGroup.reduce((sum, item) => sum + (item.Count || 0), 0);
+
+                  // Create series for this user type
+                  return {
+                      name: userType,
+                      totalCount: totalCount,
+                      items: [
+                          {
+                              id: (index + 1).toString(),
+                              value: totalCount,
+                              labelDisplay: "LABEL",
+                              name: userType,
+                          },
+                      ],
+                      series: typedUserTypeGroup.map((user, index) => ({
+                        "Sl No": index + 1,
+                          "user Name": user.BNAME,
+                          "Full Name": user["Full Name"],
+                          "User Type": user["User Type"],
+                          "Creation Date": user.ERDAT,
+                          "Last Logon Date": user.TRDAT
+                      }))
+                  };
+              }),
       };
 
       //----------PIE CHART - BASED ON USER ROLES COUNT BY ROLE ASSIGNED------------
@@ -399,6 +536,7 @@ export class DashboardService {
       });
 
       console.table(activeUserTypeData);
+      console.log("Transformed Active User Type Data:", JSON.stringify(transformedActiveUserTypeData, null, 2));
       console.table(activeUserRoleCountData);
       console.table(getTopRolesByActiveUserCount);
       console.table(getTopTransactionsByActiveUsers);
